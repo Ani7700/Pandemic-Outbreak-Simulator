@@ -1,0 +1,1267 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Vaccination &amp; Outbreak Risk — England</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#003078">
+<meta name="mobile-web-app-capable" content="yes">
+<!-- iOS Safari -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Vax Risk">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  /* ─── Design system: NHS / UKHSA public-health tool ─── */
+  :root {
+    --paper:      #ffffff;
+    --paper-2:    #f3f2f1;   /* GOV.UK light grey */
+    --ink:        #0b0c0c;   /* GOV.UK near-black */
+    --ink-soft:   #505a5f;
+    --muted:      #6f777b;
+    --line:       #b1b4b6;
+    --line-soft:  #dee0e2;
+    --accent:     #1d70b8;   /* GOV.UK blue */
+    --accent-2:   #5694ca;
+    --accent-bg:  #e8f0f9;
+    --navy:       #003078;   /* GOV.UK dark blue (header) */
+    --good:       #00703c;   /* GOV.UK green */
+    --bad:        #d4351c;   /* GOV.UK red */
+    --warn:       #f47738;
+    --focus:      #ffdd00;   /* GOV.UK focus yellow */
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--paper-2);
+    color: var(--ink);
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 16px; line-height: 1.5;
+  }
+
+  /* ── Header ── */
+  .topbar {
+    background: var(--navy);
+    padding: 0 28px;
+    border-bottom: 5px solid var(--accent);
+  }
+  .topbar-inner {
+    display: flex; align-items: stretch; justify-content: space-between;
+    max-width: 1480px; margin: 0 auto;
+  }
+  .brand {
+    display: flex; align-items: center; gap: 12px;
+    color: white; font-size: 15px; font-weight: 700;
+    padding: 12px 0; text-decoration: none;
+    border-bottom: none; letter-spacing: 0;
+  }
+  .brand .crown {
+    background: white; color: var(--navy);
+    font-size: 10px; font-weight: 900; padding: 3px 6px;
+    letter-spacing: 1px; text-transform: uppercase;
+  }
+  .brand span { font-weight: 400; color: #cdd4e0; font-size: 13px; margin-left: 4px; }
+  .topbar nav { display: flex; align-items: stretch; }
+  .topbar nav a {
+    display: flex; align-items: center;
+    color: #cdd4e0; text-decoration: none; font-size: 14px;
+    padding: 0 14px; border-bottom: 4px solid transparent;
+    transition: border-color 0.1s;
+  }
+  .topbar nav a:hover { color: white; border-bottom-color: var(--accent-2); }
+  .topbar nav a.active { color: white; border-bottom-color: var(--focus); }
+
+  /* ── Layout ── */
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(500px, 600px) 1fr;
+    gap: 24px;
+    max-width: 1480px;
+    margin: 0 auto;
+    padding: 20px 28px 60px;
+  }
+  @media (max-width: 1100px) { .layout { grid-template-columns: 1fr; } }
+
+  /* ── Panels ── */
+  .panel {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 0;          /* flat, no rounding */
+    border-top: 4px solid var(--line);
+    padding: 16px 18px;
+    margin-bottom: 14px;
+  }
+  .panel.hl {
+    border-top-color: var(--accent);
+    background: var(--accent-bg);
+  }
+  .section-label {
+    font-size: 12px; font-weight: 700; color: var(--ink-soft);
+    text-transform: none; letter-spacing: 0;
+    margin: 0 0 4px; display: block;
+  }
+  .panel-title {
+    font-size: 18px; font-weight: 700; margin: 2px 0 10px;
+    color: var(--ink);
+  }
+
+  /* ── Disease selector ── */
+  .disease-row {
+    display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 12px; align-items: center;
+  }
+  .disease-label {
+    font-size: 12px; font-weight: 700; color: var(--ink-soft);
+    margin-right: 4px; white-space: nowrap;
+  }
+  .disease-btn {
+    border: 2px solid var(--line); border-radius: 0;
+    padding: 4px 10px; font-size: 13px; font-weight: 600; cursor: pointer;
+    background: var(--paper); color: var(--ink-soft);
+    font-family: inherit; transition: border-color 0.1s, background 0.1s;
+  }
+  .disease-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .disease-btn:focus { outline: 3px solid var(--focus); outline-offset: 0; }
+  .disease-btn.active {
+    background: var(--accent); color: white;
+    border-color: var(--accent);
+  }
+
+  /* ── Search / postcode ── */
+  .search-section { margin: 0 0 10px; }
+  .search-row-label {
+    font-size: 14px; font-weight: 700; color: var(--ink);
+    display: block; margin-bottom: 4px;
+  }
+  .map-search { display: flex; gap: 0; margin-bottom: 10px; }
+  .map-search input {
+    flex: 1; font-size: 16px; padding: 7px 10px;
+    border: 2px solid var(--ink); border-radius: 0;
+    background: white; font-family: inherit;
+  }
+  .map-search input:focus { outline: 3px solid var(--focus); outline-offset: 0; }
+  .postcode-row { display: flex; gap: 0; margin-bottom: 2px; }
+  .postcode-row input {
+    flex: 1; font-size: 16px; padding: 7px 10px;
+    border: 2px solid var(--ink); border-right: none; border-radius: 0;
+    background: white; font-family: inherit;
+    text-transform: uppercase; letter-spacing: 1px;
+  }
+  .postcode-row input::placeholder { text-transform: none; letter-spacing: 0; color: var(--muted); }
+  .postcode-row input:focus { outline: 3px solid var(--focus); outline-offset: 0; }
+  .postcode-row button {
+    padding: 7px 16px; border: 2px solid var(--ink); border-radius: 0;
+    background: var(--ink); color: white; cursor: pointer;
+    font-size: 16px; font-weight: 700; font-family: inherit;
+    white-space: nowrap; transition: background 0.1s;
+  }
+  .postcode-row button:hover { background: var(--ink-soft); }
+  .postcode-row button:focus { outline: 3px solid var(--focus); outline-offset: 0; }
+  .postcode-status { font-size: 13px; color: var(--muted); min-height: 16px; margin-top: 4px; }
+
+  /* ── Map ── */
+  .map-wrap {
+    position: relative;
+    background: #eaecee;
+    border: 1px solid var(--line);
+    padding: 2px;
+    min-height: 560px;
+    margin-top: 8px;
+  }
+  #map { width: 100%; height: auto; display: block; }
+  .utla-poly {
+    stroke: rgba(255,255,255,0.4); stroke-width: 0.3;
+    cursor: pointer; transition: stroke 0.1s, stroke-width 0.1s;
+  }
+  .utla-poly:hover { stroke: var(--ink); stroke-width: 1.5; }
+  .utla-poly.selected { stroke: var(--ink); stroke-width: 2.5; }
+  .utla-poly.approx { fill-opacity: 0.85; }
+  .utla-hatch { pointer-events: none; }
+
+  .map-tooltip {
+    position: absolute; pointer-events: none;
+    background: var(--ink); color: white;
+    padding: 6px 10px; border-radius: 0;
+    font-size: 13px; line-height: 1.35;
+    opacity: 0; transition: opacity 0.1s;
+    z-index: 50; white-space: nowrap;
+  }
+  .map-tooltip b { font-weight: 700; }
+  .map-tooltip .num { color: #7ecef4; font-weight: 700; }
+
+  .legend {
+    display: flex; align-items: center; gap: 8px;
+    margin-top: 6px; font-size: 12px; color: var(--muted);
+  }
+  .legend .bar {
+    flex: 1; height: 8px;
+    background: linear-gradient(to right, #c0392b 0%, #e67e22 45%, #27ae60 80%, #1a6b3a 100%);
+  }
+
+  .quick-list { font-size: 13px; margin-top: 14px; }
+  .quick-list-title {
+    font-size: 12px; font-weight: 700; color: var(--ink-soft);
+    border-bottom: 1px solid var(--line); padding-bottom: 4px; margin-bottom: 4px;
+  }
+  .quick-list ul { list-style: none; padding: 0; margin: 0; }
+  .quick-list li {
+    display: flex; justify-content: space-between;
+    padding: 5px 4px; border-bottom: 1px solid var(--line-soft); cursor: pointer;
+    transition: background 0.1s;
+  }
+  .quick-list li:last-child { border-bottom: none; }
+  .quick-list li:hover { background: var(--paper-2); }
+  .quick-list .pct { font-weight: 700; color: var(--bad); font-size: 14px; }
+  .quick-list .pct.good { color: var(--good); }
+
+  /* ── Right panel ── */
+  .region-head {
+    border-left: 5px solid var(--accent);
+    padding-left: 14px; margin-bottom: 14px;
+  }
+  .region-head h2 {
+    font-weight: 700; margin: 0 0 3px; font-size: 28px; color: var(--ink);
+  }
+  .region-head .pop { color: var(--ink-soft); font-size: 14px; }
+  .region-head .pop b { color: var(--ink); font-weight: 700; }
+
+  .actual-row {
+    display: flex; align-items: baseline; gap: 8px; margin-top: 6px;
+    font-size: 14px; flex-wrap: wrap;
+  }
+  .actual-row b { font-size: 22px; font-weight: 700; }
+  .actual-row .ctx { color: var(--muted); }
+
+  .headline-row { display: grid; grid-template-columns: 1.1fr 1fr; gap: 18px; align-items: center; }
+  @media (max-width: 720px) { .headline-row { grid-template-columns: 1fr; } }
+  .big-num {
+    font-size: 64px; font-weight: 700; line-height: 1;
+    color: var(--bad); margin: 0;
+  }
+  .big-num small {
+    font-size: 18px; font-weight: 400; color: var(--ink);
+    display: block; margin-top: 2px;
+  }
+  .big-sub { color: var(--muted); font-size: 13px; margin-top: 6px; }
+
+  .icon-array {
+    display: grid; grid-template-columns: repeat(10, 1fr); gap: 3px;
+    max-width: 220px;
+  }
+  .icon-array span {
+    aspect-ratio: 1; background: var(--line-soft); border-radius: 1px;
+    transition: background 0.3s;
+  }
+  .icon-array span.unvax { background: var(--bad); }
+
+  /* ── Slider ── */
+  .slider-row { display: flex; align-items: center; gap: 14px; }
+  .slider-row input[type=range] {
+    flex: 1; height: 4px; appearance: none; background: transparent;
+  }
+  .slider-row input[type=range]::-webkit-slider-runnable-track {
+    height: 4px; background: var(--line); border-radius: 0;
+  }
+  .slider-row input[type=range]::-webkit-slider-thumb {
+    appearance: none; width: 24px; height: 24px; background: var(--accent);
+    border-radius: 0; margin-top: -10px; cursor: pointer; border: 2px solid white;
+    box-shadow: 0 0 0 2px var(--accent);
+  }
+  .slider-row input[type=range]::-moz-range-track { height: 4px; background: var(--line); }
+  .slider-row input[type=range]::-moz-range-thumb {
+    width: 24px; height: 24px; background: var(--accent);
+    border: 2px solid white; border-radius: 0; cursor: pointer;
+  }
+  .slider-value { font-size: 36px; font-weight: 700; min-width: 92px; text-align: right; color: var(--ink); }
+  .slider-baseline { font-size: 12px; color: var(--muted); margin-top: 4px; display: flex; justify-content: space-between; }
+  .slider-baseline .mark { color: var(--accent); font-weight: 700; }
+
+  .sim-note {
+    font-size: 13px; color: var(--ink-soft);
+    background: var(--paper-2); border-left: 4px solid var(--line);
+    padding: 8px 12px; margin-top: 10px; line-height: 1.45;
+  }
+
+  /* ── Prototype cards ── */
+  .proto-section { margin-bottom: 16px; }
+  .proto-section-label {
+    font-size: 14px; font-weight: 700; color: var(--ink);
+    margin-bottom: 8px; display: block;
+    border-bottom: 2px solid var(--line); padding-bottom: 4px;
+  }
+  .proto-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .proto-card {
+    border: 2px solid var(--line); border-radius: 0;
+    padding: 10px 12px; cursor: pointer;
+    background: var(--paper); transition: border-color 0.1s;
+    text-align: left; font-family: inherit; width: 100%;
+  }
+  .proto-card:hover { border-color: var(--accent); }
+  .proto-card:focus { outline: 3px solid var(--focus); outline-offset: 0; }
+  .proto-card.active { border-color: var(--accent); border-left-width: 5px; background: var(--accent-bg); }
+  .proto-name { font-weight: 700; font-size: 13px; color: var(--ink); margin-bottom: 3px; }
+  .proto-card.active .proto-name { color: var(--accent); }
+  .proto-tagline { font-size: 12px; color: var(--ink-soft); line-height: 1.4; margin: 0 0 4px; }
+  .proto-cite { font-size: 11px; color: var(--accent); font-style: italic; font-weight: 600; }
+
+  .chart-wrap { position: relative; height: 300px; }
+  .chart-caption { font-size: 13px; color: var(--muted); margin-top: 6px; line-height: 1.4; }
+
+  /* ── Outcomes ── */
+  .outcomes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border: 1px solid var(--line); }
+  @media (max-width: 720px) { .outcomes { grid-template-columns: 1fr; } }
+  .outcome {
+    background: white; border-right: 1px solid var(--line);
+    padding: 14px 16px; border-radius: 0;
+  }
+  .outcome:last-child { border-right: none; }
+  .outcome .label { font-size: 12px; font-weight: 700; color: var(--ink-soft); margin-bottom: 4px; }
+  .outcome .v { font-size: 28px; font-weight: 700; margin: 4px 0 0; }
+  .outcome .delta { font-size: 13px; margin-top: 2px; }
+  .outcome .delta.up { color: var(--bad); font-weight: 600; }
+  .outcome .delta.dn { color: var(--good); font-weight: 600; }
+
+  .narrative {
+    border-left: 5px solid var(--accent);
+    padding: 8px 0 8px 16px; margin: 6px 0 0;
+    font-size: 16px; line-height: 1.6; color: var(--ink-soft);
+    background: var(--accent-bg);
+    padding-right: 12px;
+  }
+  .narrative em { color: var(--accent); font-style: normal; font-weight: 700; }
+
+  details {
+    background: white; border: 1px solid var(--line);
+    border-radius: 0; padding: 12px 16px; margin-top: 8px;
+  }
+  details summary { cursor: pointer; color: var(--accent); font-weight: 700; font-size: 14px; }
+  details p { color: var(--ink-soft); margin: 8px 0; font-size: 14px; }
+  details code { background: var(--paper-2); padding: 1px 5px; font-size: 12px; border: 1px solid var(--line); }
+
+  .err { color: var(--bad); font-weight: 700; font-size: 18px; }
+  .loading { text-align: center; padding: 60px; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      Childhood Vaccination Coverage &amp; Outbreak Risk
+    </div>
+    <nav>
+      <a href="#" class="active">Explore</a>
+      <a href="#" onclick="document.getElementById('how').open=true;return false;">Methodology</a>
+    </nav>
+  </div>
+</div>
+
+<div class="layout" id="app">
+  <aside>
+    <div class="panel">
+      <span class="section-label">Select area</span>
+      <h3 class="panel-title">Find your local authority</h3>
+
+      <!-- Disease / vaccine selector -->
+      <div class="disease-row">
+        <span class="disease-label">Vaccine</span>
+        <button class="disease-btn active" data-disease="mmr2">MMR2</button>
+        <button class="disease-btn" data-disease="mmr1">MMR1</button>
+        <button class="disease-btn" data-disease="dtap">DTaP</button>
+        <button class="disease-btn" data-disease="menb">MenB</button>
+        <button class="disease-btn" data-disease="pcv">PCV</button>
+        <button class="disease-btn" data-disease="rota">Rota</button>
+      </div>
+
+      <!-- Search by name -->
+      <div class="search-section">
+        <div class="search-row-label">Search by name</div>
+        <div class="map-search">
+          <input id="search" type="text" placeholder="e.g. Hackney, Sunderland…">
+        </div>
+
+        <!-- Postcode lookup -->
+        <div class="search-row-label">Or enter a postcode</div>
+        <div class="postcode-row">
+          <input id="postcode-input" type="text" placeholder="e.g. SW1A 1AA" maxlength="8">
+          <button id="postcode-btn">Find</button>
+        </div>
+        <div class="postcode-status" id="postcode-status"></div>
+      </div>
+
+      <div class="map-wrap">
+        <svg id="map" viewBox="0 0 560 680" xmlns="http://www.w3.org/2000/svg"
+             aria-label="Map of English local authorities by vaccination coverage">
+          <defs>
+            <pattern id="approxHatch" patternUnits="userSpaceOnUse" width="5" height="5" patternTransform="rotate(45)">
+              <rect width="5" height="5" fill="transparent"/>
+              <line x1="0" y1="0" x2="0" y2="5" stroke="rgba(31,41,55,0.45)" stroke-width="1"/>
+            </pattern>
+          </defs>
+        </svg>
+        <div id="map-tooltip" class="map-tooltip"></div>
+      </div>
+
+      <div class="legend">
+        <span>55%</span>
+        <div class="bar"></div>
+        <span>96%</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:2px;">
+        <span>danger</span>
+        <span id="legend-thresh-label">herd-immunity threshold ≈ 93%</span>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-top:8px" id="data-note">
+        All 152 local authorities · UKHSA COVER Q3 2025–26 · direct UTLA-level
+        for 130, weighted GP-level aggregation for 22 shire counties.
+      </div>
+
+      <div class="quick-list">
+        <div class="quick-list-title" id="worst-list-title">Lowest coverage in England</div>
+        <ul id="worst-list"></ul>
+      </div>
+    </div>
+
+    <details id="how">
+      <summary>How this works</summary>
+      <p>Each local authority is shaded by its <b>real Q3 2025–26 vaccination coverage</b>
+      (UKHSA COVER programme). Population data comes from ONS mid-2024 estimates.</p>
+      <p>The outbreak simulator uses a <b>50-run stochastic SDE measles model</b>
+      (Chen &amp; Zilka 2025), calibrated on measles parameters regardless of which
+      vaccine is selected for the map view. The slider lets you explore hypothetical
+      coverage scenarios for the measles simulation.</p>
+      <p>Trajectories are pre-computed per NHS region across 11 coverage levels (50%–98%),
+      then scaled to each local authority's population.</p>
+      <p><b>MMR2 &amp; MMR1</b>: UKHSA 5-year cohort table (T7_UTLA5y).
+      <b>MenB, PCV, Rotavirus</b>: 12-month cohort table (T5_UTLA12m) — 149 UTLAs;
+      3 shire counties not separately reported.
+      <b>DTaP</b>: 5-year cohort table (T7_UTLA5y).</p>
+    </details>
+  </aside>
+
+  <section id="right">
+    <div class="loading">Loading map and data…</div>
+  </section>
+</div>
+
+<script>
+// ===========================================================
+// Constants
+// ===========================================================
+const COVERAGES = [
+  "0.50","0.55","0.60","0.65","0.70","0.75","0.80","0.85","0.90","0.95","0.98"
+];
+// index 8 = 0.90 (default)
+
+const DISEASES = {
+  mmr2: {
+    label:       "MMR2 (Measles 2nd dose)",
+    shortLabel:  "MMR2 coverage",
+    field:       "mmr2",
+    herd:        0.93,
+    herdLabel:   "herd-immunity threshold ≈ 93%",
+    dataNote:    "152 local authorities · UKHSA COVER Q3 2025–26 · direct UTLA-level for 130, weighted GP aggregation for 22 shire counties."
+  },
+  mmr1: {
+    label:       "MMR1 (Measles 1st dose)",
+    shortLabel:  "MMR1 coverage",
+    field:       "mmr1",
+    herd:        0.93,
+    herdLabel:   "herd-immunity threshold ≈ 93%",
+    dataNote:    "152 local authorities · UKHSA COVER Q3 2025–26 · 5-year cohort table (T7_UTLA5y)."
+  },
+  dtap: {
+    label:       "DTaP/IPV/Hib/HepB (5-in-1)",
+    shortLabel:  "DTaP 5-in-1 coverage",
+    field:       "dtap",
+    herd:        0.92,
+    herdLabel:   "target threshold ≈ 92% (pertussis R₀ ≈ 12)",
+    dataNote:    "152 local authorities · UKHSA COVER Q3 2025–26 · 5-year cohort table (T7_UTLA5y)."
+  },
+  menb: {
+    label:       "MenB (Meningococcal B)",
+    shortLabel:  "MenB coverage",
+    field:       "menb",
+    herd:        0.80,
+    herdLabel:   "target threshold ≈ 80%",
+    dataNote:    "149 local authorities · UKHSA COVER Q3 2025–26 · 12-month cohort table (T5_UTLA12m)."
+  },
+  pcv: {
+    label:       "PCV (Pneumococcal)",
+    shortLabel:  "PCV coverage",
+    field:       "pcv",
+    herd:        0.70,
+    herdLabel:   "target threshold ≈ 70%",
+    dataNote:    "149 local authorities · UKHSA COVER Q3 2025–26 · 12-month cohort table (T5_UTLA12m)."
+  },
+  rota: {
+    label:       "Rotavirus",
+    shortLabel:  "Rotavirus coverage",
+    field:       "rota",
+    herd:        0.75,
+    herdLabel:   "target threshold ≈ 75%",
+    dataNote:    "149 local authorities · UKHSA COVER Q3 2025–26 · 12-month cohort table (T5_UTLA12m)."
+  },
+};
+
+// Prototype definitions with academic design origins
+const PROTOTYPES = [
+  {
+    id:       "fan",
+    name:     "Fan band",
+    tagline:  "Gradient shading encodes probabilistic range more naturally than error bars alone.",
+    cite:     "Correll & Gleicher, 2014",
+    framing:  "statistical",
+    uncert:   "fan",
+  },
+  {
+    id:       "ensemble",
+    name:     "Ensemble lines",
+    tagline:  "Individual trajectories help users reason about the frequency of outcomes.",
+    cite:     "Padilla, Kay & Hullman, 2021",
+    framing:  "statistical",
+    uncert:   "ensemble",
+  },
+  {
+    id:       "hops",
+    name:     "HOPs (animated)",
+    tagline:  "Cycling through random draws produces more accurate probability judgements.",
+    cite:     "Hullman, Resnick & Adar, 2015",
+    framing:  "statistical",
+    uncert:   "hops",
+  },
+  {
+    id:       "narrative",
+    name:     "Narrative framing",
+    tagline:  "Verbal uncertainty language maintains reader trust and reduces over-confidence.",
+    cite:     "van der Bles et al., 2019",
+    framing:  "narrative",
+    uncert:   "fan",
+  },
+];
+
+// ===========================================================
+// State
+// ===========================================================
+let GEO = null;
+let UTLA = null;
+let GRID = null;
+let chart = null;
+let hopsTimer = null;
+
+const STATE = {
+  utlaCode:     null,
+  covIdx:       8,          // default 90%
+  disease:      "mmr2",
+  framing:      "statistical",
+  uncert:       "fan",
+  protoId:      "fan",
+  followActual: true,
+};
+
+const $ = id => document.getElementById(id);
+
+// ===========================================================
+// Color scale
+// ===========================================================
+function lerp(a, b, t) { return a + (b - a) * t; }
+function hexToRgb(h) {
+  const x = h.replace("#","");
+  return [parseInt(x.slice(0,2),16), parseInt(x.slice(2,4),16), parseInt(x.slice(4,6),16)];
+}
+function rgbToHex([r,g,b]) {
+  return "#" + [r,g,b].map(v => Math.max(0,Math.min(255,Math.round(v))).toString(16).padStart(2,"0")).join("");
+}
+function lerpColor(a, b, t) {
+  const [ar,ag,ab] = hexToRgb(a), [br,bg,bb] = hexToRgb(b);
+  return rgbToHex([lerp(ar,br,t), lerp(ag,bg,t), lerp(ab,bb,t)]);
+}
+// Diverging gradient: 0.55 deep red → 0.85 amber → 0.93 sage → 0.96 deep green
+function coverageColor(c) {
+  if (c == null || isNaN(c)) return "#CFCAB9";
+  if (c <= 0.55) return "#8C3A2B";
+  if (c <  0.85) return lerpColor("#8C3A2B", "#E1A95F", (c-0.55)/0.30);
+  if (c <  0.93) return lerpColor("#E1A95F", "#6B8E5A", (c-0.85)/0.08);
+  if (c <  0.96) return lerpColor("#6B8E5A", "#355E3B", (c-0.93)/0.03);
+  return "#355E3B";
+}
+
+// ===========================================================
+// Bootstrap
+// ===========================================================
+Promise.all([
+  fetch('utla.geojson').then(r => r.json()),
+  fetch('utla_data.json').then(r => r.json()),
+  fetch('../sim_outputs/grid.json').then(r => r.json()),
+]).then(([geo, utla, grid]) => {
+  GEO = geo; UTLA = utla; GRID = grid;
+  const defaultCode = "E09000012"; // Hackney
+  STATE.utlaCode = UTLA[defaultCode] ? defaultCode : Object.keys(UTLA)[0];
+
+  buildRightPanel();
+  initIconArray();
+  initChart();
+  wirePrototypeCards();
+  wireDiseaseButtons();
+  wirePostcode();
+
+  $('coverage').addEventListener('input', () => {
+    STATE.covIdx = parseInt($('coverage').value, 10);
+    STATE.followActual = false;
+    render();
+  });
+  $('search').addEventListener('input', filterMap);
+
+  renderMap();
+  buildWorstList();
+  render();
+}).catch(err => {
+  $('app').innerHTML = `<div class="err" style="padding:40px">
+    Couldn't load data: ${err.message}</div>
+    <p style="padding:0 40px">Start a local server from <code>offline_morl-main/</code>:
+    <code>python3 -m http.server 8000</code> then open
+    <code>http://localhost:8000/frontend/</code></p>`;
+});
+
+// ===========================================================
+// Map rendering
+// ===========================================================
+function renderMap() {
+  const svg = $('map');
+  let minLon = Infinity, maxLon = -Infinity, minLat = Infinity, maxLat = -Infinity;
+  GEO.features.forEach(f => {
+    eachCoord(f.geometry, ([lon, lat]) => {
+      if (lon < minLon) minLon = lon;
+      if (lon > maxLon) maxLon = lon;
+      if (lat < minLat) minLat = lat;
+      if (lat > maxLat) maxLat = lat;
+    });
+  });
+  const meanLat = (minLat + maxLat) / 2;
+  const latCorr = Math.cos(meanLat * Math.PI / 180);
+
+  const VW = 560, VH = 680, PAD = 8;
+  const rawW = (maxLon - minLon) * latCorr;
+  const rawH = (maxLat - minLat);
+  const sx = (VW - 2*PAD) / rawW;
+  const sy = (VH - 2*PAD) / rawH;
+  const s = Math.min(sx, sy);
+  const offX = PAD + ((VW - 2*PAD) - rawW * s) / 2;
+  const offY = PAD + ((VH - 2*PAD) - rawH * s) / 2;
+
+  function proj([lon, lat]) {
+    return [offX + (lon - minLon) * latCorr * s, offY + (maxLat - lat) * s];
+  }
+  function ringToPath(ring) {
+    return ring.map((pt, i) => {
+      const [x, y] = proj(pt);
+      return (i ? "L " : "M ") + x.toFixed(1) + " " + y.toFixed(1);
+    }).join(" ") + " Z";
+  }
+  function geomToPath(g) {
+    if (g.type === "Polygon") return g.coordinates.map(ringToPath).join(" ");
+    if (g.type === "MultiPolygon")
+      return g.coordinates.map(poly => poly.map(ringToPath).join(" ")).join(" ");
+    return "";
+  }
+
+  const defs = svg.querySelector("defs");
+  svg.innerHTML = "";
+  if (defs) svg.appendChild(defs);
+
+  GEO.features.forEach(f => {
+    const code = f.properties.code;
+    const data = UTLA[code];
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", geomToPath(f.geometry));
+    path.setAttribute("class", "utla-poly" + (data && data.approx ? " approx" : ""));
+    const covVal = data ? data[DISEASES[STATE.disease].field] : null;
+    path.setAttribute("fill", data ? coverageColor(covVal) : "#CFCAB9");
+    path.dataset.code = code;
+    path.dataset.name = f.properties.name;
+    if (data) {
+      path.addEventListener("mouseenter", e => showTooltip(e, code, data));
+      path.addEventListener("mousemove", moveTooltip);
+      path.addEventListener("mouseleave", hideTooltip);
+      path.addEventListener("click", () => {
+        STATE.utlaCode = code;
+        STATE.followActual = true;
+        render();
+      });
+    }
+    svg.appendChild(path);
+  });
+
+  // Hatch overlay for county aggregations
+  GEO.features.forEach(f => {
+    const code = f.properties.code;
+    const data = UTLA[code];
+    if (!(data && data.approx)) return;
+    const hatch = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    hatch.setAttribute("d", geomToPath(f.geometry));
+    hatch.setAttribute("class", "utla-hatch");
+    hatch.setAttribute("fill", "url(#approxHatch)");
+    hatch.setAttribute("stroke", "none");
+    svg.appendChild(hatch);
+  });
+
+  paintSelection();
+}
+
+// Fast re-color without re-projecting (called on disease switch)
+function repaintMapColors() {
+  document.querySelectorAll(".utla-poly").forEach(p => {
+    const code = p.dataset.code;
+    const data = UTLA[code];
+    if (!data) return;
+    const covVal = data[DISEASES[STATE.disease].field];
+    p.setAttribute("fill", coverageColor(covVal));
+  });
+}
+
+function eachCoord(geom, fn) {
+  if (geom.type === "Polygon") geom.coordinates.forEach(r => r.forEach(fn));
+  else if (geom.type === "MultiPolygon") geom.coordinates.forEach(p => p.forEach(r => r.forEach(fn)));
+}
+
+function paintSelection() {
+  document.querySelectorAll(".utla-poly").forEach(p => {
+    p.classList.toggle("selected", p.dataset.code === STATE.utlaCode);
+  });
+}
+
+function showTooltip(e, code, data) {
+  const tt = $('map-tooltip');
+  const dis = DISEASES[STATE.disease];
+  const covVal = data[dis.field];
+  const covStr = covVal != null ? `${(covVal*100).toFixed(1)}%` : "no data";
+  const approxLine = data.approx
+    ? `<br><span style="color:#C9A99A;font-size:11px">regional avg · UKHSA does not report this county separately</span>`
+    : "";
+  tt.innerHTML = `<b>${data.name}</b><br>${dis.shortLabel}: <span class="num">${covStr}</span> · pop ${data.pop.toLocaleString()}${approxLine}`;
+  tt.style.opacity = 1;
+  moveTooltip(e);
+}
+function moveTooltip(e) {
+  const tt = $('map-tooltip');
+  const wrap = tt.parentElement.getBoundingClientRect();
+  tt.style.left = (e.clientX - wrap.left + 12) + "px";
+  tt.style.top  = (e.clientY - wrap.top + 12) + "px";
+}
+function hideTooltip() { $('map-tooltip').style.opacity = 0; }
+
+function filterMap() {
+  const q = $('search').value.trim().toLowerCase();
+  document.querySelectorAll(".utla-poly").forEach(p => {
+    const name = (p.dataset.name || "").toLowerCase();
+    p.style.opacity = (q === "" || name.includes(q)) ? 1 : 0.18;
+  });
+}
+
+function buildWorstList() {
+  const field = DISEASES[STATE.disease].field;
+  const sorted = Object.entries(UTLA)
+    .filter(([, d]) => d[field] != null)
+    .sort((a,b) => a[1][field] - b[1][field])
+    .slice(0, 6);
+  const ul = $('worst-list');
+  ul.innerHTML = "";
+  const thresh = DISEASES[STATE.disease].herd;
+  sorted.forEach(([code, d]) => {
+    const val = d[field];
+    const li = document.createElement('li');
+    const cls = val >= thresh ? "good" : "";
+    li.innerHTML = `<span>${d.name}</span><span class="pct ${cls}">${(val*100).toFixed(1)}%</span>`;
+    li.addEventListener('click', () => {
+      STATE.utlaCode = code; STATE.followActual = true; render();
+    });
+    ul.appendChild(li);
+  });
+  $('worst-list-title').textContent = `Lowest ${DISEASES[STATE.disease].shortLabel} in England`;
+}
+
+// ===========================================================
+// Disease buttons
+// ===========================================================
+function wireDiseaseButtons() {
+  document.querySelectorAll('.disease-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.disease-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      STATE.disease = btn.dataset.disease;
+      $('legend-thresh-label').textContent = DISEASES[STATE.disease].herdLabel;
+      $('data-note').textContent = DISEASES[STATE.disease].dataNote;
+      repaintMapColors();
+      buildWorstList();
+      render();
+    });
+  });
+}
+
+// ===========================================================
+// Postcode lookup (postcodes.io — no API key required)
+// ===========================================================
+function wirePostcode() {
+  $('postcode-btn').addEventListener('click', lookupPostcode);
+  $('postcode-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') lookupPostcode();
+  });
+}
+
+async function lookupPostcode() {
+  const raw = $('postcode-input').value.trim();
+  if (!raw) return;
+  const pc = raw.replace(/\s+/g, '').toUpperCase();
+  $('postcode-status').textContent = 'Looking up…';
+  $('postcode-status').style.color = 'var(--muted)';
+  try {
+    const r = await fetch(`https://api.postcodes.io/postcodes/${encodeURIComponent(pc)}`);
+    const j = await r.json();
+    if (j.status !== 200 || !j.result) {
+      $('postcode-status').textContent = 'Postcode not found — check spelling and try again';
+      $('postcode-status').style.color = 'var(--bad)';
+      return;
+    }
+    const codes = j.result.codes || {};
+    // England has two-tier and unitary authorities.
+    // postcodes.io returns admin_district (district/borough/unitary) AND
+    // admin_county (county, non-empty only for two-tier shire areas).
+    // Our UTLA dataset uses UPPER-tier codes, so:
+    //   unitary / met borough / London borough → admin_district IS the UTLA
+    //   shire county (e.g. Cambridgeshire) → admin_district is the district (not in UTLA),
+    //   but admin_county IS the UTLA.
+    const distCode   = codes.admin_district || "";
+    const countyCode = codes.admin_county   || "";
+    const utlaCode   = UTLA[distCode] ? distCode
+                     : UTLA[countyCode] ? countyCode
+                     : null;
+    if (utlaCode) {
+      STATE.utlaCode = utlaCode;
+      STATE.followActual = true;
+      render();
+      $('postcode-status').textContent = `✓ ${UTLA[utlaCode].name}`;
+      $('postcode-status').style.color = 'var(--good)';
+    } else {
+      $('postcode-status').textContent = 'Could not match this postcode to a local authority in the dataset';
+      $('postcode-status').style.color = 'var(--warn)';
+    }
+  } catch(err) {
+    $('postcode-status').textContent = 'Lookup failed — check network connection';
+    $('postcode-status').style.color = 'var(--bad)';
+  }
+}
+
+// ===========================================================
+// Right panel
+// ===========================================================
+function buildRightPanel() {
+  $('right').innerHTML = `
+    <div class="region-head">
+      <h2 id="utla-name">—</h2>
+      <div class="pop">
+        <span id="utla-region">—</span> · population <b id="utla-pop">—</b>
+        · about <b id="utla-under5">—</b> children under 5
+      </div>
+      <div class="actual-row">
+        <span class="ctx" id="utla-actual-label">UKHSA Q3 2025–26 MMR2:</span>
+        <b id="utla-actual">—</b>
+        <span class="ctx" id="utla-actual-ctx"></span>
+      </div>
+    </div>
+
+    <div class="panel hl">
+      <span class="section-label">At this hypothetical coverage level</span>
+      <div class="headline-row">
+        <div>
+          <p class="big-num"><span id="unvax-count">—</span> in 100<small>children unvaccinated</small></p>
+          <div class="big-sub">
+            About <b id="unvax-abs">—</b> children under 5 not fully protected.
+          </div>
+        </div>
+        <div class="icon-array" id="icon-array" aria-hidden="true"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <span class="section-label">Scenario explorer</span>
+      <h3 class="panel-title">Adjust hypothetical measles coverage</h3>
+      <div class="slider-row">
+        <input id="coverage" type="range" min="0" max="10" step="1" value="8">
+        <div class="slider-value"><span id="cov-pct">90%</span></div>
+      </div>
+      <div class="slider-baseline">
+        <span>50%</span>
+        <span class="mark" id="baseline-mark">MMR2 actual ≈ 90%</span>
+        <span>98%</span>
+      </div>
+      <div class="sim-note">
+        Simulation uses the measles SDE model (Chen &amp; Zilka 2025) regardless of which vaccine
+        is selected on the map. The slider controls hypothetical measles/MMR coverage for the
+        outbreak projection.
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="proto-section">
+        <span class="proto-section-label">Uncertainty visualisation — select prototype</span>
+        <div class="proto-cards" id="proto-cards"></div>
+      </div>
+
+      <div id="statistical-view">
+        <div class="chart-wrap"><canvas id="chart"></canvas></div>
+        <div class="chart-caption" id="chart-caption">
+          Daily infections over 6 months — median (line) and 5–95% range (band) across 50 stochastic simulations.
+        </div>
+      </div>
+      <div id="narrative-view" style="display:none">
+        <p class="narrative" id="narrative-text"></p>
+      </div>
+    </div>
+
+    <div class="outcomes">
+      <div class="outcome">
+        <div class="label">Peak infections</div>
+        <div class="v" id="peak-num">—</div>
+        <div class="delta" id="peak-delta"></div>
+      </div>
+      <div class="outcome">
+        <div class="label">Cumulative deaths (180 d)</div>
+        <div class="v" id="death-num">—</div>
+        <div class="delta" id="death-delta"></div>
+      </div>
+      <div class="outcome">
+        <div class="label">Outbreak duration</div>
+        <div class="v" id="dur-num">—</div>
+        <div class="delta" id="dur-delta"></div>
+      </div>
+    </div>
+  `;
+}
+
+// ===========================================================
+// Prototype cards
+// ===========================================================
+function wirePrototypeCards() {
+  const container = $('proto-cards');
+  PROTOTYPES.forEach(p => {
+    const btn = document.createElement('button');
+    btn.className = 'proto-card' + (p.id === STATE.protoId ? ' active' : '');
+    btn.dataset.protoId = p.id;
+    btn.innerHTML = `
+      <div class="proto-name">${p.name}</div>
+      <div class="proto-tagline">${p.tagline}</div>
+      <div class="proto-cite">${p.cite}</div>
+    `;
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.proto-card').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      STATE.protoId  = p.id;
+      STATE.framing  = p.framing;
+      STATE.uncert   = p.uncert;
+      render();
+    });
+    container.appendChild(btn);
+  });
+}
+
+// ===========================================================
+// Icon array
+// ===========================================================
+function initIconArray() {
+  const ar = $('icon-array');
+  for (let i = 0; i < 100; i++) ar.appendChild(document.createElement('span'));
+}
+function paintIconArray(unvax) {
+  const cells = $('icon-array').children;
+  for (let i = 0; i < 100; i++) cells[i].classList.toggle('unvax', i < unvax);
+}
+
+// ===========================================================
+// Chart
+// ===========================================================
+function initChart() {
+  const ctx = $('chart').getContext('2d');
+  chart = new Chart(ctx, {
+    type: 'line',
+    data: { labels: Array.from({length: GRID._meta.days}, (_, i) => i), datasets: [] },
+    options: {
+      animation: { duration: 350 },
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { title: items => "Day " + items[0].label } }
+      },
+      scales: {
+        x: { title: { display: true, text: 'day' }, ticks: { color: '#6B7280', maxTicksLimit: 8 }, grid: { color: '#EFE9DC' } },
+        y: { beginAtZero: true, title: { display: true, text: 'infected' }, ticks: { color: '#6B7280' }, grid: { color: '#EFE9DC' } },
+      },
+    }
+  });
+}
+
+function scaledCell(utlaCode, covKey) {
+  const u = UTLA[utlaCode];
+  const region = u.region;
+  const regCell = GRID.data[region][covKey];
+  const regPop = GRID._meta.regions[region];
+  const k = u.pop / regPop;
+  const scaleArr = arr => arr.map(v => Math.max(0, Math.round(v * k)));
+  return {
+    I: { lo: scaleArr(regCell.I.lo), med: scaleArr(regCell.I.med), hi: scaleArr(regCell.I.hi) },
+    D: { lo: scaleArr(regCell.D.lo), med: scaleArr(regCell.D.med), hi: scaleArr(regCell.D.hi) },
+    samples: regCell.samples ? regCell.samples.map(s => scaleArr(s)) : null,
+  };
+}
+
+function uncertaintyDatasets(cell) {
+  const I = cell.I;
+  const days = I.med.length;
+  const realSamples = cell.samples;
+  function fakeSample(seed) {
+    return Array.from({length: days}, (_, t) => {
+      const u = (Math.sin(seed * 17.3 + t * 0.07) + 1) / 2;
+      return I.lo[t] + u * (I.hi[t] - I.lo[t]);
+    });
+  }
+  function getSample(k) { return (realSamples && realSamples[k]) ? realSamples[k] : fakeSample(k+1); }
+  const nSamples = realSamples ? realSamples.length : 8;
+
+  if (STATE.uncert === "fan") {
+    return [
+      { label: "hi",     data: I.hi,  borderColor: 'transparent', backgroundColor: 'rgba(140,58,43,0.20)', fill: '+1', pointRadius: 0, tension: 0.25 },
+      { label: "lo",     data: I.lo,  borderColor: 'transparent', backgroundColor: 'transparent', fill: false, pointRadius: 0, tension: 0.25 },
+      { label: "median", data: I.med, borderColor: '#8C3A2B', borderWidth: 2.5, fill: false, pointRadius: 0, tension: 0.25 },
+    ];
+  }
+  if (STATE.uncert === "ensemble") {
+    const lines = [];
+    for (let k = 0; k < nSamples; k++) {
+      lines.push({ data: getSample(k), borderColor: 'rgba(140,58,43,0.32)', borderWidth: 1, fill: false, pointRadius: 0, tension: 0.3 });
+    }
+    lines.push({ label: "median", data: I.med, borderColor: '#8C3A2B', borderWidth: 2.5, fill: false, pointRadius: 0, tension: 0.3 });
+    return lines;
+  }
+  // HOPs
+  const pick = Math.floor(Math.random() * nSamples);
+  return [
+    { label: "sample", data: getSample(pick), borderColor: '#8C3A2B', borderWidth: 2,   fill: false, pointRadius: 0, tension: 0.3 },
+    { label: "lo",     data: I.lo,            borderColor: 'rgba(140,58,43,0.18)', borderWidth: 1, fill: false, pointRadius: 0, tension: 0.3, borderDash: [2,3] },
+    { label: "hi",     data: I.hi,            borderColor: 'rgba(140,58,43,0.18)', borderWidth: 1, fill: false, pointRadius: 0, tension: 0.3, borderDash: [2,3] },
+  ];
+}
+
+function updateChart(cell) {
+  chart.data.datasets = uncertaintyDatasets(cell);
+  chart.update();
+  if (hopsTimer) { clearInterval(hopsTimer); hopsTimer = null; }
+  if (STATE.uncert === "hops") {
+    hopsTimer = setInterval(() => {
+      const c = currentCell();
+      chart.data.datasets = uncertaintyDatasets(c);
+      chart.update("none");
+    }, 800);
+  }
+  $('chart-caption').textContent = ({
+    fan:      "Daily infections — median (line) and 5–95% range (shaded band) across 50 stochastic runs, scaled to this local authority’s population.",
+    ensemble: "Eight individual simulation runs. Count how many trajectories cross the value you care about to estimate likelihood.",
+    hops:     "Hypothetical Outcome Plots: each frame shows one plausible outbreak drawn at random. Dotted bounds show the 5–95% range.",
+  })[STATE.uncert];
+}
+
+// ===========================================================
+// Outcomes + narrative
+// ===========================================================
+function deltaText(curr, baseline) {
+  const d = curr - baseline;
+  if (Math.abs(d) < 0.5) return { txt: "same as actual", cls: "" };
+  const sign = d > 0 ? "+" : "−";
+  return { txt: `${sign}${Math.abs(d).toLocaleString()} vs actual coverage`, cls: d > 0 ? "up" : "dn" };
+}
+
+function nearestCoverageKey(c) {
+  let best = COVERAGES[0], bestDiff = 999;
+  for (const k of COVERAGES) {
+    const d = Math.abs(parseFloat(k) - c);
+    if (d < bestDiff) { best = k; bestDiff = d; }
+  }
+  return best;
+}
+
+function currentCell() {
+  return scaledCell(STATE.utlaCode, COVERAGES[STATE.covIdx]);
+}
+
+function updateOutcomes(cell) {
+  const u = UTLA[STATE.utlaCode];
+  const baselineCell = scaledCell(STATE.utlaCode, nearestCoverageKey(u.mmr2));
+  const seed = (GRID._meta.initial_infected || 100) * (u.pop / GRID._meta.regions[u.region]);
+
+  const peakIdx = cell.I.med.indexOf(Math.max(...cell.I.med));
+  const peakVal = cell.I.med[peakIdx];
+  const basePeak = Math.max(...baselineCell.I.med);
+  const deathsEnd = cell.D.med[cell.D.med.length - 1];
+  const baseDeaths = baselineCell.D.med[baselineCell.D.med.length - 1];
+  const dur = cell.I.med.findIndex((v, i) => i > 5 && v < seed * 0.5);
+  const baseDur = baselineCell.I.med.findIndex((v, i) => i > 5 && v < seed * 0.5);
+  const contained = peakVal <= seed * 1.2;
+
+  if (contained) {
+    $('peak-num').textContent = "Contained";
+    $('peak-num').style.color = "var(--good)";
+    $('peak-delta').textContent = "measles can’t spread at this coverage";
+    $('peak-delta').className = "delta dn";
+    $('death-num').textContent = deathsEnd.toLocaleString();
+    $('death-num').style.color = "";
+    const dd = deltaText(deathsEnd, baseDeaths);
+    $('death-delta').textContent = dd.txt; $('death-delta').className = "delta " + dd.cls;
+    $('dur-num').textContent = "—";
+    $('dur-num').style.color = "";
+    $('dur-delta').textContent = "no sustained outbreak";
+    $('dur-delta').className = "delta dn";
+  } else {
+    $('peak-num').textContent = peakVal.toLocaleString();
+    $('peak-num').style.color = "";
+    const pd = deltaText(peakVal, basePeak);
+    $('peak-delta').textContent = pd.txt; $('peak-delta').className = "delta " + pd.cls;
+    $('death-num').textContent = deathsEnd.toLocaleString();
+    $('death-num').style.color = "";
+    const dd = deltaText(deathsEnd, baseDeaths);
+    $('death-delta').textContent = dd.txt; $('death-delta').className = "delta " + dd.cls;
+    const durTxt = dur < 0 ? "> 180 days" : `${dur} days`;
+    $('dur-num').textContent = durTxt; $('dur-num').style.color = "";
+    const durDelta = (dur < 0 ? 180 : dur) - (baseDur < 0 ? 180 : baseDur);
+    $('dur-delta').textContent = durDelta === 0 ? "same as actual" :
+      (durDelta > 0 ? `+${durDelta}` : `${durDelta}`) + " days vs actual";
+    $('dur-delta').className = "delta " + (durDelta > 0 ? "up" : durDelta < 0 ? "dn" : "");
+  }
+}
+
+function updateNarrative(cell) {
+  const u = UTLA[STATE.utlaCode];
+  const cov = parseFloat(COVERAGES[STATE.covIdx]);
+  const peak = Math.max(...cell.I.med);
+  const deaths = cell.D.med[cell.D.med.length - 1];
+  const baselineCell = scaledCell(STATE.utlaCode, nearestCoverageKey(u.mmr2));
+  const baseDeaths = baselineCell.D.med[baselineCell.D.med.length - 1];
+  const diff = deaths - baseDeaths;
+  const seed = (GRID._meta.initial_infected || 100) * (u.pop / GRID._meta.regions[u.region]);
+
+  const unvax = Math.round((1 - cov) * 100);
+  let intro;
+  if (unvax <= 5) {
+    intro = `Imagine a primary-school class of 30 in <em>${u.name}</em>. At <em>${(cov*100)|0}% coverage</em>, roughly 1 or 2 children aren’t fully protected.`;
+  } else if (unvax <= 15) {
+    intro = `Imagine a primary-school class of 30 in <em>${u.name}</em>. At <em>${(cov*100)|0}% coverage</em>, about 3 to 5 children aren’t fully protected.`;
+  } else {
+    intro = `Imagine a primary-school class of 30 in <em>${u.name}</em>. At <em>${(cov*100)|0}% coverage</em>, roughly 7 to 9 of them aren’t fully protected.`;
+  }
+
+  let outcome;
+  if (peak <= seed * 1.2) {
+    outcome = `If measles arrives, the simulation suggests it would <em>fail to take hold</em> — the wall of vaccinated neighbours is thick enough to block sustained spread.`;
+  } else if (peak < 1000) {
+    outcome = `If measles arrives, the model expects <em>a small local cluster</em>: a few hundred infections over months. Around <em>${Math.round(deaths).toLocaleString()} children</em> in ${u.name} would die in the median scenario.`;
+  } else if (peak < 10000) {
+    outcome = `If measles arrives, the model expects <em>a serious local outbreak</em>: cases peaking around <em>${Math.round(peak).toLocaleString()} active infections</em>. In the median scenario, around <em>${Math.round(deaths).toLocaleString()} children</em> in ${u.name} would die.`;
+  } else {
+    outcome = `If measles arrives, the model expects <em>a major epidemic</em>: cases peaking near <em>${Math.round(peak).toLocaleString()} active infections</em> at once. In the median scenario, around <em>${Math.round(deaths).toLocaleString()} children</em> in ${u.name} would die.`;
+  }
+
+  let comparison;
+  if (Math.abs(diff) < 0.5) {
+    comparison = `That’s roughly what would happen today: ${u.name}’s actual MMR2 coverage is about <em>${(u.mmr2*100).toFixed(1)}%</em>.`;
+  } else if (diff > 0) {
+    comparison = `That’s about <em>${Math.abs(Math.round(diff)).toLocaleString()} more deaths</em> than at ${u.name}’s actual coverage (${(u.mmr2*100).toFixed(1)}%).`;
+  } else {
+    comparison = `That’s about <em>${Math.abs(Math.round(diff)).toLocaleString()} fewer deaths</em> than at ${u.name}’s actual coverage (${(u.mmr2*100).toFixed(1)}%).`;
+  }
+
+  $('narrative-text').innerHTML = `${intro} ${outcome} ${comparison}`;
+}
+
+// ===========================================================
+// Render
+// ===========================================================
+function render() {
+  const u = UTLA[STATE.utlaCode];
+  if (!u) return;
+
+  const dis = DISEASES[STATE.disease];
+  const actualCov = u[dis.field] != null ? u[dis.field] : null;
+
+  // Snap slider to MMR2 actual (simulation is always measles-calibrated)
+  if (STATE.followActual) {
+    const snapCov = u.mmr2;
+    let idx = COVERAGES.indexOf(nearestCoverageKey(snapCov));
+    if (idx < 0) idx = 8;
+    STATE.covIdx = idx;
+    $('coverage').value = idx;
+    STATE.followActual = false;
+  }
+
+  paintSelection();
+
+  const cov = parseFloat(COVERAGES[STATE.covIdx]);
+  const covPct = `${(cov*100)|0}%`;
+
+  $('utla-name').textContent = u.name;
+  $('utla-region').textContent = u.region;
+  $('utla-pop').textContent = (u.pop/1e3 >= 100)
+    ? `${(u.pop/1e6).toFixed(2)} million`
+    : `${(u.pop/1e3).toFixed(0)}k`;
+  $('utla-under5').textContent = u.under5.toLocaleString();
+
+  // Disease-specific actual coverage
+  $('utla-actual-label').textContent = `UKHSA Q3 2025–26 ${dis.shortLabel}:`;
+  if (actualCov != null) {
+    $('utla-actual').textContent = `${(actualCov*100).toFixed(1)}%`;
+    const thresh = dis.herd;
+    let ctxNote = actualCov < thresh - 0.08 ? " — well below target threshold"
+                : actualCov < thresh       ? " — approaching herd-immunity threshold"
+                :                            " — at or above threshold";
+    if (u.approx) ctxNote += " (regional average)";
+    $('utla-actual-ctx').textContent = ctxNote;
+    $('utla-actual').style.color = actualCov < thresh - 0.08 ? "var(--bad)"
+      : actualCov < thresh ? "var(--warn)" : "var(--good)";
+  } else {
+    $('utla-actual').textContent = "no data";
+    $('utla-actual-ctx').textContent = " (not reported at county level for this vaccine)";
+    $('utla-actual').style.color = "var(--muted)";
+  }
+
+  $('cov-pct').textContent = covPct;
+  $('unvax-count').textContent = Math.round((1 - cov) * 100);
+  $('unvax-abs').textContent = Math.round((1 - cov) * u.under5).toLocaleString();
+  paintIconArray(Math.round((1 - cov) * 100));
+  $('baseline-mark').textContent = `MMR2 actual ≈ ${(u.mmr2*100).toFixed(1)}%`;
+
+  const cell = currentCell();
+  if (STATE.framing === "narrative") {
+    $('statistical-view').style.display = "none";
+    $('narrative-view').style.display = "block";
+    updateNarrative(cell);
+  } else {
+    $('statistical-view').style.display = "block";
+    $('narrative-view').style.display = "none";
+    updateChart(cell);
+  }
+  updateOutcomes(cell);
+}
+</script>
+
+<script>
+// Register Service Worker for PWA / offline support
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .catch(err => console.warn('SW registration failed:', err));
+  });
+}
+</script>
+</body>
+</html>
