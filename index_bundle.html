@@ -75,9 +75,9 @@ body {
 .view {
   display: none; opacity: 0;
   transition: opacity 0.2s ease;
-  flex: 1;
+  flex: 1; min-height: 0;
 }
-.view.active { display: flex; flex-direction: column; opacity: 1; }
+.view.active { display: flex; flex-direction: column; opacity: 1; min-height: 0; }
 
 /* ════════════════════════════════════════
    HOME VIEW
@@ -85,11 +85,13 @@ body {
 .home-layout {
   display: grid;
   grid-template-columns: 380px 1fr;
+  grid-template-rows: 1fr;
   flex: 1;
   overflow: hidden;
+  min-height: 0;
 }
 @media (max-width: 900px) {
-  .home-layout { grid-template-columns: 1fr; overflow: auto; }
+  .home-layout { grid-template-columns: 1fr; grid-template-rows: auto 1fr; overflow: auto; min-height: 600px; }
 }
 
 /* Left panel */
@@ -200,11 +202,13 @@ body {
   background: #e8eaed;
   display: flex; flex-direction: column;
   overflow: hidden; position: relative;
+  min-height: 0;
 }
 .home-right .map-wrap {
   flex: 1; position: relative; overflow: hidden;
+  min-height: 0;
 }
-#map { width: 100%; height: 100%; object-fit: contain; display: block; }
+#map { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .map-footer {
   background: white; border-top: 1px solid var(--line);
   padding: 8px 16px; display: flex; flex-direction: column; gap: 2px;
