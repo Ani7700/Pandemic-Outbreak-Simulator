@@ -367,9 +367,9 @@ body{
         <div class="comp-grid">
           <div class="comp-card vacc">
             <div class="comp-head vacc">💉 Vaccinated</div>
-            <div class="comp-big vacc">97%</div>
-            <div class="comp-desc">protection against measles (2 doses MMR)</div>
-            <ul class="comp-facts">
+            <div class="comp-big vacc" id="vacc-big">97%</div>
+            <div class="comp-desc" id="vacc-desc">protection against measles (2 doses MMR)</div>
+            <ul class="comp-facts" id="vacc-facts">
               <li>Even if exposed: ~1 in 33 chance of infection</li>
               <li>Serious complications very rare</li>
               <li>Protects others who cannot be vaccinated</li>
@@ -378,7 +378,7 @@ body{
           <div class="comp-card unvacc">
             <div class="comp-head unvacc">⚠ Unvaccinated</div>
             <div class="comp-big unvacc" id="unvacc-big">9 in 10</div>
-            <div class="comp-desc">unvaccinated children catch measles if exposed to an active case</div>
+            <div class="comp-desc" id="unvacc-desc">unvaccinated children catch measles if exposed to an active case</div>
             <ul class="comp-facts" id="unvacc-facts">
               <li id="unvacc-community"></li>
               <li>1 in 15 develop pneumonia</li>
@@ -446,12 +446,66 @@ body{
 // Data & constants
 // ════════════════════════════════════════════════
 const DISEASES = {
-  mmr2:{ label:"MMR2",   field:"mmr2", herd:0.93, herdLabel:"herd immunity ≈ 93%" },
-  mmr1:{ label:"MMR1",   field:"mmr1", herd:0.93, herdLabel:"herd immunity ≈ 93%" },
-  dtap:{ label:"DTaP",   field:"dtap", herd:0.92, herdLabel:"target ≈ 92%" },
-  menb:{ label:"MenB",   field:"menb", herd:0.80, herdLabel:"target ≈ 80%" },
-  pcv: { label:"PCV",    field:"pcv",  herd:0.70, herdLabel:"target ≈ 70%" },
-  rota:{ label:"Rota",   field:"rota", herd:0.75, herdLabel:"target ≈ 75%" },
+  mmr2:{
+    label:"MMR2", field:"mmr2", herd:0.93, herdLabel:"herd immunity ≈ 93%",
+    vaccBig:"97%",
+    vaccDesc:"protection against measles (2 doses MMR)",
+    vaccFacts:["Even if exposed: ~1 in 33 chance of infection","Serious complications very rare","Protects others who cannot be vaccinated"],
+    unvaccBig:"9 in 10",
+    unvaccDesc:"unvaccinated children catch measles if exposed to an active case",
+    unvaccComplications:["1 in 15 develop pneumonia","1 in 1,000 get brain inflammation"],
+    unprotectedLabel:"measles",
+  },
+  mmr1:{
+    label:"MMR1", field:"mmr1", herd:0.93, herdLabel:"herd immunity ≈ 93%",
+    vaccBig:"93%",
+    vaccDesc:"protection against measles (1st dose MMR)",
+    vaccFacts:["Even if exposed: ~1 in 14 chance of infection","2nd dose raises protection to 97%","Protects others who cannot be vaccinated"],
+    unvaccBig:"9 in 10",
+    unvaccDesc:"unvaccinated children catch measles if exposed to an active case",
+    unvaccComplications:["1 in 15 develop pneumonia","1 in 1,000 get brain inflammation"],
+    unprotectedLabel:"measles (1st dose)",
+  },
+  dtap:{
+    label:"DTaP", field:"dtap", herd:0.92, herdLabel:"target ≈ 92%",
+    vaccBig:"~85%",
+    vaccDesc:"protection against whooping cough (pertussis)",
+    vaccFacts:["Covers diphtheria, tetanus & pertussis in one jab","3-dose primary series in the first year","Severe infant pertussis largely prevented"],
+    unvaccBig:"9 in 10",
+    unvaccDesc:"unvaccinated infants exposed to whooping cough are likely to catch it",
+    unvaccComplications:["Infants under 6 months: hospitalisation in most cases","1 in 25 develop pneumonia","Can be fatal in newborns"],
+    unprotectedLabel:"whooping cough",
+  },
+  menb:{
+    label:"MenB", field:"menb", herd:0.80, herdLabel:"target ≈ 80%",
+    vaccBig:"~75%",
+    vaccDesc:"protection against meningococcal B disease",
+    vaccFacts:["MenB is the most common cause of bacterial meningitis in UK children","2 doses + booster in the first year","Early vaccination is critical — disease can progress within hours"],
+    unvaccBig:"1 in 10",
+    unvaccDesc:"children who develop MenB disease die — and 1 in 5 survivors have permanent disability",
+    unvaccComplications:["Loss of limbs due to septicaemia","Brain damage and hearing loss","Symptoms can go from fine to life-threatening within hours"],
+    unprotectedLabel:"meningococcal B",
+  },
+  pcv:{
+    label:"PCV", field:"pcv", herd:0.70, herdLabel:"target ≈ 70%",
+    vaccBig:"~75%",
+    vaccDesc:"protection against invasive pneumococcal disease",
+    vaccFacts:["Covers 13 strains of Streptococcus pneumoniae","Protects against pneumonia, meningitis & bloodstream infection","3-dose primary series + booster"],
+    unvaccBig:"Leading",
+    unvaccDesc:"cause of bacterial meningitis and severe pneumonia in young children",
+    unvaccComplications:["Pneumococcal meningitis: 1 in 5 suffer lasting disability","Bloodstream infections can be fatal","Most dangerous in children under 2"],
+    unprotectedLabel:"pneumococcal disease",
+  },
+  rota:{
+    label:"Rota", field:"rota", herd:0.75, herdLabel:"target ≈ 75%",
+    vaccBig:"~85%",
+    vaccDesc:"protection against severe rotavirus gastroenteritis",
+    vaccFacts:["Oral drops — not an injection","2 doses before 24 weeks of age","Prevents most hospital admissions for severe diarrhoea"],
+    unvaccBig:"Almost all",
+    unvaccDesc:"children will be infected with rotavirus before age 5 without vaccination",
+    unvaccComplications:["Severe dehydration requiring hospital","Leading cause of infant diarrhoea deaths globally","Peaks in winter months"],
+    unprotectedLabel:"rotavirus",
+  },
 };
 
 // Risk levels based on MMR2 coverage
@@ -654,13 +708,27 @@ function renderRisk(){
     $("risk-sub").textContent=risk.sub;
   }
 
-  // Unvaccinated comparison
-  $("unvacc-community").textContent=exposureNote(mmr2, d.name);
+  // Vaccinated vs Unvaccinated comparison cards (disease-specific)
+  $("vacc-big").textContent  = dis.vaccBig;
+  $("vacc-desc").textContent = dis.vaccDesc;
+  $("vacc-facts").innerHTML  = dis.vaccFacts.map(f=>`<li>${f}</li>`).join("");
+
+  $("unvacc-big").textContent  = dis.unvaccBig;
+  $("unvacc-desc").textContent = dis.unvaccDesc;
+  // Community exposure note as first item, then disease-specific complications
+  const commNote = exposureNote(cov!=null?cov:mmr2, d.name);
+  $("unvacc-facts").innerHTML =
+    `<li>${commNote}</li>` +
+    dis.unvaccComplications.map(f=>`<li>${f}</li>`).join("");
 
   // Unprotected count
-  const unprotected=Math.round((1-(mmr2||0))*d.under5);
+  const covForCount = cov!=null ? cov : (mmr2||0);
+  const unprotected=Math.round((1-covForCount)*d.under5);
   $("unprot-n").textContent=unprotected.toLocaleString();
-  $("unprot-row").style.display=unprotected>0?"block":"none";
+  // Update the label to match disease
+  const unprotRow=$("unprot-row");
+  unprotRow.innerHTML=`Estimated <strong>${unprotected.toLocaleString()}</strong> children under 5 in this area are not fully vaccinated against ${dis.unprotectedLabel}.`;
+  unprotRow.style.display=unprotected>0?"block":"none";
 
   // Threshold legend label
   $("thresh-label").textContent=dis.herdLabel;
