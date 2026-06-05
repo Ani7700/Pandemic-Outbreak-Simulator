@@ -10,6 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Vax Risk">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <style>
 :root {
   --paper:     #ffffff;
@@ -231,7 +232,7 @@ body{
   min-height:0;
 }
 .map-wrap{flex:1;position:relative;overflow:hidden;min-height:0;}
-#map{position:absolute;inset:0;width:100%;height:100%;display:block;}
+#map{position:absolute;inset:0;width:100%;height:100%;}
 .map-footer{
   background:white;border-top:1px solid var(--line);
   padding:7px 16px;flex-shrink:0;
@@ -414,15 +415,7 @@ body{
   <!-- ══ RIGHT: MAP ══ -->
   <div class="map-panel">
     <div class="map-wrap" id="map-wrap">
-      <svg id="map" viewBox="0 0 560 680" xmlns="http://www.w3.org/2000/svg"
-           aria-label="Map of English local authorities. Click to view risk for any area.">
-        <defs>
-          <pattern id="approxHatch" patternUnits="userSpaceOnUse" width="5" height="5" patternTransform="rotate(45)">
-            <rect width="5" height="5" fill="transparent"/>
-            <line x1="0" y1="0" x2="0" y2="5" stroke="rgba(31,41,55,0.45)" stroke-width="1"/>
-          </pattern>
-        </defs>
-      </svg>
+      <div id="map" aria-label="Map of English local authorities. Click to view risk for any area."></div>
       <div class="map-tt" id="map-tt"></div>
       <div class="map-hint" id="map-hint">Click any area to check vaccination coverage</div>
     </div>
@@ -441,6 +434,7 @@ body{
 
 </div><!-- /layout -->
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
 // ════════════════════════════════════════════════
 // Data & constants
@@ -528,6 +522,7 @@ function exposureNote(c, areaName) {
 
 let GEO = null, UTLA = null;
 let STATE = { code: null, disease: "mmr2" };
+let LMAP = null, GJSON = null;
 const $ = id => document.getElementById(id);
 
 // ════════════════════════════════════════════════
@@ -575,66 +570,59 @@ function covColor(c){
 // ════════════════════════════════════════════════
 // Map rendering
 // ════════════════════════════════════════════════
-function eachCoord(geom,fn){
-  if(geom.type==="Polygon")geom.coordinates.forEach(r=>r.forEach(fn));
-  else if(geom.type==="MultiPolygon")geom.coordinates.forEach(p=>p.forEach(r=>r.forEach(fn)));
-}
 function renderMap(){
-  const svg = $("map");
-  let mnLon=Infinity,mxLon=-Infinity,mnLat=Infinity,mxLat=-Infinity;
-  GEO.features.forEach(f=>{
-    eachCoord(f.geometry,([lo,la])=>{
-      if(lo<mnLon)mnLon=lo;if(lo>mxLon)mxLon=lo;
-      if(la<mnLat)mnLat=la;if(la>mxLat)mxLat=la;
+  // Initialise Leaflet map once
+  if(!LMAP){
+    LMAP = L.map("map", {
+      zoomControl: true,
+      attributionControl: true,
+      scrollWheelZoom: true,
     });
-  });
-  const mLat=(mnLat+mxLat)/2, k=Math.cos(mLat*Math.PI/180);
-  const VW=560,VH=680,P=8;
-  const rW=(mxLon-mnLon)*k, rH=mxLat-mnLat;
-  const s=Math.min((VW-2*P)/rW,(VH-2*P)/rH);
-  const ox=P+((VW-2*P)-rW*s)/2, oy=P+((VH-2*P)-rH*s)/2;
-  function proj([lo,la]){return[ox+(lo-mnLon)*k*s, oy+(mxLat-la)*s];}
-  function ring2path(r){return r.map((pt,i)=>{const[x,y]=proj(pt);return(i?"L ":"M ")+x.toFixed(1)+" "+y.toFixed(1);}).join(" ")+" Z";}
-  function geom2path(g){
-    if(g.type==="Polygon")return g.coordinates.map(ring2path).join(" ");
-    if(g.type==="MultiPolygon")return g.coordinates.map(p=>p.map(ring2path).join(" ")).join(" ");
-    return "";
+    // OpenStreetMap standard — colourful tiles with blue sea, like UKHSA
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
+      attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      subdomains:"abc", maxZoom:19
+    }).addTo(LMAP);
   }
-  const defs = svg.querySelector("defs");
-  svg.innerHTML = ""; if(defs) svg.appendChild(defs);
 
-  GEO.features.forEach(f=>{
-    const code=f.properties.code, d=UTLA[code];
-    const path=document.createElementNS("http://www.w3.org/2000/svg","path");
-    path.setAttribute("d",geom2path(f.geometry));
-    path.setAttribute("class","utla-poly"+(d&&d.approx?" approx":""));
-    path.setAttribute("fill",d?covColor(d[DISEASES[STATE.disease].field]):"#CFCAB9");
-    path.dataset.code=code;
-    if(d){
-      path.addEventListener("mouseenter",e=>showTT(e,code,d));
-      path.addEventListener("mousemove",moveTT);
-      path.addEventListener("mouseleave",hideTT);
-      path.addEventListener("click",()=>selectUTLA(code));
+  // Remove old GeoJSON layer
+  if(GJSON){ LMAP.removeLayer(GJSON); GJSON=null; }
+
+  GJSON = L.geoJSON(GEO, {
+    style: feature => styleFeature(feature, false),
+    onEachFeature: (feature, layer) => {
+      const code = feature.properties.code, d = UTLA[code];
+      if(!d) return;
+      layer.on({
+        mouseover: e => { showTT(e.originalEvent, code, d); layer.setStyle({weight:4,color:"#003078"}); },
+        mousemove: e => moveTT(e.originalEvent),
+        mouseout:  ()=> { hideTT(); if(STATE.code!==code) layer.setStyle({weight:2.5,color:"#111"}); },
+        click:     ()=> selectUTLA(code),
+      });
     }
-    svg.appendChild(path);
-  });
-  GEO.features.forEach(f=>{
-    const d=UTLA[f.properties.code];
-    if(!(d&&d.approx))return;
-    const h=document.createElementNS("http://www.w3.org/2000/svg","path");
-    h.setAttribute("d",geom2path(f.geometry));
-    h.setAttribute("fill","url(#approxHatch)");
-    h.setAttribute("stroke","none");
-    h.style.pointerEvents="none";
-    svg.appendChild(h);
-  });
+  }).addTo(LMAP);
+
+  LMAP.fitBounds(GJSON.getBounds(), {padding:[4,4]});
+}
+
+function styleFeature(feature, selected){
+  const code = feature.properties.code, d = UTLA[code];
+  const cov  = d ? d[DISEASES[STATE.disease].field] : null;
+  return {
+    fillColor:   covColor(cov),
+    fillOpacity: d&&d.approx ? 0.40 : 0.60,
+    color:       selected ? "#003078" : "#111",
+    weight:      selected ? 4 : 2.5,
+    opacity:     1,
+  };
 }
 
 function repaintMap(){
-  document.querySelectorAll(".utla-poly").forEach(p=>{
-    const d=UTLA[p.dataset.code];
-    if(!d)return;
-    p.setAttribute("fill",covColor(d[DISEASES[STATE.disease].field]));
+  if(!GJSON) return;
+  GJSON.eachLayer(layer => {
+    const code = layer.feature.properties.code;
+    const d = UTLA[code]; if(!d) return;
+    layer.setStyle({ fillColor: covColor(d[DISEASES[STATE.disease].field]) });
   });
 }
 
@@ -659,10 +647,18 @@ function hideTT(){ $("map-tt").style.opacity=0; }
 function selectUTLA(code){
   if(!UTLA[code])return;
   STATE.code = code;
-  // Update map highlight
-  document.querySelectorAll(".utla-poly").forEach(p=>{
-    p.classList.toggle("sel", p.dataset.code===code);
-  });
+  // Highlight selected area on Leaflet map
+  if(GJSON){
+    GJSON.eachLayer(layer => {
+      const sel = layer.feature.properties.code === code;
+      layer.setStyle({
+        color:  sel ? "#003078" : "#555",
+        weight: sel ? 3         : 1,
+        fillOpacity: sel ? 0.80 : (UTLA[layer.feature.properties.code]&&UTLA[layer.feature.properties.code].approx ? 0.40 : 0.60),
+      });
+      if(sel){ layer.bringToFront(); }
+    });
+  }
   $("map-hint").style.opacity="0";
   renderRisk();
 }
