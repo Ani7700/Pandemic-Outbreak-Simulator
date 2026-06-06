@@ -291,7 +291,7 @@ body{
       Childhood Vaccination Risk
       <span>England · Local Authority Coverage Checker</span>
     </div>
-    <div class="topbar-note">Data: UKHSA COVER Q3 2025–26</div>
+    <div class="topbar-note">Data: UKHSA COVER Q3 2025–26 · PHS Scotland Q4 2025</div>
   </div>
 </div>
 
@@ -407,7 +407,8 @@ body{
     </div><!-- /panel-scroll -->
 
     <div class="data-note">
-      Coverage: <a href="https://www.gov.uk/government/statistics/cover-of-vaccination-evaluated-rapidly-cover-programme-2025-to-2026-quarterly-data" target="_blank">UKHSA COVER Q3 2025–26</a> ·
+      England: <a href="https://www.gov.uk/government/statistics/cover-of-vaccination-evaluated-rapidly-cover-programme-2025-to-2026-quarterly-data" target="_blank">UKHSA COVER Q3 2025–26</a> ·
+      Scotland: <a href="https://www.publichealthscotland.scot/publications/childhood-immunisation-statistics-scotland/" target="_blank">PHS Q4 2025</a> (32 Council Areas) ·
       GP-level: <a href="https://fingertips.phe.org.uk" target="_blank">PHE Fingertips</a> &amp;
       <a href="https://www.gov.uk/government/statistics/cover-of-vaccination-evaluated-rapidly-cover-programme-annual-data" target="_blank">Supplementary GP data 2024–25</a> ·
       Postcode: postcodes.io · Herd immunity thresholds: WHO/UKHSA
@@ -694,7 +695,13 @@ function renderRisk(){
   } else {
     $("area-name").textContent=d.name;
     $("area-meta").textContent=`${d.region} · Population ${fmt(d.pop)} · ${fmt(d.under5)} children under 5`;
-    note.style.display="none";
+    // Show Scotland data source note
+    if(d.region === 'Scotland'){
+      note.textContent=`ℹ Scotland data: Public Health Scotland Q4 2025. Age thresholds differ slightly from England (MMR1 @ 24m, DTaP @ 5y).`;
+      note.style.display="block";
+    } else {
+      note.style.display="none";
+    }
   }
 
   // Disease label
