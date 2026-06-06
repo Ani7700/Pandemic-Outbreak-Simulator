@@ -676,6 +676,7 @@ function selectUTLA(code, keepDistrict){
   if(!keepDistrict){ STATE.districtName=null; STATE.placeName=null; STATE.placeType=null; }
   // Highlight selected area on Leaflet map
   if(GJSON){
+    let selBounds = null;
     GJSON.eachLayer(layer => {
       const sel = layer.feature.properties.code === code;
       layer.setStyle({
@@ -683,8 +684,12 @@ function selectUTLA(code, keepDistrict){
         weight: sel ? 3         : 1,
         fillOpacity: sel ? 0.80 : (UTLA[layer.feature.properties.code]&&UTLA[layer.feature.properties.code].approx ? 0.40 : 0.60),
       });
-      if(sel){ layer.bringToFront(); }
+      if(sel){ layer.bringToFront(); selBounds = layer.getBounds(); }
     });
+    // Pan + zoom map to the selected area
+    if(selBounds && LMAP){
+      LMAP.fitBounds(selBounds, { padding:[30,30], maxZoom:10, animate:true });
+    }
   }
   $("map-hint").style.opacity="0";
   // Hide worst list when a specific area is selected — frees up space
