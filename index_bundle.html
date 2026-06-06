@@ -127,6 +127,7 @@ body{
 }
 .area-hdr h2{font-size:20px;font-weight:700;margin-bottom:2px;}
 .area-hdr .meta{font-size:12px;color:var(--muted);}
+.district-note{font-size:11px;color:var(--ink-soft);background:#f3f2f1;border-left:3px solid var(--accent);padding:4px 8px;margin-top:5px;border-radius:0 3px 3px 0;}
 
 /* Risk badge */
 .risk-badge{
@@ -329,6 +330,7 @@ body{
         <div class="area-hdr">
           <h2 id="area-name">—</h2>
           <div class="meta" id="area-meta">—</div>
+          <div class="district-note" id="district-note" style="display:none"></div>
         </div>
 
         <!-- Disease selector -->
@@ -521,7 +523,7 @@ function exposureNote(c, areaName) {
 }
 
 let GEO = null, UTLA = null;
-let STATE = { code: null, disease: "mmr2" };
+let STATE = { code: null, disease: "mmr2", districtName: null, placeName: null, placeType: null };
 let LMAP = null, GJSON = null;
 const $ = id => document.getElementById(id);
 
@@ -644,9 +646,10 @@ function hideTT(){ $("map-tt").style.opacity=0; }
 // ════════════════════════════════════════════════
 // Select UTLA
 // ════════════════════════════════════════════════
-function selectUTLA(code){
+function selectUTLA(code, keepDistrict){
   if(!UTLA[code])return;
   STATE.code = code;
+  if(!keepDistrict){ STATE.districtName=null; STATE.placeName=null; STATE.placeType=null; }
   // Highlight selected area on Leaflet map
   if(GJSON){
     GJSON.eachLayer(layer => {
@@ -671,8 +674,27 @@ function renderRisk(){
   const mmr2=d.mmr2;      // always use MMR2 for risk level
 
   $("risk-block").style.display="block";
-  $("area-name").textContent=d.name;
-  $("area-meta").textContent=`${d.region} · Population ${fmt(d.pop)} · ${fmt(d.under5)} children under 5`;
+  // Determine what to show in the header
+  const note=$("district-note");
+  if(STATE.placeName){
+    // Specific place name from Nominatim (e.g. "London Stansted Airport")
+    $("area-name").textContent=STATE.placeName;
+    const sub = STATE.districtName
+      ? `${STATE.districtName}, ${d.name} · ${d.region}`
+      : `${d.name} · ${d.region}`;
+    $("area-meta").textContent=`${sub} · Population ${fmt(d.pop)} · ${fmt(d.under5)} children under 5`;
+    note.textContent=`ℹ Vaccination data covers the wider ${d.name} area — the smallest published geography.`;
+    note.style.display="block";
+  } else if(STATE.districtName){
+    $("area-name").textContent=STATE.districtName;
+    $("area-meta").textContent=`${d.name}, ${d.region} · Population ${fmt(d.pop)} · ${fmt(d.under5)} children under 5`;
+    note.textContent=`ℹ Vaccination data covers the wider ${d.name} area — district-level data is not published separately.`;
+    note.style.display="block";
+  } else {
+    $("area-name").textContent=d.name;
+    $("area-meta").textContent=`${d.region} · Population ${fmt(d.pop)} · ${fmt(d.under5)} children under 5`;
+    note.style.display="none";
+  }
 
   // Disease label
   $("cov-label-text").textContent=`${dis.label} coverage`;
@@ -782,18 +804,48 @@ async function lookupPC(){
   const pc=raw.replace(/\s+/g,"").toUpperCase();
   $("pc-status").textContent="Looking up…"; $("pc-status").style.color="var(--muted)";
   try{
+    // Step 1: postcodes.io → admin codes + lat/lon
     const r=await fetch(`https://api.postcodes.io/postcodes/${encodeURIComponent(pc)}`);
     const j=await r.json();
     if(j.status!==200||!j.result){$("pc-status").textContent="Postcode not found";$("pc-status").style.color="var(--bad)";return;}
-    const c=j.result.codes||{};
-    const dist=c.admin_district||"", cnty=c.admin_county||"";
-    const code=UTLA[dist]?dist:UTLA[cnty]?cnty:null;
-    if(code){
-      $("pc-status").textContent="✓ "+UTLA[code].name; $("pc-status").style.color="var(--good)";
-      selectUTLA(code);
-    } else {
-      $("pc-status").textContent="Could not match to a local authority"; $("pc-status").style.color="var(--warn)";
-    }
+
+    const res=j.result, c=res.codes||{};
+    const lat=res.latitude, lon=res.longitude;
+    const distCode=c.admin_district||"", cntyCode=c.admin_county||"";
+    const distName=res.admin_district||"";
+    const code=UTLA[distCode]?distCode:UTLA[cntyCode]?cntyCode:null;
+    if(!code){$("pc-status").textContent="Could not match to a local authority";$("pc-status").style.color="var(--warn)";return;}
+
+    // Step 2: Nominatim reverse geocoding → specific place name
+    let placeName=null, placeType=null;
+    try{
+      const nr=await fetch(
+        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&addressdetails=1`,
+        {headers:{"Accept-Language":"en-GB,en"}}
+      );
+      const nj=await nr.json();
+      const a=nj.address||{};
+      // Priority: named POI → road → settlement
+      const poi = a.aerodrome||a.amenity||a.tourism||a.leisure||a.building||a.office||a.shop||a.hospital||a.university||a.school||null;
+      const road = a.road||null;
+      const place = a.suburb||a.quarter||a.village||a.town||a.city||null;
+      if(poi){ placeName=poi; placeType="poi"; }
+      else if(road && place){ placeName=`${road}, ${place}`; placeType="road"; }
+      else if(road){ placeName=road; placeType="road"; }
+      else if(place){ placeName=place; placeType="place"; }
+    }catch(e){ /* Nominatim unavailable, graceful fallback */ }
+
+    // Step 3: determine display name
+    const usedDistrict=!!UTLA[distCode];
+    STATE.districtName = (!usedDistrict && distName) ? distName : null;
+    STATE.placeName    = placeName;
+    STATE.placeType    = placeType;
+
+    const display = placeName || STATE.districtName || UTLA[code].name;
+    $("pc-status").textContent="✓ "+display;
+    $("pc-status").style.color="var(--good)";
+    selectUTLA(code, true);
+
   }catch(e){ $("pc-status").textContent="Lookup failed — check connection"; $("pc-status").style.color="var(--bad)"; }
 }
 
