@@ -51,22 +51,44 @@ body{
 
 /* ── Main layout ── */
 .layout{
-  display:grid;
-  grid-template-columns:3fr 2fr;
-  grid-template-rows:1fr;
+  display:flex;
+  flex-direction:row;
   flex:1;min-height:0;overflow:hidden;
 }
+.resize-handle{
+  width:6px;flex-shrink:0;
+  background:var(--line);
+  cursor:col-resize;
+  position:relative;
+  transition:background 0.15s;
+  z-index:10;
+}
+.resize-handle::after{
+  content:"";
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  width:2px;height:40px;
+  border-left:2px dotted var(--muted);
+  border-right:2px dotted var(--muted);
+  opacity:0.5;
+}
+.resize-handle:hover,.resize-handle.dragging{background:var(--accent);}
+.resize-handle.dragging{background:var(--accent);}
 @media(max-width:860px){
   body{overflow:auto;}
-  .layout{grid-template-columns:1fr;grid-template-rows:auto minmax(380px,50vh);}
+  .layout{flex-direction:column;}
+  .resize-handle{display:none;}
 }
 
 /* ── Left panel ── */
 .panel{
-  background:var(--paper);border-right:1px solid var(--line);
+  background:var(--paper);
   display:flex;flex-direction:column;overflow:hidden;
+  width:50%;min-width:280px;max-width:80%;
+  flex-shrink:0;
 }
-.panel-scroll{flex:1;overflow-y:auto;padding:14px 22px 16px;}
+.panel-scroll{flex:1;overflow-y:auto;padding:10px 16px 14px;}
 .panel-scroll::-webkit-scrollbar{width:5px;}
 .panel-scroll::-webkit-scrollbar-thumb{background:var(--line);}
 
@@ -131,8 +153,8 @@ body{
 
 /* Risk badge */
 .risk-badge{
-  display:flex;align-items:center;gap:10px;
-  border:2px solid var(--line);padding:7px 12px;margin-bottom:8px;
+  display:flex;align-items:center;gap:8px;
+  border:2px solid var(--line);padding:5px 10px;margin-bottom:6px;
 }
 .risk-dot{width:18px;height:18px;border-radius:50%;flex-shrink:0;}
 .risk-dot.low{background:#00703c;}
@@ -149,7 +171,7 @@ body{
 .risk-sub{font-size:12px;color:var(--muted);margin-top:2px;}
 
 /* Coverage bar */
-.cov-bar-section{margin-bottom:8px;}
+.cov-bar-section{margin-bottom:5px;}
 .cov-bar-label{font-size:13px;margin-bottom:5px;}
 .cov-bar-label strong{font-size:18px;}
 .cov-track{
@@ -171,22 +193,22 @@ body{
   font-size:11px;font-weight:700;color:var(--ink-soft);
   border-bottom:1px solid var(--line);padding-bottom:3px;margin-bottom:6px;
 }
-.comp-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;}
-.comp-card{padding:8px 10px;border:2px solid;}
+.comp-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:6px;}
+.comp-card{padding:6px 8px;border:2px solid;}
 .comp-card.vacc{border-color:#00703c;background:#f3faf6;}
 .comp-card.unvacc{border-color:#d4351c;background:#fdf2f0;}
-.comp-head{font-size:11px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:5px;}
+.comp-head{font-size:10px;font-weight:700;margin-bottom:3px;display:flex;align-items:center;gap:4px;}
 .comp-head.vacc{color:#00703c;}
 .comp-head.unvacc{color:#d4351c;}
-.comp-big{font-size:22px;font-weight:700;line-height:1;margin-bottom:2px;}
+.comp-big{font-size:20px;font-weight:700;line-height:1;margin-bottom:1px;}
 .comp-big.vacc{color:#00703c;}
 .comp-big.unvacc{color:#d4351c;}
-.comp-desc{font-size:10px;color:var(--ink-soft);margin-bottom:5px;}
-.comp-facts{list-style:none;font-size:10px;color:var(--ink-soft);display:flex;flex-direction:column;gap:2px;}
+.comp-desc{font-size:9.5px;color:var(--ink-soft);margin-bottom:4px;}
+.comp-facts{list-style:none;font-size:9.5px;color:var(--ink-soft);display:flex;flex-direction:column;gap:1px;}
 .comp-facts li::before{content:"→ ";color:var(--muted);}
 
 /* ── Disease selector ── */
-.disease-row{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px;}
+.disease-row{display:flex;gap:3px;flex-wrap:wrap;margin-bottom:6px;}
 .disease-btn{
   border:2px solid var(--line);padding:3px 9px;font-size:12px;font-weight:600;
   cursor:pointer;background:var(--paper);color:var(--muted);font-family:inherit;
@@ -197,7 +219,7 @@ body{
 /* ── Unprotected count ── */
 .unprotected-row{
   background:var(--paper-2);border-left:4px solid var(--warn);
-  padding:6px 10px;margin-bottom:8px;font-size:12px;
+  padding:4px 8px;margin-bottom:5px;font-size:11px;
 }
 .unprotected-row strong{font-size:18px;color:var(--warn);}
 
@@ -230,7 +252,7 @@ body{
   background:#e8eaed;
   display:flex;flex-direction:column;
   overflow:hidden;position:relative;
-  min-height:0;
+  min-height:0;flex:1;min-width:200px;
 }
 .map-wrap{flex:1;position:relative;overflow:hidden;min-height:0;}
 #map{position:absolute;inset:0;width:100%;height:100%;}
@@ -416,6 +438,7 @@ body{
   </div>
 
   <!-- ══ RIGHT: MAP ══ -->
+  <div class="resize-handle" id="resize-handle" title="Drag to resize"></div>
   <div class="map-panel">
     <div class="map-wrap" id="map-wrap">
       <div id="map" aria-label="Map of English local authorities. Click to view risk for any area."></div>
@@ -905,6 +928,67 @@ function fmt(n){
 if("serviceWorker"in navigator){
   window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
 }
+
+// ════════════════════════════════════════════════
+// Resizable panel drag handle
+// ════════════════════════════════════════════════
+(function(){
+  const handle = document.getElementById("resize-handle");
+  const panel  = document.querySelector(".panel");
+  const layout = document.querySelector(".layout");
+  if(!handle||!panel||!layout) return;
+
+  let startX, startW;
+
+  handle.addEventListener("mousedown", e=>{
+    e.preventDefault();
+    startX = e.clientX;
+    startW = panel.offsetWidth;
+    handle.classList.add("dragging");
+    document.body.style.cursor    = "col-resize";
+    document.body.style.userSelect= "none";
+
+    function onMove(e){
+      const dx  = e.clientX - startX;
+      const min = 280, max = layout.offsetWidth - 220;
+      const nw  = Math.max(min, Math.min(startW + dx, max));
+      panel.style.width = nw + "px";
+      // Leaflet needs to know its container resized
+      if(LMAP) LMAP.invalidateSize({animate:false});
+    }
+    function onUp(){
+      handle.classList.remove("dragging");
+      document.body.style.cursor     = "";
+      document.body.style.userSelect = "";
+      if(LMAP) LMAP.invalidateSize({animate:false});
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup",   onUp);
+    }
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup",   onUp);
+  });
+
+  // Touch support
+  handle.addEventListener("touchstart", e=>{
+    const t0 = e.touches[0];
+    startX = t0.clientX; startW = panel.offsetWidth;
+    handle.classList.add("dragging");
+    function onMove(e){
+      const dx = e.touches[0].clientX - startX;
+      const nw = Math.max(280, Math.min(startW+dx, layout.offsetWidth-220));
+      panel.style.width = nw+"px";
+      if(LMAP) LMAP.invalidateSize({animate:false});
+    }
+    function onEnd(){
+      handle.classList.remove("dragging");
+      if(LMAP) LMAP.invalidateSize({animate:false});
+      document.removeEventListener("touchmove", onMove);
+      document.removeEventListener("touchend",  onEnd);
+    }
+    document.addEventListener("touchmove", onMove, {passive:true});
+    document.addEventListener("touchend",  onEnd);
+  });
+})();
 </script>
 </body>
 </html>
