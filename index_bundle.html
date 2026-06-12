@@ -565,10 +565,10 @@ function fmt1inN(p){
 // Risk levels based on MMR2 coverage
 function riskFromCov(c) {
   if (c == null) return null;
-  if (c >= 0.95) return { key:"low",       label:"LOW",       sub:"Herd immunity likely maintained. Risk of outbreak is low." };
-  if (c >= 0.90) return { key:"medium",     label:"MEDIUM",    sub:"Some gaps in coverage. Periodic outbreaks are possible." };
-  if (c >= 0.85) return { key:"high",       label:"HIGH",      sub:"Coverage is below recommended levels. Outbreak risk is significant." };
-  return          { key:"very-high",  label:"VERY HIGH", sub:"Coverage is well below the herd immunity threshold. Outbreaks are likely." };
+  if (c >= 0.95) return { key:"low",       label:"LOW",       sub:"Strong community protection." };
+  if (c >= 0.90) return { key:"medium",    label:"MEDIUM",    sub:"Some gaps — periodic outbreaks possible." };
+  if (c >= 0.85) return { key:"high",      label:"HIGH",      sub:"Below target — significant outbreak risk." };
+  return          { key:"very-high",  label:"VERY HIGH", sub:"Well below herd immunity — outbreaks likely." };
 }
 
 // Unvaccinated community exposure probability by coverage level
@@ -747,14 +747,12 @@ function renderRisk(){
     const sub = STATE.districtName
       ? `${STATE.districtName}, ${d.name} · ${d.region}`
       : `${d.name} · ${d.region}`;
-    $("area-meta").textContent=`${sub} · ${fmt(d.under5)} under-5s`;
-    note.textContent=`ℹ Data covers the wider ${d.name} area (smallest available geography).`;
-    note.style.display="block";
+    $("area-meta").textContent=`${d.name} · ${fmt(d.under5)} under-5s`;
+    note.style.display="none";
   } else if(STATE.districtName){
     $("area-name").textContent=STATE.districtName;
-    $("area-meta").textContent=`${d.name}, ${d.region} · ${fmt(d.under5)} under-5s`;
-    note.textContent=`ℹ Data covers the wider ${d.name} area — district-level not published.`;
-    note.style.display="block";
+    $("area-meta").textContent=`${d.name} · ${fmt(d.under5)} under-5s`;
+    note.style.display="none";
   } else {
     $("area-name").textContent=d.name;
     $("area-meta").textContent=`${d.region} · ${fmt(d.under5)} under-5s`;
@@ -811,12 +809,8 @@ function renderRisk(){
     $("unvacc-big").textContent  = dis.unvaccBig;
     $("unvacc-desc").textContent = dis.unvaccDesc;
   }
-  $("vacc-facts").innerHTML = dis.vaccFacts.map(f=>`<li>${f}</li>`).join("");
-  // Community exposure note as first item, then disease-specific complications
-  const commNote = exposureNote(cov!=null?cov:mmr2, d.name);
-  $("unvacc-facts").innerHTML =
-    `<li>${commNote}</li>` +
-    dis.unvaccComplications.map(f=>`<li>${f}</li>`).join("");
+  $("vacc-facts").innerHTML = "";
+  $("unvacc-facts").innerHTML = dis.unvaccComplications.map(f=>`<li>${f}</li>`).join("");
 
   // Unprotected count
   const covForCount = cov!=null ? cov : (mmr2||0);
