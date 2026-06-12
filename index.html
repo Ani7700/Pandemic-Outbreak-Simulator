@@ -311,7 +311,7 @@ body{
   <div class="topbar-inner">
     <div class="brand">
       Childhood Vaccination Risk
-      <span>England · Local Authority Coverage Checker</span>
+      <span>UK Vaccination Coverage Checker</span>
     </div>
     <div class="topbar-note">Data: UKHSA COVER Q3 2025–26 · PHS Scotland Q4 2025</div>
   </div>
@@ -323,11 +323,7 @@ body{
   <div class="panel">
     <div class="panel-scroll">
 
-      <p class="panel-title">Find your local area</p>
-      <p class="panel-sub">
-        Check childhood vaccination coverage and see what it means for your family's measles risk.
-        Enter a postcode or search by area name.
-      </p>
+      <p class="panel-title">Check your area's vaccination coverage</p>
 
       <!-- Postcode -->
       <label class="field-label" for="pc-input">Your postcode</label>
@@ -388,7 +384,7 @@ body{
         </div>
 
         <!-- Vaccinated vs Unvaccinated -->
-        <div class="comparison-label">What this means for your child</div>
+        <div class="comparison-label">Risk for your child</div>
         <div class="comp-grid">
           <div class="comp-card vacc">
             <div class="comp-head vacc">💉 Vaccinated</div>
@@ -429,11 +425,9 @@ body{
     </div><!-- /panel-scroll -->
 
     <div class="data-note">
-      England: <a href="https://www.gov.uk/government/statistics/cover-of-vaccination-evaluated-rapidly-cover-programme-2025-to-2026-quarterly-data" target="_blank">UKHSA COVER Q3 2025–26</a> ·
-      Scotland: <a href="https://www.publichealthscotland.scot/publications/childhood-immunisation-statistics-scotland/" target="_blank">PHS Q4 2025</a> (32 Council Areas) ·
-      GP-level: <a href="https://fingertips.phe.org.uk" target="_blank">PHE Fingertips</a> &amp;
-      <a href="https://www.gov.uk/government/statistics/cover-of-vaccination-evaluated-rapidly-cover-programme-annual-data" target="_blank">Supplementary GP data 2024–25</a> ·
-      Postcode: postcodes.io · Herd immunity thresholds: WHO/UKHSA
+      Data: <a href="https://www.gov.uk/government/statistics/cover-of-vaccination-evaluated-rapidly-cover-programme-2025-to-2026-quarterly-data" target="_blank">UKHSA COVER Q3 2025–26</a> ·
+      <a href="https://www.publichealthscotland.scot/publications/childhood-immunisation-statistics-scotland/" target="_blank">PHS Scotland Q4 2025</a> ·
+      Risk estimates: UKHSA Green Book · Postcode: postcodes.io
     </div>
   </div>
 
@@ -468,58 +462,50 @@ body{
 const DISEASES = {
   mmr2:{
     label:"MMR2", field:"mmr2", herd:0.93, herdLabel:"herd immunity ≈ 93%",
-    vaccBig:"1 in 33",
-    vaccDesc:"chance of catching measles even when vaccinated (2 doses MMR)",
-    vaccFacts:["97% effective — far fewer infections and much milder if they occur","Serious complications very rare in vaccinated children","Protects others who cannot be vaccinated"],
-    unvaccBig:"9 in 10",
-    unvaccDesc:"chance of catching measles when unvaccinated",
+    vaccBig:"—", vaccDesc:"",
+    vaccFacts:["97% effective — milder if it does occur","Protects others who can't be vaccinated"],
+    unvaccBig:"—", unvaccDesc:"",
     unvaccComplications:["1 in 15 develop pneumonia","1 in 1,000 get brain inflammation"],
     unprotectedLabel:"measles",
   },
   mmr1:{
     label:"MMR1", field:"mmr1", herd:0.93, herdLabel:"herd immunity ≈ 93%",
-    vaccBig:"1 in 14",
-    vaccDesc:"chance of catching measles even when vaccinated (1st dose MMR)",
-    vaccFacts:["93% effective after 1 dose — 2nd dose raises this to 97%","Complications much milder if infection occurs","Protects others who cannot be vaccinated"],
-    unvaccBig:"9 in 10",
-    unvaccDesc:"chance of catching measles when unvaccinated",
+    vaccBig:"—", vaccDesc:"",
+    vaccFacts:["93% effective — get 2nd dose to reach 97%","Protects others who can't be vaccinated"],
+    unvaccBig:"—", unvaccDesc:"",
     unvaccComplications:["1 in 15 develop pneumonia","1 in 1,000 get brain inflammation"],
-    unprotectedLabel:"measles (1st dose)",
+    unprotectedLabel:"measles",
   },
   dtap:{
     label:"DTaP", field:"dtap", herd:0.92, herdLabel:"target ≈ 92%",
-    vaccBig:"1 in 7",
-    vaccDesc:"chance of catching whooping cough even when vaccinated",
-    vaccFacts:["~85% effective — illness far milder if it occurs","Covers diphtheria, tetanus & pertussis in one jab","3-dose primary series in the first year"],
-    unvaccBig:"8 in 10",
-    unvaccDesc:"chance of catching whooping cough when unvaccinated",
-    unvaccComplications:["Infants under 6 months: hospitalisation in most cases","1 in 25 develop pneumonia","Can be fatal in newborns"],
+    vaccBig:"—", vaccDesc:"",
+    vaccFacts:["~85% effective — illness far milder","Covers diphtheria, tetanus & pertussis"],
+    unvaccBig:"—", unvaccDesc:"",
+    unvaccComplications:["Can be fatal in newborns","Infants: hospitalisation likely"],
     unprotectedLabel:"whooping cough",
   },
   menb:{
     label:"MenB", field:"menb", herd:0.80, herdLabel:"target ≈ 80%",
-    vaccBig:"—", vaccDesc:"", // overridden by dynamic calc
-    vaccFacts:["~75% effective against MenB strains","Disease far less severe if breakthrough infection occurs","2 doses + booster in the first year"],
-    unvaccBig:"—", unvaccDesc:"", // overridden by dynamic calc
-    unvaccComplications:["1 in 10 children who develop MenB disease die","1 in 5 survivors have permanent disability","Loss of limbs due to septicaemia or brain damage","Symptoms escalate from fine to life-threatening within hours"],
+    vaccBig:"—", vaccDesc:"",
+    vaccFacts:["~75% effective against MenB strains","Severe disease much less likely if vaccinated"],
+    unvaccBig:"—", unvaccDesc:"",
+    unvaccComplications:["1 in 10 who get MenB die","1 in 5 survivors left with permanent disability"],
     unprotectedLabel:"meningococcal B",
   },
   pcv:{
     label:"PCV", field:"pcv", herd:0.70, herdLabel:"target ≈ 70%",
-    vaccBig:"—", vaccDesc:"", // overridden by dynamic calc
-    vaccFacts:["~90% effective against invasive pneumococcal disease in target strains","Reduces bacterial carriage — protects unvaccinated people too","2-dose schedule: 12 weeks + 1 year booster"],
-    unvaccBig:"—", unvaccDesc:"", // overridden by dynamic calc
-    unvaccComplications:["Leading cause of bacterial meningitis in young children","Can cause permanent hearing loss or brain damage","Septicaemia can be fatal within hours","Cases fell 90% after PCV was introduced (6,346 → 614 per year)"],
+    vaccBig:"—", vaccDesc:"",
+    vaccFacts:["~90% effective against invasive disease","Also reduces carriage — protects others"],
+    unvaccBig:"—", unvaccDesc:"",
+    unvaccComplications:["Can cause deafness or brain damage","Septicaemia can kill within hours"],
     unprotectedLabel:"pneumococcal disease",
   },
   rota:{
     label:"Rota", field:"rota", herd:0.75, herdLabel:"target ≈ 75%",
-    vaccBig:"1 in 7",
-    vaccDesc:"chance of severe rotavirus illness even when vaccinated (vaccine is >85% effective)",
-    vaccFacts:["Over 85% effective against severe disease (Green Book Ch.27b)","Oral drops — not an injection","2 doses before 24 weeks of age"],
-    unvaccBig:"Nearly all",
-    unvaccDesc:"unvaccinated children develop rotavirus gastroenteritis before age 5",
-    unvaccComplications:["12,700 children hospitalised in England & Wales each year (pre-vaccine)","Severe fever, diarrhoea and vomiting lasting 3–8 days","Dehydration can be dangerous in infants"],
+    vaccBig:"—", vaccDesc:"",
+    vaccFacts:[">85% effective against severe illness","2 oral doses — no injection needed"],
+    unvaccBig:"—", unvaccDesc:"",
+    unvaccComplications:["12,700 hospitalisations/year in England (pre-vaccine)","Severe dehydration — dangerous in infants"],
     unprotectedLabel:"rotavirus",
   },
 };
@@ -760,17 +746,17 @@ function renderRisk(){
     const sub = STATE.districtName
       ? `${STATE.districtName}, ${d.name} · ${d.region}`
       : `${d.name} · ${d.region}`;
-    $("area-meta").textContent=`${sub} · Population ${fmt(d.pop)} · ${fmt(d.under5)} children under 5`;
-    note.textContent=`ℹ Vaccination data covers the wider ${d.name} area — the smallest published geography.`;
+    $("area-meta").textContent=`${sub} · ${fmt(d.under5)} under-5s`;
+    note.textContent=`ℹ Data covers the wider ${d.name} area (smallest available geography).`;
     note.style.display="block";
   } else if(STATE.districtName){
     $("area-name").textContent=STATE.districtName;
-    $("area-meta").textContent=`${d.name}, ${d.region} · Population ${fmt(d.pop)} · ${fmt(d.under5)} children under 5`;
-    note.textContent=`ℹ Vaccination data covers the wider ${d.name} area — district-level data is not published separately.`;
+    $("area-meta").textContent=`${d.name}, ${d.region} · ${fmt(d.under5)} under-5s`;
+    note.textContent=`ℹ Data covers the wider ${d.name} area — district-level not published.`;
     note.style.display="block";
   } else {
     $("area-name").textContent=d.name;
-    $("area-meta").textContent=`${d.region} · Population ${fmt(d.pop)} · ${fmt(d.under5)} children under 5`;
+    $("area-meta").textContent=`${d.region} · ${fmt(d.under5)} under-5s`;
     // Show Scotland data source note
     if(d.region === 'Scotland'){
       note.textContent=`ℹ Scotland data: Public Health Scotland Q4 2025. Age thresholds differ slightly from England (MMR1 @ 24m, DTaP @ 5y).`;
