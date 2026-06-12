@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Simulator API demo</title>
+<style>
+  :root{ --ink:#0b0c0c; --soft:#505a5f; --line:#d6d1c4; --inf:#8C3A2B; --inf-band:#8C3A2B22; --d:#1F2937; }
+  *{box-sizing:border-box;}
+  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--ink);margin:0;padding:24px;max-width:860px;margin:0 auto;}
+  h1{font-size:20px;margin:0 0 4px;}
+  p.sub{color:var(--soft);margin:0 0 20px;font-size:13px;}
+  .controls{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;padding:14px 16px;border:1px solid var(--line);border-radius:10px;margin-bottom:16px;}
+  label{display:block;font-size:12px;color:var(--soft);margin-bottom:4px;}
+  select,input{font-size:14px;padding:7px 9px;border:1px solid var(--line);border-radius:6px;min-width:120px;}
+  button{font-size:14px;font-weight:600;padding:9px 18px;border:0;border-radius:6px;background:#00703c;color:#fff;cursor:pointer;}
+  button:disabled{background:#9aa;cursor:wait;}
+  .out{font-size:12px;color:var(--soft);margin-top:4px;}
+  .stats{display:flex;gap:24px;margin:14px 0;}
+  .stat b{display:block;font-size:22px;color:var(--ink);}
+  .stat span{font-size:11px;color:var(--soft);text-transform:uppercase;letter-spacing:.04em;}
+  svg{width:100%;height:300px;border:1px solid var(--line);border-radius:10px;background:#fdfdfb;}
+  .legend{font-size:12px;color:var(--soft);margin-top:6px;}
+  .swatch{display:inline-block;width:12px;height:12px;border-radius:2px;vertical-align:middle;margin:0 4px 0 14px;}
+  code{background:#f3f2ee;padding:1px 5px;border-radius:4px;}
+</style>
+</head>
+<body>
+  <h1>MORL simulator — live API demo</h1>
+  <p class="sub">This page calls the FastAPI server (<code>POST /simulate</code>) and plots a fresh ensemble.
+    Start the API first: <code>uvicorn server:app --reload</code> in <code>offline_morl-main/</code>.</p>
+
+  <div class="controls">
+    <div>
+      <label for="api">API base URL</label>
+      <input id="api" value="http://localhost:8000" style="min-width:200px"/>
+    </div>
+    <div>
+      <label for="disease">Disease</label>
+      <select id="disease"></select>
+    </div>
+    <div>
+      <label for="region">Region</label>
+      <select id="region"></select>
+    </div>
+    <div>
+      <label for="cov">Coverage: <span id="covlbl">90%</span></label>
+      <input id="cov" type="range" min="0.3" max="0.99" step="0.01" value="0.90"/>
+    </div>
+    <div>
+      <label for="days">Days</label>
+      <input id="days" type="number" value="180" min="10" max="720" style="min-width:80px"/>
+    </div>
+    <div>
+      <label for="runs">Runs</label>
+      <input id="runs" type="number" value="30" min="1" max="200" style="min-width:80px"/>
+    </div>
+    <button id="go">Run simulation</button>
+  </div>
+  <div class="out" id="status">Pick parameters and press Run.</div>
+
+  <div class="stats" id="stats" style="display:none">
+    <div class="stat"><b id="peak">—</b><span>peak infected</span></div>
+    <div class="stat"><b id="peakday">—</b><span>peak day</span></div>
+    <div class="stat"><b id="deaths">—</b><span>cumulative deaths</span></div>
+  </div>
+
+  <svg id="chart" viewBox="0 0 800 300" preserveAspectRatio="none"></svg>
+  <div class="legend">
+    <span class="swatch" style="background:var(--inf)"></span>Infected (median + 5–95% band)
+    <span class="swatch" style="background:var(--d)"></span>Deaths (median)
+  </div>
+
+<script>
+const $ = id => document.getElementById(id);
+const api = () => $("api").value.replace(/\/$/, "");
+
+// Populate region dropdown from the API's /regions endpoint.
+async function loadRegions(){
+  try{
+    const r = await fetch(api() + "/regions");
+    const regions = await r.json();
+    $("region").innerHTML = Object.entries(regions)
+      .map(([name,pop]) => `<option value="${name}">${name} (${(pop/1e6).toFixed(1)}M)</option>`).join("");
+    // populate disease dropdown from /diseases (shows the calibrated R0)
+    const dres = await fetch(api() + "/diseases");
+    const dis = await dres.json();
+    $("disease").innerHTML = Object.entries(dis)
+      .map(([k,v]) => `<option value="${k}">${v.label} — R₀ ${v.R0}</option>`).join("");
+    $("status").textContent = "Connected to API. Ready.";
+  }catch(e){
+    $("status").innerHTML = "⚠ Could not reach API at " + api() +
+      ". Start it with <code>uvicorn server:app --reload</code>.";
+  }
+}
+
+$("cov").addEventListener("input", e => $("covlbl").textContent = Math.round(e.target.value*100)+"%");
+
+// ── The actual frontend → simulator call ──
+async function runSim(){
+  $("go").disabled = true;
+  $("status").textContent = "Running ensemble on the server…";
+  const body = {
+    disease:  $("disease").value,
+    region:   $("region").value,
+    coverage: parseFloat($("cov").value),
+    days:     parseInt($("days").value),
+    n_runs:   parseInt($("runs").value),
+  };
+  try{
+    const t0 = performance.now();
+    const res = await fetch(api() + "/simulate", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(body),
+    });
+    if(!res.ok) throw new Error("HTTP " + res.status);
+    const sim = await res.json();
+    if(sim.error) throw new Error(sim.error);
+    draw(sim);
+    $("status").textContent = `Done in ${((performance.now()-t0)/1000).toFixed(1)}s · ${body.n_runs} runs.`;
+  }catch(e){
+    $("status").innerHTML = "⚠ " + e.message;
+  }finally{
+    $("go").disabled = false;
+  }
+}
+
+// ── Plot infected band + median, and deaths median, as inline SVG ──
+function draw(sim){
+  const I = sim.I, D = sim.D, n = I.med.length;
+  const W = 800, H = 300, padL = 50, padR = 14, padT = 14, padB = 24;
+  const yMax = Math.max(1, ...I.hi, ...D.med);
+  const x = i => padL + (W-padL-padR) * (i/(n-1));
+  const y = v => H-padB - (H-padT-padB) * (v/yMax);
+  const path = arr => arr.map((v,i)=>(i?"L":"M")+x(i).toFixed(1)+" "+y(v).toFixed(1)).join(" ");
+  // band polygon: hi forward, lo backward
+  const band = I.hi.map((v,i)=>(i?"L":"M")+x(i).toFixed(1)+" "+y(v).toFixed(1)).join(" ")
+    + " " + I.lo.map((v,i)=>"L"+x(n-1-i).toFixed(1)+" "+y(I.lo[n-1-i]).toFixed(1)).join(" ") + " Z";
+
+  // y-axis ticks
+  let ticks = "";
+  for(let k=0;k<=4;k++){
+    const v = yMax*k/4, yy = y(v);
+    ticks += `<line x1="${padL}" y1="${yy}" x2="${W-padR}" y2="${yy}" stroke="#eee"/>`
+      + `<text x="${padL-6}" y="${yy+3}" text-anchor="end" font-size="10" fill="#888">${Math.round(v).toLocaleString()}</text>`;
+  }
+  $("chart").innerHTML = ticks
+    + `<path d="${band}" fill="var(--inf-band)" stroke="none"/>`
+    + `<path d="${path(I.med)}" fill="none" stroke="var(--inf)" stroke-width="2"/>`
+    + `<path d="${path(D.med)}" fill="none" stroke="var(--d)" stroke-width="2"/>`
+    + `<text x="${padL}" y="${H-6}" font-size="10" fill="#888">day 0</text>`
+    + `<text x="${W-padR}" y="${H-6}" text-anchor="end" font-size="10" fill="#888">day ${n-1}</text>`;
+
+  const peak = Math.max(...I.med);
+  $("stats").style.display = "flex";
+  $("peak").textContent = Math.round(peak).toLocaleString();
+  $("peakday").textContent = I.med.indexOf(peak);
+  $("deaths").textContent = Math.round(D.med[D.med.length-1]).toLocaleString();
+}
+
+$("go").addEventListener("click", runSim);
+$("api").addEventListener("change", loadRegions);
+loadRegions();
+</script>
+</body>
+</html>

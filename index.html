@@ -194,6 +194,10 @@ body{
   border-bottom:1px solid var(--line);padding-bottom:3px;margin-bottom:6px;
 }
 .comp-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:6px;}
+.sim-section{margin-top:12px;padding-top:10px;border-top:1px solid var(--line);}
+.sim-title{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:4px;}
+.sim-status{font-size:11px;color:var(--ink-soft);margin-bottom:6px;}
+.sim-legend{font-size:11px;color:var(--ink-soft);margin-top:5px;}
 .comp-card{padding:6px 8px;border:2px solid;}
 .comp-card.vacc{border-color:#00703c;background:#f3faf6;}
 .comp-card.unvacc{border-color:#d4351c;background:#fdf2f0;}
@@ -356,9 +360,6 @@ body{
           <button class="disease-btn active" data-d="mmr2">MMR2</button>
           <button class="disease-btn" data-d="mmr1">MMR1</button>
           <button class="disease-btn" data-d="dtap">DTaP</button>
-          <button class="disease-btn" data-d="menb">MenB</button>
-          <button class="disease-btn" data-d="pcv">PCV</button>
-          <button class="disease-btn" data-d="rota">Rota</button>
         </div>
 
         <!-- Risk badge -->
@@ -411,6 +412,19 @@ body{
         <!-- Unprotected children count -->
         <div class="unprotected-row" id="unprot-row">
           Estimated <strong id="unprot-n">—</strong> children under 5 in this area are not fully vaccinated against measles.
+        </div>
+
+        <!-- Live outbreak simulation (powered by the MORL simulator API) -->
+        <div class="sim-section" id="sim-section" style="display:none">
+          <div class="sim-title">Modelled outbreak if a case arrives here</div>
+          <div class="sim-status" id="sim-status">—</div>
+          <svg id="sim-chart" viewBox="0 0 360 160" preserveAspectRatio="none"
+               style="width:100%;height:160px;background:#fdfdfb;border:1px solid var(--line);border-radius:8px;display:none"></svg>
+          <div class="sim-legend" id="sim-legend" style="display:none">
+            <span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#8C3A2B;vertical-align:middle"></span> infected (median + 5–95%)
+            &nbsp;&nbsp;
+            <span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#1F2937;vertical-align:middle"></span> deaths
+          </div>
         </div>
 
       </div><!-- /risk-block -->
@@ -484,30 +498,6 @@ const DISEASES = {
     unvaccComplications:["Can be fatal in newborns","Infants: hospitalisation likely"],
     unprotectedLabel:"whooping cough",
   },
-  menb:{
-    label:"MenB", field:"menb", herd:0.80, herdLabel:"target ≈ 80%",
-    vaccBig:"—", vaccDesc:"",
-    vaccFacts:["~75% effective against MenB strains","Severe disease much less likely if vaccinated"],
-    unvaccBig:"—", unvaccDesc:"",
-    unvaccComplications:["1 in 10 who get MenB die","1 in 5 survivors left with permanent disability"],
-    unprotectedLabel:"meningococcal B",
-  },
-  pcv:{
-    label:"PCV", field:"pcv", herd:0.70, herdLabel:"target ≈ 70%",
-    vaccBig:"—", vaccDesc:"",
-    vaccFacts:["~90% effective against invasive disease","Also reduces carriage — protects others"],
-    unvaccBig:"—", unvaccDesc:"",
-    unvaccComplications:["Can cause deafness or brain damage","Septicaemia can kill within hours"],
-    unprotectedLabel:"pneumococcal disease",
-  },
-  rota:{
-    label:"Rota", field:"rota", herd:0.75, herdLabel:"target ≈ 75%",
-    vaccBig:"—", vaccDesc:"",
-    vaccFacts:[">85% effective against severe illness","2 oral doses — no injection needed"],
-    unvaccBig:"—", unvaccDesc:"",
-    unvaccComplications:["12,700 hospitalisations/year in England (pre-vaccine)","Severe dehydration — dangerous in infants"],
-    unprotectedLabel:"rotavirus",
-  },
 };
 
 // ── Dynamic 5-year risk calculation ─────────────────────────────────────────
@@ -517,10 +507,7 @@ const DISEASES = {
 const EPID = {
   mmr2: { R0: 15,   ve: 0.97, natCov: 0.863, base5yr: 0.0012 }, // ~1 in 830 at nat avg
   mmr1: { R0: 15,   ve: 0.93, natCov: 0.913, base5yr: 0.0012 },
-  dtap: { R0: 5.5,  ve: 0.85, natCov: 0.942, base5yr: 0.025  }, // ~1 in 40  at nat avg
-  menb: { R0: null, ve: 0.73, natCov: 0.930, base5yr: 0.0035 }, // ~1 in 285 at nat avg
-  pcv:  { R0: null, ve: 0.90, natCov: 0.940, base5yr: 0.003  }, // ~1 in 333 at nat avg
-  rota: { R0: 3.5,  ve: 0.87, natCov: 0.945, base5yr: 0.75   }, // nearly all by age 5
+  dtap: { R0: 13,   ve: 0.85, natCov: 0.942, base5yr: 0.025  }, // ~1 in 40  at nat avg; R0 aligned with diseases.py (pertussis)
 };
 
 function calcDynRisk(cov, diseaseKey){
@@ -822,6 +809,85 @@ function renderRisk(){
 
   // Threshold legend label
   $("thresh-label").textContent=dis.herdLabel;
+
+  // Kick off a live outbreak simulation for this area (async, non-blocking).
+  runAreaSim(d, cov);
+}
+
+// ════════════════════════════════════════════════
+// Live simulator API — single configurable endpoint ("接口")
+// Change only API_BASE (or pass ?api=... in the URL) to repoint the page.
+// ════════════════════════════════════════════════
+const API_BASE = new URLSearchParams(location.search).get("api")
+                 || "http://localhost:8000";
+
+async function simulate({disease, region, coverage, days = 120, n_runs = 20}){
+  const res = await fetch(`${API_BASE}/simulate`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({disease, region, coverage, days, n_runs}),
+  });
+  if(!res.ok) throw new Error("API " + res.status);
+  const out = await res.json();
+  if(out.error) throw new Error(out.error);
+  return out;
+}
+
+let SIM_SEQ = 0;  // guard against out-of-order responses when clicking fast
+async function runAreaSim(d, cov){
+  const sec = $("sim-section");
+  // Only simulate diseases the API is calibrated for (mmr1/mmr2 -> measles, dtap -> pertussis)
+  if(cov == null){ sec.style.display = "none"; return; }
+  sec.style.display = "block";
+  $("sim-chart").style.display = "none";
+  $("sim-legend").style.display = "none";
+  $("sim-status").textContent = "Running outbreak model…";
+  const seq = ++SIM_SEQ;
+  try{
+    const sim = await simulate({ disease: STATE.disease, region: d.region, coverage: cov });
+    if(seq !== SIM_SEQ) return;  // a newer click superseded this one
+    drawSimChart(sim);
+    const peak = Math.max(...sim.I.med);
+    $("sim-status").innerHTML =
+      `${d.region} · ${(cov*100).toFixed(0)}% coverage · peak ≈ <strong>${Math.round(peak).toLocaleString()}</strong> infected, `
+      + `≈ <strong>${Math.round(sim.D.med[sim.D.med.length-1]).toLocaleString()}</strong> deaths over ${sim.meta.days} days`;
+    $("sim-chart").style.display = "block";
+    $("sim-legend").style.display = "block";
+  }catch(e){
+    if(seq !== SIM_SEQ) return;
+    // Graceful fallback: the static page still works without the API.
+    $("sim-status").innerHTML =
+      `Outbreak model unavailable (API not reachable at <code>${API_BASE}</code>). `
+      + `Coverage stats above are unaffected.`;
+  }
+}
+
+function drawSimChart(sim){
+  const I = sim.I, D = sim.D, n = I.med.length;
+  const W = 360, H = 160, padL = 38, padR = 8, padT = 8, padB = 16;
+  const yMax = Math.max(1, ...I.hi, ...D.med);
+  const x = i => padL + (W-padL-padR)*(i/(n-1));
+  const y = v => H-padB - (H-padT-padB)*(v/yMax);
+  const line = arr => arr.map((v,i)=>(i?"L":"M")+x(i).toFixed(1)+" "+y(v).toFixed(1)).join(" ");
+  const band = I.hi.map((v,i)=>(i?"L":"M")+x(i).toFixed(1)+" "+y(v).toFixed(1)).join(" ")
+    + " " + I.lo.map((_,i)=>"L"+x(n-1-i).toFixed(1)+" "+y(I.lo[n-1-i]).toFixed(1)).join(" ") + " Z";
+  let ticks="";
+  for(let k=0;k<=3;k++){
+    const v=yMax*k/3, yy=y(v);
+    ticks += `<line x1="${padL}" y1="${yy}" x2="${W-padR}" y2="${yy}" stroke="#eee"/>`
+      + `<text x="${padL-4}" y="${yy+3}" text-anchor="end" font-size="8" fill="#999">${shortNum(v)}</text>`;
+  }
+  $("sim-chart").innerHTML = ticks
+    + `<path d="${band}" fill="#8C3A2B22" stroke="none"/>`
+    + `<path d="${line(I.med)}" fill="none" stroke="#8C3A2B" stroke-width="1.8"/>`
+    + `<path d="${line(D.med)}" fill="none" stroke="#1F2937" stroke-width="1.8"/>`
+    + `<text x="${padL}" y="${H-4}" font-size="8" fill="#999">day 0</text>`
+    + `<text x="${W-padR}" y="${H-4}" text-anchor="end" font-size="8" fill="#999">day ${n-1}</text>`;
+}
+function shortNum(v){
+  if(v>=1e6) return (v/1e6).toFixed(1)+"M";
+  if(v>=1e3) return Math.round(v/1e3)+"k";
+  return Math.round(v);
 }
 
 // ════════════════════════════════════════════════
