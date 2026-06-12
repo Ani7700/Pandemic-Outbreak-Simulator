@@ -864,7 +864,7 @@ async function runAreaSim(d, cov){
 
 function drawSimChart(sim){
   const I = sim.I, D = sim.D, n = I.med.length;
-  const W = 360, H = 220, padL = 38, padR = 8, padT = 10, padB = 18;
+  const W = 360, H = 360, padL = 38, padR = 8, padT = 10, padB = 18;
   const yMax = Math.max(1, ...I.hi, ...D.med);
   const x = i => padL + (W-padL-padR)*(i/(n-1));
   const y = v => H-padB - (H-padT-padB)*(v/yMax);
