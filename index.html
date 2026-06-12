@@ -819,7 +819,7 @@ function renderRisk(){
 // Change only API_BASE (or pass ?api=... in the URL) to repoint the page.
 // ════════════════════════════════════════════════
 const API_BASE = new URLSearchParams(location.search).get("api")
-                 || "http://localhost:8000";
+                 || "https://morl-simulator-api.onrender.com";
 
 async function simulate({disease, region, coverage, days = 120, n_runs = 20}){
   const res = await fetch(`${API_BASE}/simulate`, {
