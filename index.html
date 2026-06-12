@@ -472,7 +472,7 @@ const DISEASES = {
     vaccDesc:"chance of catching measles even when vaccinated (2 doses MMR)",
     vaccFacts:["97% effective — far fewer infections and much milder if they occur","Serious complications very rare in vaccinated children","Protects others who cannot be vaccinated"],
     unvaccBig:"9 in 10",
-    unvaccDesc:"unvaccinated children catch measles if exposed to an active case",
+    unvaccDesc:"chance of catching measles when unvaccinated",
     unvaccComplications:["1 in 15 develop pneumonia","1 in 1,000 get brain inflammation"],
     unprotectedLabel:"measles",
   },
@@ -482,7 +482,7 @@ const DISEASES = {
     vaccDesc:"chance of catching measles even when vaccinated (1st dose MMR)",
     vaccFacts:["93% effective after 1 dose — 2nd dose raises this to 97%","Complications much milder if infection occurs","Protects others who cannot be vaccinated"],
     unvaccBig:"9 in 10",
-    unvaccDesc:"unvaccinated children catch measles if exposed to an active case",
+    unvaccDesc:"chance of catching measles when unvaccinated",
     unvaccComplications:["1 in 15 develop pneumonia","1 in 1,000 get brain inflammation"],
     unprotectedLabel:"measles (1st dose)",
   },
@@ -492,41 +492,89 @@ const DISEASES = {
     vaccDesc:"chance of catching whooping cough even when vaccinated",
     vaccFacts:["~85% effective — illness far milder if it occurs","Covers diphtheria, tetanus & pertussis in one jab","3-dose primary series in the first year"],
     unvaccBig:"8 in 10",
-    unvaccDesc:"unvaccinated household contacts catch whooping cough from an infected person",
+    unvaccDesc:"chance of catching whooping cough when unvaccinated",
     unvaccComplications:["Infants under 6 months: hospitalisation in most cases","1 in 25 develop pneumonia","Can be fatal in newborns"],
     unprotectedLabel:"whooping cough",
   },
   menb:{
     label:"MenB", field:"menb", herd:0.80, herdLabel:"target ≈ 80%",
-    vaccBig:"1 in 4",
-    vaccDesc:"chance of MenB disease even when vaccinated (vs 1 in 10 who die if infected)",
-    vaccFacts:["~75% effective against MenB strains","Disease far less severe if it does occur","2 doses + booster in the first year"],
-    unvaccBig:"1 in 10",
-    unvaccDesc:"children who develop MenB disease die — and 1 in 5 survivors have permanent disability",
-    unvaccComplications:["Loss of limbs due to septicaemia","Brain damage and hearing loss","Symptoms can go from fine to life-threatening within hours"],
+    vaccBig:"—", vaccDesc:"", // overridden by dynamic calc
+    vaccFacts:["~75% effective against MenB strains","Disease far less severe if breakthrough infection occurs","2 doses + booster in the first year"],
+    unvaccBig:"—", unvaccDesc:"", // overridden by dynamic calc
+    unvaccComplications:["1 in 10 children who develop MenB disease die","1 in 5 survivors have permanent disability","Loss of limbs due to septicaemia or brain damage","Symptoms escalate from fine to life-threatening within hours"],
     unprotectedLabel:"meningococcal B",
   },
   pcv:{
     label:"PCV", field:"pcv", herd:0.70, herdLabel:"target ≈ 70%",
-    vaccBig:"6,346→614",
-    vaccDesc:"invasive pneumococcal disease cases in England fell after PCV was introduced",
-    vaccFacts:["Vaccine provides both direct protection and herd protection","Reduces bacterial carriage — protecting unvaccinated people too","2-dose schedule: 16 weeks + 1 year booster"],
-    unvaccBig:"#1",
-    unvaccDesc:"cause of bacterial meningitis, severe pneumonia & bloodstream infections in young children",
-    unvaccComplications:["Can cause permanent hearing loss or brain damage","Septicaemia can be fatal within hours","Most dangerous in children under 2 and the elderly"],
+    vaccBig:"—", vaccDesc:"", // overridden by dynamic calc
+    vaccFacts:["~90% effective against invasive pneumococcal disease in target strains","Reduces bacterial carriage — protects unvaccinated people too","2-dose schedule: 12 weeks + 1 year booster"],
+    unvaccBig:"—", unvaccDesc:"", // overridden by dynamic calc
+    unvaccComplications:["Leading cause of bacterial meningitis in young children","Can cause permanent hearing loss or brain damage","Septicaemia can be fatal within hours","Cases fell 90% after PCV was introduced (6,346 → 614 per year)"],
     unprotectedLabel:"pneumococcal disease",
   },
   rota:{
     label:"Rota", field:"rota", herd:0.75, herdLabel:"target ≈ 75%",
     vaccBig:"1 in 7",
-    vaccDesc:"chance of severe rotavirus gastroenteritis even when vaccinated (vaccine is >85% effective)",
+    vaccDesc:"chance of severe rotavirus illness even when vaccinated (vaccine is >85% effective)",
     vaccFacts:["Over 85% effective against severe disease (Green Book Ch.27b)","Oral drops — not an injection","2 doses before 24 weeks of age"],
     unvaccBig:"Nearly all",
-    unvaccDesc:"unvaccinated children will have at least one episode of rotavirus gastroenteritis before age 5",
+    unvaccDesc:"unvaccinated children develop rotavirus gastroenteritis before age 5",
     unvaccComplications:["12,700 children hospitalised in England & Wales each year (pre-vaccine)","Severe fever, diarrhoea and vomiting lasting 3–8 days","Dehydration can be dangerous in infants"],
     unprotectedLabel:"rotavirus",
   },
 };
+
+// ── Dynamic 5-year risk calculation ─────────────────────────────────────────
+// Parameters calibrated to England surveillance data (UKHSA) + Green Book
+// base5yr = estimated 5-year cumulative risk for an UNVACCINATED child
+//           at the national-average coverage level
+const EPID = {
+  mmr2: { R0: 15,   ve: 0.97, natCov: 0.863, base5yr: 0.0012 }, // ~1 in 830 at nat avg
+  mmr1: { R0: 15,   ve: 0.93, natCov: 0.913, base5yr: 0.0012 },
+  dtap: { R0: 5.5,  ve: 0.85, natCov: 0.942, base5yr: 0.025  }, // ~1 in 40  at nat avg
+  menb: { R0: null, ve: 0.73, natCov: 0.930, base5yr: 0.0035 }, // ~1 in 285 at nat avg
+  pcv:  { R0: null, ve: 0.90, natCov: 0.940, base5yr: 0.003  }, // ~1 in 333 at nat avg
+  rota: { R0: 3.5,  ve: 0.87, natCov: 0.945, base5yr: 0.75   }, // nearly all by age 5
+};
+
+function calcDynRisk(cov, diseaseKey){
+  // cov: local coverage as fraction 0–1 (or null)
+  const e = EPID[diseaseKey];
+  if(!e || cov == null) return null;
+  cov = Math.min(cov, 0.999);
+  const { ve, natCov, base5yr, R0 } = e;
+
+  // Susceptible fraction = unvaccinated + vaccinated but not protected
+  const s_local = (1 - cov)    + cov    * (1 - ve);
+  const s_nat   = (1 - natCov) + natCov * (1 - ve);
+  const ratio   = s_nat > 0 ? s_local / s_nat : 1;
+
+  // Annual risk at national average, then scale by local susceptibility
+  const annualBase = 1 - Math.pow(1 - Math.min(base5yr, 0.99), 0.2);
+  let annualUnvacc = annualBase * ratio;
+
+  // If R0 known: when Re < 1, disease can't sustain locally → import-only risk
+  if(R0){
+    const Re = R0 * s_local;
+    if(Re < 1) annualUnvacc *= Re;
+  }
+
+  const annualVacc = annualUnvacc * (1 - ve);
+
+  // Annual probability
+  const p_unvacc = Math.min(annualUnvacc, 0.99);
+  const p_vacc   = Math.min(annualVacc,   0.99);
+
+  return { vacc: fmt1inN(p_vacc), unvacc: fmt1inN(p_unvacc) };
+}
+
+function fmt1inN(p){
+  if(!p || p <= 0 || !isFinite(p)) return "< 1 in 1M";
+  const n = Math.round(1 / p);
+  if(n >= 1000000) return "< 1 in 1M";
+  if(n >= 10000)   return `1 in ${Math.round(n / 1000)}k`;
+  return `1 in ${n.toLocaleString()}`;
+}
 
 // Risk levels based on MMR2 coverage
 function riskFromCov(c) {
@@ -763,13 +811,20 @@ function renderRisk(){
     $("risk-sub").textContent=risk.sub;
   }
 
-  // Vaccinated vs Unvaccinated comparison cards (disease-specific)
-  $("vacc-big").textContent  = dis.vaccBig;
-  $("vacc-desc").textContent = dis.vaccDesc;
-  $("vacc-facts").innerHTML  = dis.vaccFacts.map(f=>`<li>${f}</li>`).join("");
-
-  $("unvacc-big").textContent  = dis.unvaccBig;
-  $("unvacc-desc").textContent = dis.unvaccDesc;
+  // Vaccinated vs Unvaccinated comparison cards — dynamic 5-year risk
+  const dynRisk = calcDynRisk(cov, STATE.disease);
+  if(dynRisk){
+    $("vacc-big").textContent   = dynRisk.vacc;
+    $("vacc-desc").textContent  = `estimated annual chance of catching ${dis.unprotectedLabel} (with ${dis.label})`;
+    $("unvacc-big").textContent  = dynRisk.unvacc;
+    $("unvacc-desc").textContent = `estimated annual chance of catching ${dis.unprotectedLabel}, without vaccination`;
+  } else {
+    $("vacc-big").textContent   = dis.vaccBig;
+    $("vacc-desc").textContent  = dis.vaccDesc;
+    $("unvacc-big").textContent  = dis.unvaccBig;
+    $("unvacc-desc").textContent = dis.unvaccDesc;
+  }
+  $("vacc-facts").innerHTML = dis.vaccFacts.map(f=>`<li>${f}</li>`).join("");
   // Community exposure note as first item, then disease-specific complications
   const commNote = exposureNote(cov!=null?cov:mmr2, d.name);
   $("unvacc-facts").innerHTML =
