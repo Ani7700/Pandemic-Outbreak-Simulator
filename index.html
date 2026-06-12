@@ -418,8 +418,8 @@ body{
         <div class="sim-section" id="sim-section" style="display:none">
           <div class="sim-title">Modelled outbreak if a case arrives here</div>
           <div class="sim-status" id="sim-status">—</div>
-          <svg id="sim-chart" viewBox="0 0 360 220" preserveAspectRatio="none"
-               style="width:100%;height:220px;background:#fdfdfb;border:1px solid var(--line);border-radius:8px;display:none"></svg>
+          <svg id="sim-chart" viewBox="0 0 360 300" preserveAspectRatio="none"
+               style="width:100%;height:300px;background:#fdfdfb;border:1px solid var(--line);border-radius:8px;display:none"></svg>
           <div class="sim-legend" id="sim-legend" style="display:none">
             <span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#8C3A2B;vertical-align:middle"></span> infected (median + 5–95%)
             &nbsp;&nbsp;
@@ -864,10 +864,14 @@ async function runAreaSim(d, cov){
 
 function drawSimChart(sim){
   const I = sim.I, D = sim.D, n = I.med.length;
-  const W = 360, H = 360, padL = 38, padR = 8, padT = 10, padB = 18;
-  const yMax = Math.max(1, ...I.hi, ...D.med);
+  const W = 360, H = 300, padL = 40, padR = 8, padT = 12, padB = 18;
+  // Trim the y-axis: use the 85th-percentile of the upper band so a few noisy
+  // stochastic spikes don't squash the median. Keep the median peak in frame.
+  const hiSorted = I.hi.slice().sort((a,b)=>a-b);
+  const p85 = hiSorted[Math.floor(hiSorted.length*0.85)] || 1;
+  const yMax = Math.max(1, Math.max(...I.med)*1.15, p85);
   const x = i => padL + (W-padL-padR)*(i/(n-1));
-  const y = v => H-padB - (H-padT-padB)*(v/yMax);
+  const y = v => H-padB - (H-padT-padB)*(Math.min(v,yMax)/yMax);  // clamp to top edge
   const line = arr => arr.map((v,i)=>(i?"L":"M")+x(i).toFixed(1)+" "+y(v).toFixed(1)).join(" ");
   const band = I.hi.map((v,i)=>(i?"L":"M")+x(i).toFixed(1)+" "+y(v).toFixed(1)).join(" ")
     + " " + I.lo.map((_,i)=>"L"+x(n-1-i).toFixed(1)+" "+y(I.lo[n-1-i]).toFixed(1)).join(" ") + " Z";
