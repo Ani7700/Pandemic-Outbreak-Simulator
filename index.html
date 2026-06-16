@@ -972,50 +972,52 @@ async function lookupPC(){
   if(!raw)return;
   const pc=raw.replace(/\s+/g,"").toUpperCase();
   $("pc-status").textContent="Looking up…"; $("pc-status").style.color="var(--muted)";
+
+  // ── Step 1: the actual network lookup — ONLY this can report "Lookup failed" ──
+  let res, code, distCode;
   try{
-    // Step 1: postcodes.io → admin codes + lat/lon
     const r=await fetch(`https://api.postcodes.io/postcodes/${encodeURIComponent(pc)}`);
     const j=await r.json();
     if(j.status!==200||!j.result){$("pc-status").textContent="Postcode not found";$("pc-status").style.color="var(--bad)";return;}
-
-    const res=j.result, c=res.codes||{};
-    const lat=res.latitude, lon=res.longitude;
-    const distCode=c.admin_district||"", cntyCode=c.admin_county||"";
-    const distName=res.admin_district||"";
-    const code=UTLA[distCode]?distCode:UTLA[cntyCode]?cntyCode:null;
+    res=j.result;
+    const c=res.codes||{};
+    distCode=c.admin_district||"";
+    const cntyCode=c.admin_county||"";
+    code=UTLA[distCode]?distCode:UTLA[cntyCode]?cntyCode:null;
     if(!code){$("pc-status").textContent="Could not match to a local authority";$("pc-status").style.color="var(--warn)";return;}
+  }catch(e){
+    $("pc-status").textContent="Lookup failed — check connection"; $("pc-status").style.color="var(--bad)";
+    return;
+  }
 
-    // Step 2: Nominatim reverse geocoding → specific place name
-    let placeName=null, placeType=null;
-    try{
-      const nr=await fetch(
-        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&addressdetails=1`,
-        {headers:{"Accept-Language":"en-GB,en"}}
-      );
-      const nj=await nr.json();
-      const a=nj.address||{};
-      // Priority: named POI → road → settlement
-      const poi = a.aerodrome||a.amenity||a.tourism||a.leisure||a.building||a.office||a.shop||a.hospital||a.university||a.school||null;
-      const road = a.road||null;
-      const place = a.suburb||a.quarter||a.village||a.town||a.city||null;
-      if(poi){ placeName=poi; placeType="poi"; }
-      else if(road && place){ placeName=`${road}, ${place}`; placeType="road"; }
-      else if(road){ placeName=road; placeType="road"; }
-      else if(place){ placeName=place; placeType="place"; }
-    }catch(e){ /* Nominatim unavailable, graceful fallback */ }
+  // ── Step 2: optional place-name enhancement (Nominatim) — never fatal ──
+  let placeName=null, placeType=null;
+  try{
+    const nr=await fetch(
+      `https://nominatim.openstreetmap.org/reverse?lat=${res.latitude}&lon=${res.longitude}&format=json&addressdetails=1`,
+      {headers:{"Accept-Language":"en-GB,en"}}
+    );
+    const nj=await nr.json();
+    const a=nj.address||{};
+    const poi = a.aerodrome||a.amenity||a.tourism||a.leisure||a.building||a.office||a.shop||a.hospital||a.university||a.school||null;
+    const road = a.road||null;
+    const place = a.suburb||a.quarter||a.village||a.town||a.city||null;
+    if(poi){ placeName=poi; placeType="poi"; }
+    else if(road && place){ placeName=`${road}, ${place}`; placeType="road"; }
+    else if(road){ placeName=road; placeType="road"; }
+    else if(place){ placeName=place; placeType="place"; }
+  }catch(e){ /* Nominatim unavailable — fall back to LA name */ }
 
-    // Step 3: determine display name
-    const usedDistrict=!!UTLA[distCode];
-    STATE.districtName = (!usedDistrict && distName) ? distName : null;
-    STATE.placeName    = placeName;
-    STATE.placeType    = placeType;
-
-    const display = placeName || STATE.districtName || UTLA[code].name;
-    $("pc-status").textContent="✓ "+display;
-    $("pc-status").style.color="var(--good)";
-    selectUTLA(code, true);
-
-  }catch(e){ $("pc-status").textContent="Lookup failed — check connection"; $("pc-status").style.color="var(--bad)"; }
+  // ── Step 3: render (a rendering error must NOT show as a lookup failure) ──
+  const usedDistrict=!!UTLA[distCode];
+  STATE.districtName = (!usedDistrict && (res.admin_district||"")) ? res.admin_district : null;
+  STATE.placeName    = placeName;
+  STATE.placeType    = placeType;
+  const display = placeName || STATE.districtName || UTLA[code].name;
+  $("pc-status").textContent="✓ "+display;
+  $("pc-status").style.color="var(--good)";
+  try{ selectUTLA(code, true); }
+  catch(err){ console.error("postcode render error:", err); }  // logged, not shown as failure
 }
 
 // ════════════════════════════════════════════════
