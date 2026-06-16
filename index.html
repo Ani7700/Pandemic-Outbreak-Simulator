@@ -1019,6 +1019,33 @@ async function lookupPC(){
 }
 
 // ════════════════════════════════════════════════
+// Geocode a free-text place name (e.g. "Ely") to its UTLA.
+// Nominatim: name -> lat/lon ; postcodes.io: lat/lon -> admin codes -> UTLA.
+// ════════════════════════════════════════════════
+async function geocodePlace(q){
+  // 1) forward geocode the place name (Great Britain only)
+  const gr = await fetch(
+    `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}`
+    + `&countrycodes=gb&format=json&addressdetails=1&limit=1`,
+    {headers:{"Accept-Language":"en-GB,en"}}
+  );
+  const gj = await gr.json();
+  if(!gj.length) return null;
+  const hit = gj[0], a = hit.address || {};
+  const placeName = a.city||a.town||a.village||a.suburb||a.hamlet||a.county||q;
+
+  // 2) reverse geocode the coordinates to admin codes via nearest postcode
+  const pr = await fetch(`https://api.postcodes.io/postcodes?lon=${hit.lon}&lat=${hit.lat}&limit=1`);
+  const pj = await pr.json();
+  if(pj.status!==200 || !pj.result || !pj.result.length) return null;
+  const c = pj.result[0].codes || {};
+  const code = UTLA[c.admin_district] ? c.admin_district
+             : UTLA[c.admin_county]   ? c.admin_county : null;
+  if(!code) return null;
+  return { code, placeName };
+}
+
+// ════════════════════════════════════════════════
 // Name search autocomplete
 // ════════════════════════════════════════════════
 function wireNameSearch(){
@@ -1032,7 +1059,34 @@ function wireNameSearch(){
       .filter(([,d])=>d.name.toLowerCase().includes(q))
       .sort((a,b)=>a[1].name.localeCompare(b[1].name))
       .slice(0,8);
-    if(!matches.length){dd.classList.remove("open");return;}
+    if(!matches.length){
+      // No local-authority name matched — offer a place/town geocode search.
+      const q0=inp.value.trim();
+      const item=document.createElement("div");
+      item.className="ac-item ac-geocode";
+      item.innerHTML=`<span>Search “${q0}” as a town/city</span><span class="ac-rgn">↵</span>`;
+      item.addEventListener("mousedown",async e=>{
+        e.preventDefault();
+        item.querySelector("span").textContent=`Searching “${q0}”…`;
+        let res=null;
+        try{ res=await geocodePlace(q0); }catch(_){}
+        dd.classList.remove("open");
+        if(!res){
+          item.querySelector("span").textContent="Place not found";
+          $("name-input").value="";
+          alert(`Couldn't find “${q0}”. Try a nearby town, the council name, or use the postcode box.`);
+          return;
+        }
+        STATE.districtName=null;
+        STATE.placeName=res.placeName;
+        STATE.placeType="place";
+        selectUTLA(res.code, true);
+        inp.value="";
+      });
+      dd.appendChild(item);
+      dd.classList.add("open");
+      return;
+    }
     matches.forEach(([code,d],i)=>{
       const item=document.createElement("div");
       item.className="ac-item"; item.dataset.code=code;
@@ -1046,7 +1100,11 @@ function wireNameSearch(){
     const items=dd.querySelectorAll(".ac-item");
     if(e.key==="ArrowDown"){e.preventDefault();idx=Math.min(idx+1,items.length-1);items.forEach((x,i)=>x.classList.toggle("hi",i===idx));}
     else if(e.key==="ArrowUp"){e.preventDefault();idx=Math.max(idx-1,0);items.forEach((x,i)=>x.classList.toggle("hi",i===idx));}
-    else if(e.key==="Enter"&&idx>=0){items[idx].dispatchEvent(new MouseEvent("mousedown"));}
+    else if(e.key==="Enter"){
+      // pick the highlighted item, or the first one (incl. the geocode fallback)
+      if(idx>=0) items[idx].dispatchEvent(new MouseEvent("mousedown"));
+      else if(items.length) items[0].dispatchEvent(new MouseEvent("mousedown"));
+    }
     else if(e.key==="Escape"){dd.classList.remove("open");}
   });
   document.addEventListener("click",e=>{if(!e.target.closest(".search-wrap"))dd.classList.remove("open");});
