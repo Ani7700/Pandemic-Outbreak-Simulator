@@ -80,6 +80,27 @@ body{
   .layout{flex-direction:column;}
   .resize-handle{display:none;}
 }
+/* ── Mobile / phone tuning ── */
+@media(max-width:640px){
+  .panel-scroll{padding:10px 12px 14px;}
+  /* Map stage must be tall enough to pan/zoom comfortably on a phone */
+  .layout[data-step="2"] .map-panel{min-height:72vh;}
+  .map-wrap{min-height:62vh;}
+  /* Stepper: keep on one row, tap-friendly */
+  .stepper{gap:4px;padding:8px 6px;font-size:12px;}
+  .step-chip{font-size:12px;gap:4px;padding:4px 2px;}
+  .step-chip .num{width:20px;height:20px;}
+  /* Bigger tap targets */
+  .wiz-btn{padding:11px 16px;font-size:15px;}
+  #search-btn,#pc-btn{padding:11px 14px;}
+  #search-input{font-size:16px;}              /* 16px stops iOS auto-zoom */
+  .disease-tag{padding:4px 12px;}
+  /* Stack the 3 risk tiers and the case stats */
+  .comp-grid3{grid-template-columns:1fr;}
+  .cases-grid{gap:12px;}
+  .wiz-nav{flex-wrap:wrap;}
+  .nav2-hint{order:3;flex-basis:100%;text-align:center;}
+}
 
 /* ── Left panel ── */
 .panel{
@@ -210,9 +231,9 @@ body{
 .cases-asof{font-size:10px;color:var(--ink-soft);margin-top:8px;line-height:1.4;}
 
 /* ── 3-stage wizard ── */
-.stepper{display:flex;gap:8px;justify-content:center;align-items:center;padding:9px 12px;border-bottom:1px solid var(--line);background:var(--paper);flex-wrap:wrap;}
-.step-chip{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;border:none;background:none;font-family:inherit;padding:2px 4px;}
-.step-chip .num{display:inline-flex;width:22px;height:22px;align-items:center;justify-content:center;border-radius:50%;background:var(--line);color:var(--ink);font-size:12px;}
+.stepper{display:flex;gap:18px;justify-content:center;align-items:center;padding:12px;border-bottom:1px solid var(--line);background:var(--paper);flex-wrap:wrap;}
+.step-chip{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:600;color:var(--muted);cursor:pointer;border:none;background:none;font-family:inherit;padding:4px 8px;}
+.step-chip .num{display:inline-flex;width:26px;height:26px;align-items:center;justify-content:center;border-radius:50%;background:var(--line);color:var(--ink);font-size:13px;}
 .step-chip.active{color:var(--accent);}
 .step-chip.active .num{background:var(--accent);color:#fff;}
 .step-chip.done .num{background:#6B8E5A;color:#fff;}
@@ -226,12 +247,13 @@ body{
 /* Stage visibility — single column, one stage at a time */
 .layout[data-step]{flex-direction:column;}
 .layout[data-step] .resize-handle{display:none;}
-.layout[data-step] .panel{width:auto !important;flex:1;max-width:1180px;margin:0 auto;}
+.layout[data-step] .panel{width:auto !important;flex:1;max-width:none;margin:0;}
 #nav2,#nav3{display:none;}
 .layout[data-step="1"] .map-panel{display:none;}
 .layout[data-step="1"] #risk-block{display:none;}
 .layout[data-step="2"] .panel{display:none;}
 .layout[data-step="2"] #nav2{display:flex;}
+.layout[data-step="3"] #risk-block{display:block;}   /* risk-block shows ONLY in step 3 */
 .layout[data-step="3"] .map-panel{display:none;}
 .layout[data-step="3"] .pc-section{display:none;}
 .layout[data-step="3"] .worst-section{display:none;}
@@ -829,7 +851,7 @@ function renderRisk(){
   const cov=d[dis.field]; // may be null
   const mmr2=d.mmr2;      // always use MMR2 for risk level
 
-  $("risk-block").style.display="block";
+  // (risk-block visibility is controlled by the wizard step CSS, not here)
   // Determine what to show in the header
   const note=$("district-note");
   if(STATE.placeName){
