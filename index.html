@@ -194,8 +194,12 @@ body{
   border-bottom:1px solid var(--line);padding-bottom:3px;margin-bottom:6px;
 }
 .comp-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:6px;}
-.comp-subhead{font-size:12px;font-weight:700;color:var(--ink-soft);margin:8px 0 4px;}
+.comp-grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:6px;}
+.comp-card.partial{border-color:#c8923a;background:#fbf4e7;}
+.comp-head.partial,.comp-big.partial{color:#9a6a1c;}
+.comp-exp{font-size:10px;color:var(--ink-soft);margin-top:4px;}
 .comp-note{font-size:11px;color:var(--ink-soft);margin-top:8px;line-height:1.4;}
+@media(max-width:520px){.comp-grid3{grid-template-columns:1fr;}}
 .sim-section{margin-top:12px;padding-top:10px;border-top:1px solid var(--line);}
 .sim-title{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:4px;}
 .sim-status{font-size:11px;color:var(--ink-soft);margin-bottom:6px;}
@@ -357,11 +361,10 @@ body{
           <div class="district-note" id="district-note" style="display:none"></div>
         </div>
 
-        <!-- Disease selector -->
+        <!-- Measles only: choose which dose's coverage the map shows -->
         <div class="disease-row" id="disease-row">
-          <button class="disease-btn active" data-d="mmr2">MMR2</button>
-          <button class="disease-btn" data-d="mmr1">MMR1</button>
-          <button class="disease-btn" data-d="dtap">DTaP</button>
+          <button class="disease-btn active" data-d="mmr2">2nd dose (MMR2)</button>
+          <button class="disease-btn" data-d="mmr1">1st dose (MMR1)</button>
         </div>
 
         <!-- Risk badge -->
@@ -386,34 +389,26 @@ body{
           <div class="cov-ticks"><span>50%</span><span>70%</span><span>90%</span></div>
         </div>
 
-        <!-- Risk for your child: general public vs exposed-to-a-case -->
-        <div class="comparison-label">Risk for your child</div>
-
-        <div class="comp-subhead">In the general public · per year</div>
-        <div class="comp-grid">
-          <div class="comp-card vacc">
-            <div class="comp-head vacc">💉 Vaccinated</div>
-            <div class="comp-big vacc" id="vacc-gp-big">—</div>
-            <div class="comp-desc" id="vacc-gp-desc">annual chance of catching measles</div>
-          </div>
+        <!-- Risk for your child by measles vaccination status (3 tiers) -->
+        <div class="comparison-label">Your child's chance of catching measles</div>
+        <div class="comp-grid3">
           <div class="comp-card unvacc">
-            <div class="comp-head unvacc">⚠ Unvaccinated</div>
-            <div class="comp-big unvacc" id="unvacc-gp-big">—</div>
-            <div class="comp-desc" id="unvacc-gp-desc">annual chance of catching measles</div>
+            <div class="comp-head unvacc">⚠ No doses</div>
+            <div class="comp-big unvacc" id="t-unvacc-big">—</div>
+            <div class="comp-desc">in the general public, per year</div>
+            <div class="comp-exp">if exposed to a case: <strong id="t-unvacc-exp">—</strong></div>
           </div>
-        </div>
-
-        <div class="comp-subhead">If exposed to an active case · per exposure</div>
-        <div class="comp-grid">
+          <div class="comp-card partial">
+            <div class="comp-head partial">💉 After 1st dose</div>
+            <div class="comp-big partial" id="t-dose1-big">—</div>
+            <div class="comp-desc">in the general public, per year</div>
+            <div class="comp-exp">if exposed to a case: <strong id="t-dose1-exp">—</strong></div>
+          </div>
           <div class="comp-card vacc">
-            <div class="comp-head vacc">💉 Vaccinated</div>
-            <div class="comp-big vacc" id="vacc-exp-big">—</div>
-            <div class="comp-desc">chance of infection if exposed to a case</div>
-          </div>
-          <div class="comp-card unvacc">
-            <div class="comp-head unvacc">⚠ Unvaccinated</div>
-            <div class="comp-big unvacc" id="unvacc-exp-big">—</div>
-            <div class="comp-desc">chance of infection if exposed to a case</div>
+            <div class="comp-head vacc">💉💉 After 2nd dose</div>
+            <div class="comp-big vacc" id="t-dose2-big">—</div>
+            <div class="comp-desc">in the general public, per year</div>
+            <div class="comp-exp">if exposed to a case: <strong id="t-dose2-exp">—</strong></div>
           </div>
         </div>
 
@@ -483,30 +478,19 @@ body{
 // ════════════════════════════════════════════════
 // Data & constants
 // ════════════════════════════════════════════════
+// Only measles now. MMR2 = 2nd dose, MMR1 = 1st dose of the SAME vaccine
+// against measles. The two entries differ only in which coverage field/label
+// the map shows; the disease is measles in both cases.
 const DISEASES = {
   mmr2:{
-    label:"MMR2", field:"mmr2", herd:0.93, herdLabel:"herd immunity ≈ 93%",
-    vaccBig:"—", vaccDesc:"",
-    vaccFacts:["97% effective — milder if it does occur","Protects others who can't be vaccinated"],
-    unvaccBig:"—", unvaccDesc:"",
+    label:"2nd dose (MMR2)", field:"mmr2", herd:0.93, herdLabel:"herd immunity ≈ 93%",
     unvaccComplications:["1 in 15 develop pneumonia","1 in 1,000 get brain inflammation"],
     unprotectedLabel:"measles",
   },
   mmr1:{
-    label:"MMR1", field:"mmr1", herd:0.93, herdLabel:"herd immunity ≈ 93%",
-    vaccBig:"—", vaccDesc:"",
-    vaccFacts:["93% effective — get 2nd dose to reach 97%","Protects others who can't be vaccinated"],
-    unvaccBig:"—", unvaccDesc:"",
+    label:"1st dose (MMR1)", field:"mmr1", herd:0.93, herdLabel:"herd immunity ≈ 93%",
     unvaccComplications:["1 in 15 develop pneumonia","1 in 1,000 get brain inflammation"],
     unprotectedLabel:"measles",
-  },
-  dtap:{
-    label:"DTaP", field:"dtap", herd:0.92, herdLabel:"target ≈ 92%",
-    vaccBig:"—", vaccDesc:"",
-    vaccFacts:["~85% effective — illness far milder","Covers diphtheria, tetanus & pertussis"],
-    unvaccBig:"—", unvaccDesc:"",
-    unvaccComplications:["Can be fatal in newborns","Infants: hospitalisation likely"],
-    unprotectedLabel:"whooping cough",
   },
 };
 
@@ -514,51 +498,39 @@ const DISEASES = {
 // Parameters calibrated to England surveillance data (UKHSA) + Green Book
 // base5yr = estimated 5-year cumulative risk for an UNVACCINATED child
 //           at the national-average coverage level
-const EPID = {
-  // sar = secondary attack rate among susceptibles (prob. of infection GIVEN exposure to a case)
-  mmr2: { R0: 15,   ve: 0.97, natCov: 0.863, base5yr: 0.0012, sar: 0.90 }, // measles SAR ~90%
-  mmr1: { R0: 15,   ve: 0.93, natCov: 0.913, base5yr: 0.0012, sar: 0.90 },
-  dtap: { R0: 13,   ve: 0.85, natCov: 0.942, base5yr: 0.025,  sar: 0.80 }, // pertussis household SAR ~80%
-};
+// Single measles parameter set (no more per-vaccine "diseases").
+//   ve1 / ve2 = vaccine efficacy after the 1st / 2nd MMR dose
+//   sar       = secondary attack rate among susceptibles (per-exposure)
+//   base5yr   = 5-year cumulative measles risk for an UNVACCINATED child at
+//               national-average coverage; natCov = national MMR2 coverage
+const MEASLES = { R0: 15, natCov: 0.863, base5yr: 0.0012, sar: 0.90, ve1: 0.93, ve2: 0.97 };
 
-function calcDynRisk(cov, diseaseKey){
-  // cov: local coverage as fraction 0–1 (or null)
-  const e = EPID[diseaseKey];
-  if(!e || cov == null) return null;
-  cov = Math.min(cov, 0.999);
-  const { ve, natCov, base5yr, R0 } = e;
+// Returns infection risk for the three individual tiers (unvaccinated / 1 dose /
+// 2 doses), each in two scenarios: gp = general-public annual, exp = if exposed.
+// Community transmission level is driven by the area's 2nd-dose (MMR2) coverage.
+function calcDynRisk(d){
+  const cov = d && d.mmr2;
+  if(cov == null) return null;
+  const M = MEASLES;
+  const c = Math.min(cov, 0.999);
 
-  // Susceptible fraction = unvaccinated + vaccinated but not protected
-  const s_local = (1 - cov)    + cov    * (1 - ve);
-  const s_nat   = (1 - natCov) + natCov * (1 - ve);
+  // community susceptibility uses 2-dose efficacy (dominant protection)
+  const s_local = (1 - c)         + c         * (1 - M.ve2);
+  const s_nat   = (1 - M.natCov)  + M.natCov  * (1 - M.ve2);
   const ratio   = s_nat > 0 ? s_local / s_nat : 1;
 
-  // Annual risk at national average, then scale by local susceptibility
-  const annualBase = 1 - Math.pow(1 - Math.min(base5yr, 0.99), 0.2);
+  const annualBase = 1 - Math.pow(1 - Math.min(M.base5yr, 0.99), 0.2);
   let annualUnvacc = annualBase * ratio;
+  const Re = M.R0 * s_local;
+  if(Re < 1) annualUnvacc *= Re;           // can't sustain locally → import-only
+  annualUnvacc = Math.min(annualUnvacc, 0.99);
 
-  // If R0 known: when Re < 1, disease can't sustain locally → import-only risk
-  if(R0){
-    const Re = R0 * s_local;
-    if(Re < 1) annualUnvacc *= Re;
-  }
-
-  const annualVacc = annualUnvacc * (1 - ve);
-
-  // ── Scenario 1: general public (annual probability) ──
-  const p_unvacc = Math.min(annualUnvacc, 0.99);
-  const p_vacc   = Math.min(annualVacc,   0.99);
-
-  // ── Scenario 2: exposed to an active case (per-exposure probability) ──
-  // Secondary attack rate among susceptibles; vaccine cuts it by (1-ve).
-  const sar = e.sar != null ? e.sar : 0.90;
-  const p_exp_unvacc = sar;
-  const p_exp_vacc   = sar * (1 - ve);
-
-  return {
-    vacc:      fmt1inN(p_vacc),      unvacc:      fmt1inN(p_unvacc),
-    vaccExp:   fmtChance(p_exp_vacc), unvaccExp:  fmtChance(p_exp_unvacc),
-  };
+  // one individual tier: their own efficacy scales both scenarios by (1-veInd)
+  const tier = veInd => ({
+    gp:  fmt1inN(Math.min(annualUnvacc * (1 - veInd), 0.99)),
+    exp: fmtChance(M.sar * (1 - veInd)),
+  });
+  return { unvacc: tier(0), dose1: tier(M.ve1), dose2: tier(M.ve2) };
 }
 
 // Format a probability: high chances as "N in 10", low chances as "1 in N".
@@ -809,20 +781,17 @@ function renderRisk(){
     $("risk-sub").textContent=risk.sub;
   }
 
-  // Four comparison cards: {general public, exposed} × {vaccinated, unvaccinated}
-  const dynRisk = calcDynRisk(cov, STATE.disease);
+  // Three measles tiers: no doses / after 1st dose / after 2nd dose
+  const dynRisk = calcDynRisk(d);
   if(dynRisk){
-    $("vacc-gp-big").textContent    = dynRisk.vacc;
-    $("unvacc-gp-big").textContent  = dynRisk.unvacc;
-    $("vacc-exp-big").textContent   = dynRisk.vaccExp;
-    $("unvacc-exp-big").textContent = dynRisk.unvaccExp;
-    $("vacc-gp-desc").textContent   = `annual chance of catching ${dis.unprotectedLabel} (with ${dis.label})`;
-    $("unvacc-gp-desc").textContent = `annual chance of catching ${dis.unprotectedLabel}`;
+    $("t-unvacc-big").textContent = dynRisk.unvacc.gp; $("t-unvacc-exp").textContent = dynRisk.unvacc.exp;
+    $("t-dose1-big").textContent  = dynRisk.dose1.gp;  $("t-dose1-exp").textContent  = dynRisk.dose1.exp;
+    $("t-dose2-big").textContent  = dynRisk.dose2.gp;  $("t-dose2-exp").textContent  = dynRisk.dose2.exp;
     $("comp-note").innerHTML =
-      `Exposure figures are fixed by the vaccine (same in every area); the general-public figures change with local coverage. `
-      + `Unvaccinated complications: ${dis.unvaccComplications.join(" · ")}.`;
+      `"General public" risk changes with local coverage; "if exposed" is fixed by the vaccine (same everywhere). `
+      + `Complications if infected: ${dis.unvaccComplications.join(" · ")}.`;
   } else {
-    ["vacc-gp-big","unvacc-gp-big","vacc-exp-big","unvacc-exp-big"].forEach(id=>$(id).textContent="—");
+    ["t-unvacc-big","t-unvacc-exp","t-dose1-big","t-dose1-exp","t-dose2-big","t-dose2-exp"].forEach(id=>$(id).textContent="—");
     $("comp-note").textContent = "Coverage data unavailable for this area.";
   }
 
@@ -864,7 +833,7 @@ async function simulate({disease, region, coverage, days = 120, n_runs = 20}){
 let SIM_SEQ = 0;  // guard against out-of-order responses when clicking fast
 async function runAreaSim(d, cov){
   const sec = $("sim-section");
-  // Only simulate diseases the API is calibrated for (mmr1/mmr2 -> measles, dtap -> pertussis)
+  // mmr1/mmr2 both map to measles on the API side
   if(cov == null){ sec.style.display = "none"; return; }
   sec.style.display = "block";
   $("sim-chart").style.display = "none";

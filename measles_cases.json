@@ -1,0 +1,48 @@
+{
+  "_meta": {
+    "asOf": "2026-06-08",
+    "published": "2026-06-11",
+    "nextUpdate": "2026-06-25",
+    "englandTotal": 736,
+    "source": "https://www.gov.uk/government/publications/measles-epidemiology-2023-to-2026/confirmed-cases-of-measles-in-england-by-month-age-region-and-upper-tier-local-authority-2026",
+    "note": "Laboratory-confirmed measles, England, 1 Jan to 8 Jun 2026. UTLA counts below 10 are suppressed by UKHSA, so use the region total for those areas. Scotland not covered."
+  },
+  "monthly": { "Jan": 106, "Feb": 142, "Mar": 142, "Apr": 156, "May": 182, "Jun": 8 },
+  "byRegion": {
+    "London": 404,
+    "West Midlands": 136,
+    "North West": 77,
+    "East of England": 50,
+    "Yorkshire & Humber": 39,
+    "East Midlands": 14,
+    "South East": 7,
+    "North East": 5,
+    "South West": 4
+  },
+  "byUTLA": {
+    "Enfield": 111,
+    "Birmingham": 79,
+    "Haringey": 49,
+    "Islington": 49,
+    "Hertfordshire": 35,
+    "Worcestershire": 22,
+    "Barnet": 18,
+    "Camden": 18,
+    "Hackney": 17,
+    "Kirklees": 16,
+    "Brent": 15,
+    "Harrow": 15,
+    "Hillingdon": 14,
+    "Wirral": 13,
+    "Bolton": 12,
+    "Lancashire": 12,
+    "Sandwell": 12,
+    "Sefton": 12,
+    "Waltham Forest": 12,
+    "Barking and Dagenham": 11,
+    "Bradford": 11,
+    "Newham": 11,
+    "Ealing": 10,
+    "Staffordshire": 10
+  }
+}
