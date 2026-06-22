@@ -225,6 +225,7 @@ body{
 }
 .disease-btn:hover{border-color:var(--accent);color:var(--accent);}
 .disease-btn.active{background:var(--accent);color:white;border-color:var(--accent);}
+.disease-tag{display:inline-block;padding:3px 12px;font-size:12px;font-weight:700;border-radius:4px;background:var(--accent);color:#fff;letter-spacing:.02em;}
 
 /* ── Unprotected count ── */
 .unprotected-row{
@@ -361,10 +362,9 @@ body{
           <div class="district-note" id="district-note" style="display:none"></div>
         </div>
 
-        <!-- Measles only: choose which dose's coverage the map shows -->
+        <!-- Measles only (map shows 2nd-dose / MMR2 coverage) -->
         <div class="disease-row" id="disease-row">
-          <button class="disease-btn active" data-d="mmr2">2nd dose (MMR2)</button>
-          <button class="disease-btn" data-d="mmr1">1st dose (MMR1)</button>
+          <span class="disease-tag">Measles</span>
         </div>
 
         <!-- Risk badge -->
