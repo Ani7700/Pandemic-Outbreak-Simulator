@@ -76,8 +76,9 @@ body{
 .resize-handle:hover,.resize-handle.dragging{background:var(--accent);}
 .resize-handle.dragging{background:var(--accent);}
 @media(max-width:860px){
-  body{overflow:auto;}
-  .layout{flex-direction:column;}
+  html,body{height:auto;}
+  body{min-height:100vh;overflow:auto;}        /* whole page scrolls naturally */
+  .layout{flex-direction:column;overflow:visible;flex:none;}
   .resize-handle{display:none;}
 }
 /* ── Mobile / phone tuning ── */
@@ -87,9 +88,9 @@ body{
   .topbar-note{display:none;}
   .brand{font-size:13px;}
   .brand span{font-size:10px;}
-  /* Map stage must be tall enough to pan/zoom comfortably on a phone */
-  .layout[data-step="2"] .map-panel{min-height:72vh;}
-  .map-wrap{min-height:62vh;}
+  /* Map stage: fixed-height map; page scrolls so the nav clears the iOS bar */
+  .layout[data-step="2"] .map-panel{min-height:auto;}
+  .map-wrap{height:60vh;min-height:0;}
   /* Stepper: force one row — hide separators and the long suffix */
   .stepper{gap:10px;padding:8px 6px;font-size:13px;flex-wrap:nowrap;}
   .step-sep{display:none;}
@@ -104,7 +105,7 @@ body{
   /* Stack the 3 risk tiers and the case stats */
   .comp-grid3{grid-template-columns:1fr;}
   .cases-grid{gap:12px;}
-  .wiz-nav{flex-wrap:wrap;padding-bottom:calc(54px + env(safe-area-inset-bottom));}
+  .wiz-nav{flex-wrap:wrap;padding-bottom:calc(90px + env(safe-area-inset-bottom));}
   .nav2-hint{order:3;flex-basis:100%;text-align:center;}
   /* shrink the info card a touch on phones */
   .map-info{top:8px;right:8px;min-width:150px;font-size:10px;padding:7px 9px;}
