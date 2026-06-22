@@ -380,26 +380,19 @@ body{
   <div class="panel">
     <div class="panel-scroll">
 
-      <!-- Stage 1: location input -->
+      <!-- Stage 1: one combined search (postcode OR place name) -->
       <div class="pc-section">
         <p class="panel-title">Step 1 — find your area</p>
-        <p class="panel-sub">Enter a postcode, or a town/city name, to begin.</p>
+        <p class="panel-sub">Search by postcode, town, city or local authority.</p>
 
-        <!-- Postcode -->
-        <label class="field-label" for="pc-input">Your postcode</label>
-        <div class="pc-row">
-          <input id="pc-input" type="text" placeholder="e.g. CB3 9DF" maxlength="8" autocomplete="postal-code">
-          <button id="pc-btn">Check</button>
-        </div>
-        <div class="pc-status" id="pc-status"></div>
-
-        <div class="or-div">or search by name</div>
-
-        <!-- Name search -->
         <div class="search-wrap">
-          <input id="name-input" type="text" placeholder="Town, city or local authority…" autocomplete="off" aria-label="Search place or local authority">
+          <div class="pc-row">
+            <input id="search-input" type="text" placeholder="e.g. CB3 9DF, Ely, or Cambridgeshire" autocomplete="off" aria-label="Search postcode or place">
+            <button id="search-btn">Search</button>
+          </div>
           <div class="ac-drop" id="ac-drop"></div>
         </div>
+        <div class="pc-status" id="pc-status"></div>
       </div>
 
       <!-- Stage 3 nav: back to map -->
@@ -1063,11 +1056,43 @@ function wireDiseaseButtons(){
 // Postcode lookup
 // ════════════════════════════════════════════════
 function wirePostcode(){
-  $("pc-btn").addEventListener("click",lookupPC);
-  $("pc-input").addEventListener("keydown",e=>{if(e.key==="Enter")lookupPC();});
+  $("search-btn").addEventListener("click", submitSearch);
 }
-async function lookupPC(){
-  const raw=$("pc-input").value.trim();
+
+// Looks like a (full) UK postcode?
+function isPostcode(q){ return /^[A-Za-z]{1,2}\d[A-Za-z\d]?\s*\d[A-Za-z]{2}$/.test((q||"").trim()); }
+
+// Single entry point for the combined search box.
+function submitSearch(){
+  const q=$("search-input").value.trim();
+  if(!q) return;
+  const dd=$("ac-drop");
+  if(isPostcode(q)){ dd.classList.remove("open"); lookupPC(q); return; }
+  // otherwise: take the highlighted/first suggestion (UTLA match or geocode fallback)
+  const target=dd.querySelector(".ac-item.hi")||dd.querySelector(".ac-item");
+  if(target){ target.dispatchEvent(new MouseEvent("mousedown")); return; }
+  geocodeAndSelect(q);   // nothing built yet → geocode the text directly
+}
+
+// Geocode a free-text place name and jump to its area.
+async function geocodeAndSelect(q){
+  $("ac-drop").classList.remove("open");
+  $("pc-status").textContent=`Searching “${q}”…`; $("pc-status").style.color="var(--muted)";
+  let res=null;
+  try{ res=await geocodePlace(q); }catch(_){}
+  if(!res){
+    $("pc-status").textContent=`Couldn't find “${q}”. Try a postcode or a nearby town.`;
+    $("pc-status").style.color="var(--bad)";
+    return;
+  }
+  STATE.districtName=null; STATE.placeName=res.placeName; STATE.placeType="place";
+  $("pc-status").textContent="✓ "+res.placeName; $("pc-status").style.color="var(--good)";
+  goStep(2); selectUTLA(res.code, true);
+  $("search-input").value="";
+}
+
+async function lookupPC(rawArg){
+  const raw=(typeof rawArg==="string" ? rawArg : $("search-input").value).trim();
   if(!raw)return;
   const pc=raw.replace(/\s+/g,"").toUpperCase();
   $("pc-status").textContent="Looking up…"; $("pc-status").style.color="var(--muted)";
@@ -1151,46 +1176,30 @@ async function geocodePlace(q){
 // Name search autocomplete
 // ════════════════════════════════════════════════
 function wireNameSearch(){
-  const inp=$("name-input"), dd=$("ac-drop");
+  const inp=$("search-input"), dd=$("ac-drop");
   let idx=-1;
   inp.addEventListener("input",()=>{
-    const q=inp.value.trim().toLowerCase();
+    const raw=inp.value.trim();
+    const q=raw.toLowerCase();
     dd.innerHTML=""; idx=-1;
     if(!q){dd.classList.remove("open");return;}
+    // A full postcode → no name suggestions; the user presses Search.
+    if(isPostcode(raw)){ dd.classList.remove("open"); return; }
     const matches=Object.entries(UTLA)
       .filter(([,d])=>d.name.toLowerCase().includes(q))
       .sort((a,b)=>a[1].name.localeCompare(b[1].name))
       .slice(0,8);
     if(!matches.length){
       // No local-authority name matched — offer a place/town geocode search.
-      const q0=inp.value.trim();
       const item=document.createElement("div");
       item.className="ac-item ac-geocode";
-      item.innerHTML=`<span>Search “${q0}” as a town/city</span><span class="ac-rgn">↵</span>`;
-      item.addEventListener("mousedown",async e=>{
-        e.preventDefault();
-        item.querySelector("span").textContent=`Searching “${q0}”…`;
-        let res=null;
-        try{ res=await geocodePlace(q0); }catch(_){}
-        dd.classList.remove("open");
-        if(!res){
-          item.querySelector("span").textContent="Place not found";
-          $("name-input").value="";
-          alert(`Couldn't find “${q0}”. Try a nearby town, the council name, or use the postcode box.`);
-          return;
-        }
-        STATE.districtName=null;
-        STATE.placeName=res.placeName;
-        STATE.placeType="place";
-        goStep(2);
-        selectUTLA(res.code, true);
-        inp.value="";
-      });
+      item.innerHTML=`<span>Search “${raw}” as a town/city</span><span class="ac-rgn">↵</span>`;
+      item.addEventListener("mousedown",e=>{ e.preventDefault(); geocodeAndSelect(raw); });
       dd.appendChild(item);
       dd.classList.add("open");
       return;
     }
-    matches.forEach(([code,d],i)=>{
+    matches.forEach(([code,d])=>{
       const item=document.createElement("div");
       item.className="ac-item"; item.dataset.code=code;
       item.innerHTML=`<span>${d.name}</span><span class="ac-rgn">${d.region}</span>`;
@@ -1203,11 +1212,7 @@ function wireNameSearch(){
     const items=dd.querySelectorAll(".ac-item");
     if(e.key==="ArrowDown"){e.preventDefault();idx=Math.min(idx+1,items.length-1);items.forEach((x,i)=>x.classList.toggle("hi",i===idx));}
     else if(e.key==="ArrowUp"){e.preventDefault();idx=Math.max(idx-1,0);items.forEach((x,i)=>x.classList.toggle("hi",i===idx));}
-    else if(e.key==="Enter"){
-      // pick the highlighted item, or the first one (incl. the geocode fallback)
-      if(idx>=0) items[idx].dispatchEvent(new MouseEvent("mousedown"));
-      else if(items.length) items[0].dispatchEvent(new MouseEvent("mousedown"));
-    }
+    else if(e.key==="Enter"){ e.preventDefault(); submitSearch(); }
     else if(e.key==="Escape"){dd.classList.remove("open");}
   });
   document.addEventListener("click",e=>{if(!e.target.closest(".search-wrap"))dd.classList.remove("open");});
