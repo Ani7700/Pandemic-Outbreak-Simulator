@@ -226,7 +226,7 @@ body{
 /* Stage visibility — single column, one stage at a time */
 .layout[data-step]{flex-direction:column;}
 .layout[data-step] .resize-handle{display:none;}
-.layout[data-step] .panel{width:auto !important;flex:1;max-width:860px;margin:0 auto;}
+.layout[data-step] .panel{width:auto !important;flex:1;max-width:1180px;margin:0 auto;}
 #nav2,#nav3{display:none;}
 .layout[data-step="1"] .map-panel{display:none;}
 .layout[data-step="1"] #risk-block{display:none;}
@@ -779,7 +779,8 @@ function showTT(e,code,d){
   const tt=$("map-tt"), dis=DISEASES[STATE.disease];
   const v=d[dis.field], vs=v!=null?`${(v*100).toFixed(1)}%`:"no data";
   const approx=d.approx?` <span style="font-size:10px;color:#aaa">(regional avg)</span>`:"";
-  tt.innerHTML=`<b>${d.name}</b><br>${dis.label} coverage: <span class="num">${vs}</span>${approx}`;
+  tt.innerHTML=`<b>${d.name}</b><br>${dis.label} coverage: <span class="num">${vs}</span>${approx}`
+    + `<br>Population: <span class="num">${fmt(d.pop)}</span> (${fmt(d.under5)} under 5)`;
   tt.style.opacity=1; moveTT(e);
 }
 function moveTT(e){
@@ -817,7 +818,7 @@ function selectUTLA(code, keepDistrict){
   $("map-hint").style.opacity="0";
   // An area is chosen → enable the "see risk" button in the map stage
   const next=$("nav2-next"); if(next) next.disabled=false;
-  const hint=$("nav2-hint"); if(hint && UTLA[code]) hint.textContent=UTLA[code].name;
+  const hint=$("nav2-hint"); if(hint && UTLA[code]) hint.textContent=`${UTLA[code].name} · population ${fmt(UTLA[code].pop)}`;
   renderRisk();
 }
 
