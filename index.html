@@ -104,8 +104,11 @@ body{
   /* Stack the 3 risk tiers and the case stats */
   .comp-grid3{grid-template-columns:1fr;}
   .cases-grid{gap:12px;}
-  .wiz-nav{flex-wrap:wrap;}
+  .wiz-nav{flex-wrap:wrap;padding-bottom:calc(54px + env(safe-area-inset-bottom));}
   .nav2-hint{order:3;flex-basis:100%;text-align:center;}
+  /* shrink the info card a touch on phones */
+  .map-info{top:8px;right:8px;min-width:150px;font-size:10px;padding:7px 9px;}
+  .mi-name{font-size:12px;}
 }
 
 /* ── Left panel ── */
@@ -249,6 +252,14 @@ body{
 .wiz-btn{font-size:14px;font-weight:600;padding:9px 16px;border-radius:6px;border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer;font-family:inherit;}
 .wiz-btn.primary{background:var(--accent);color:#fff;border-color:var(--accent);}
 .wiz-btn:disabled{opacity:.45;cursor:not-allowed;}
+
+/* Map info card (selected area: people + cases) */
+.map-info{position:absolute;top:10px;right:10px;z-index:600;background:rgba(255,255,255,.95);
+  border:1px solid var(--line);border-radius:10px;padding:9px 11px;font-size:11px;
+  box-shadow:0 2px 10px rgba(0,0,0,.18);min-width:170px;}
+.mi-name{font-weight:700;font-size:13px;margin-bottom:5px;color:var(--ink);}
+.mi-row{display:flex;justify-content:space-between;gap:12px;line-height:1.7;color:var(--ink-soft);}
+.mi-row b{color:var(--ink);font-weight:700;}
 
 /* Stage visibility — single column, one stage at a time */
 .layout[data-step]{flex-direction:column;}
@@ -543,6 +554,14 @@ body{
       <div id="map" aria-label="Map of English local authorities. Click to view risk for any area."></div>
       <div class="map-tt" id="map-tt"></div>
       <div class="map-hint" id="map-hint">Click any area to check vaccination coverage</div>
+      <!-- Selected-area info card overlaid on the map -->
+      <div class="map-info" id="map-info" style="display:none">
+        <div class="mi-name" id="mi-name"></div>
+        <div class="mi-row"><span>Population</span><b id="mi-pop">—</b></div>
+        <div class="mi-row"><span>Under 5</span><b id="mi-u5">—</b></div>
+        <div class="mi-row"><span>Measles cases</span><b id="mi-cases">—</b></div>
+        <div class="mi-row"><span>In region</span><b id="mi-region">—</b></div>
+      </div>
     </div>
     <div class="map-footer">
       <div class="legend">
@@ -846,7 +865,25 @@ function selectUTLA(code, keepDistrict){
   // An area is chosen → enable the "see risk" button in the map stage
   const next=$("nav2-next"); if(next) next.disabled=false;
   const hint=$("nav2-hint"); if(hint && UTLA[code]) hint.textContent=`${UTLA[code].name} · population ${fmt(UTLA[code].pop)}`;
+  updateMapInfo(UTLA[code]);
   renderRisk();
+}
+
+// Selected-area info card on the map (people + measles cases)
+function updateMapInfo(d){
+  const box=$("map-info"); if(!box) return;
+  if(!d){ box.style.display="none"; return; }
+  $("mi-name").textContent = d.name;
+  $("mi-pop").textContent  = fmt(d.pop);
+  $("mi-u5").textContent   = fmt(d.under5);
+  if(CASES){
+    const rc=CASES.byRegion[d.region], uc=CASES.byUTLA[d.name];
+    $("mi-cases").textContent  = uc!=null ? uc.toLocaleString() : (rc!=null ? "<10" : "n/a");
+    $("mi-region").textContent = rc!=null ? `${rc.toLocaleString()} · ${d.region}` : "n/a";
+  } else {
+    $("mi-cases").textContent="—"; $("mi-region").textContent="—";
+  }
+  box.style.display="block";
 }
 
 function renderRisk(){
