@@ -200,6 +200,43 @@ body{
 .comp-exp{font-size:10px;color:var(--ink-soft);margin-top:4px;}
 .comp-note{font-size:11px;color:var(--ink-soft);margin-top:8px;line-height:1.4;}
 @media(max-width:520px){.comp-grid3{grid-template-columns:1fr;}}
+
+/* ── Current cases block ── */
+.cases-block{margin:6px 0 12px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:#fbfaf6;}
+.cases-title{font-size:12px;font-weight:700;color:var(--ink);margin-bottom:8px;}
+.cases-grid{display:flex;gap:16px;flex-wrap:wrap;}
+.cases-stat b{display:block;font-size:20px;color:var(--ink);line-height:1.1;}
+.cases-stat span{font-size:11px;color:var(--ink-soft);}
+.cases-asof{font-size:10px;color:var(--ink-soft);margin-top:8px;line-height:1.4;}
+
+/* ── 3-stage wizard ── */
+.stepper{display:flex;gap:8px;justify-content:center;align-items:center;padding:9px 12px;border-bottom:1px solid var(--line);background:var(--paper);flex-wrap:wrap;}
+.step-chip{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;border:none;background:none;font-family:inherit;padding:2px 4px;}
+.step-chip .num{display:inline-flex;width:22px;height:22px;align-items:center;justify-content:center;border-radius:50%;background:var(--line);color:var(--ink);font-size:12px;}
+.step-chip.active{color:var(--accent);}
+.step-chip.active .num{background:var(--accent);color:#fff;}
+.step-chip.done .num{background:#6B8E5A;color:#fff;}
+.step-sep{color:#bbb;}
+.wiz-nav{display:flex;gap:10px;justify-content:space-between;align-items:center;padding:10px 14px;border-top:1px solid var(--line);background:var(--paper);}
+.nav2-hint{font-size:12px;color:var(--ink-soft);}
+.wiz-btn{font-size:14px;font-weight:600;padding:9px 16px;border-radius:6px;border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer;font-family:inherit;}
+.wiz-btn.primary{background:var(--accent);color:#fff;border-color:var(--accent);}
+.wiz-btn:disabled{opacity:.45;cursor:not-allowed;}
+
+/* Stage visibility — single column, one stage at a time */
+.layout[data-step]{flex-direction:column;}
+.layout[data-step] .resize-handle{display:none;}
+.layout[data-step] .panel{width:auto !important;flex:1;max-width:860px;margin:0 auto;}
+#nav2,#nav3{display:none;}
+.layout[data-step="1"] .map-panel{display:none;}
+.layout[data-step="1"] #risk-block{display:none;}
+.layout[data-step="2"] .panel{display:none;}
+.layout[data-step="2"] #nav2{display:flex;}
+.layout[data-step="3"] .map-panel{display:none;}
+.layout[data-step="3"] .pc-section{display:none;}
+.layout[data-step="3"] .worst-section{display:none;}
+.layout[data-step="3"] .map-or{display:none;}
+.layout[data-step="3"] #nav3{display:flex;}
 .sim-section{margin-top:12px;padding-top:10px;border-top:1px solid var(--line);}
 .sim-title{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:4px;}
 .sim-status{font-size:11px;color:var(--ink-soft);margin-bottom:6px;}
@@ -328,31 +365,49 @@ body{
   </div>
 </div>
 
-<div class="layout">
+<!-- ══ 3-stage wizard stepper ══ -->
+<div class="stepper" id="stepper">
+  <button class="step-chip active" data-s="1"><span class="num">1</span> Location</button>
+  <span class="step-sep">›</span>
+  <button class="step-chip" data-s="2"><span class="num">2</span> Map</button>
+  <span class="step-sep">›</span>
+  <button class="step-chip" data-s="3"><span class="num">3</span> Risk &amp; coverage</button>
+</div>
+
+<div class="layout" data-step="1">
 
   <!-- ══ LEFT PANEL ══ -->
   <div class="panel">
     <div class="panel-scroll">
 
-      <p class="panel-title">Check your area's vaccination coverage</p>
+      <!-- Stage 1: location input -->
+      <div class="pc-section">
+        <p class="panel-title">Step 1 — find your area</p>
+        <p class="panel-sub">Enter a postcode, or a town/city name, to begin.</p>
 
-      <!-- Postcode -->
-      <label class="field-label" for="pc-input">Your postcode</label>
-      <div class="pc-row">
-        <input id="pc-input" type="text" placeholder="e.g. CB3 9DF" maxlength="8" autocomplete="postal-code">
-        <button id="pc-btn">Check</button>
+        <!-- Postcode -->
+        <label class="field-label" for="pc-input">Your postcode</label>
+        <div class="pc-row">
+          <input id="pc-input" type="text" placeholder="e.g. CB3 9DF" maxlength="8" autocomplete="postal-code">
+          <button id="pc-btn">Check</button>
+        </div>
+        <div class="pc-status" id="pc-status"></div>
+
+        <div class="or-div">or search by name</div>
+
+        <!-- Name search -->
+        <div class="search-wrap">
+          <input id="name-input" type="text" placeholder="Town, city or local authority…" autocomplete="off" aria-label="Search place or local authority">
+          <div class="ac-drop" id="ac-drop"></div>
+        </div>
       </div>
-      <div class="pc-status" id="pc-status"></div>
 
-      <div class="or-div">or search by name</div>
-
-      <!-- Name search -->
-      <div class="search-wrap">
-        <input id="name-input" type="text" placeholder="Local authority name…" autocomplete="off" aria-label="Search local authority">
-        <div class="ac-drop" id="ac-drop"></div>
+      <!-- Stage 3 nav: back to map -->
+      <div class="wiz-nav" id="nav3">
+        <button class="wiz-btn" id="nav3-back">‹ Back to map</button>
       </div>
 
-      <!-- ── Risk result (shown after selection) ── -->
+      <!-- ── Risk result (stage 3) ── -->
       <div id="risk-block">
 
         <!-- Area header -->
@@ -387,6 +442,17 @@ body{
             <div class="cov-marker" id="cov-marker" data-label="93% threshold"></div>
           </div>
           <div class="cov-ticks"><span>50%</span><span>70%</span><span>90%</span></div>
+        </div>
+
+        <!-- Current measles cases + population in this area -->
+        <div class="cases-block" id="cases-block">
+          <div class="cases-title">Current measles activity</div>
+          <div class="cases-grid">
+            <div class="cases-stat"><b id="cases-region">—</b><span id="cases-region-lbl">cases in region</span></div>
+            <div class="cases-stat"><b id="cases-utla">—</b><span>cases in this area</span></div>
+            <div class="cases-stat"><b id="cases-pop">—</b><span id="cases-pop-lbl">people</span></div>
+          </div>
+          <div class="cases-asof" id="cases-asof"></div>
         </div>
 
         <!-- Risk for your child by measles vaccination status (3 tiers) -->
@@ -434,8 +500,8 @@ body{
 
       </div><!-- /risk-block -->
 
-      <!-- Worst areas -->
-      <div class="or-div" style="margin-bottom:10px">or click the map · <span id="map-hint-text">152 local authorities</span></div>
+      <!-- Worst areas (browse alternative, stage 1) -->
+      <div class="or-div map-or" style="margin-bottom:10px">or pick a high-risk area</div>
       <div class="worst-section">
         <div class="worst-title" id="worst-title">Areas with lowest MMR2 coverage</div>
         <ul class="worst-list" id="worst-list"></ul>
@@ -468,6 +534,12 @@ body{
         <span>low coverage — higher measles risk</span>
         <span id="thresh-label">herd immunity threshold ≈ 93%</span>
       </div>
+    </div>
+    <!-- Stage 2 nav -->
+    <div class="wiz-nav" id="nav2">
+      <button class="wiz-btn" id="nav2-back">‹ Back</button>
+      <span class="nav2-hint" id="nav2-hint">Click an area on the map</span>
+      <button class="wiz-btn primary" id="nav2-next" disabled>See risk &amp; coverage ›</button>
     </div>
   </div>
 
@@ -566,7 +638,7 @@ function exposureNote(c, areaName) {
   return `Coverage in ${areaName} is well below safe levels. Unvaccinated children face a HIGH probability of exposure if measles enters the community.`;
 }
 
-let GEO = null, UTLA = null;
+let GEO = null, UTLA = null, CASES = null;
 let STATE = { code: null, disease: "mmr2", districtName: null, placeName: null, placeType: null };
 let LMAP = null, GJSON = null;
 const $ = id => document.getElementById(id);
@@ -574,6 +646,9 @@ const $ = id => document.getElementById(id);
 // ════════════════════════════════════════════════
 // Bootstrap
 // ════════════════════════════════════════════════
+// Current measles case counts (non-blocking — page works without it)
+fetch("measles_cases.json").then(r=>r.json()).then(j=>{ CASES=j; if(STATE.code) renderRisk(); }).catch(()=>{});
+
 Promise.all([
   fetch("utla.geojson").then(r=>r.json()),
   fetch("utla_data.json").then(r=>r.json()),
@@ -585,6 +660,8 @@ Promise.all([
   wireDiseaseButtons();
   wirePostcode();
   wireNameSearch();
+  wireWizard();
+  goStep(1);
 }).catch(err => {
   $("loading").style.display = "none";
   document.body.insertAdjacentHTML("beforeend",
@@ -595,6 +672,39 @@ Promise.all([
        <code>python3 -m http.server 8000</code></p>
      </div>`);
 });
+
+// ════════════════════════════════════════════════
+// 3-stage wizard navigation
+// ════════════════════════════════════════════════
+function goStep(n){
+  const L=document.querySelector(".layout");
+  if(!L) return;
+  L.dataset.step=String(n);
+  document.querySelectorAll(".step-chip").forEach(c=>{
+    const s=+c.dataset.s;
+    c.classList.toggle("active",s===n);
+    c.classList.toggle("done",s<n);
+  });
+  if(n===2 && LMAP){
+    setTimeout(()=>{
+      LMAP.invalidateSize();
+      if(!STATE.code && GJSON){ LMAP.fitBounds(GJSON.getBounds(), {padding:[4,4]}); }
+    }, 80);
+  }
+  window.scrollTo(0,0);
+}
+function wireWizard(){
+  document.querySelectorAll(".step-chip").forEach(c=>{
+    c.addEventListener("click",()=>{
+      const s=+c.dataset.s;
+      if(s===3 && !STATE.code) return;   // need an area selected first
+      goStep(s);
+    });
+  });
+  $("nav2-back").addEventListener("click",()=>goStep(1));
+  $("nav2-next").addEventListener("click",()=>{ if(STATE.code) goStep(3); });
+  $("nav3-back").addEventListener("click",()=>goStep(2));
+}
 
 // ════════════════════════════════════════════════
 // Colour scale (same as before)
@@ -705,14 +815,16 @@ function selectUTLA(code, keepDistrict){
       });
       if(sel){ layer.bringToFront(); selBounds = layer.getBounds(); }
     });
-    // Pan + zoom map to the selected area
+    // Pan + zoom map to the selected area. Deferred so it runs after the
+    // map becomes visible (stage switch) and is correctly sized.
     if(selBounds && LMAP){
-      LMAP.fitBounds(selBounds, { padding:[30,30], maxZoom:10, animate:true });
+      setTimeout(()=>{ LMAP.invalidateSize(); LMAP.fitBounds(selBounds,{padding:[30,30],maxZoom:10,animate:true}); }, 90);
     }
   }
   $("map-hint").style.opacity="0";
-  // Hide worst list when a specific area is selected — frees up space
-  document.querySelector(".worst-section").style.display="none";
+  // An area is chosen → enable the "see risk" button in the map stage
+  const next=$("nav2-next"); if(next) next.disabled=false;
+  const hint=$("nav2-hint"); if(hint && UTLA[code]) hint.textContent=UTLA[code].name;
   renderRisk();
 }
 
@@ -793,6 +905,24 @@ function renderRisk(){
   } else {
     ["t-unvacc-big","t-unvacc-exp","t-dose1-big","t-dose1-exp","t-dose2-big","t-dose2-exp"].forEach(id=>$(id).textContent="—");
     $("comp-note").textContent = "Coverage data unavailable for this area.";
+  }
+
+  // Current measles cases + population in this area
+  if(CASES){
+    const rc = CASES.byRegion[d.region];   // region total (complete)
+    const uc = CASES.byUTLA[d.name];        // UTLA count (only if >=10)
+    $("cases-region").textContent     = rc!=null ? rc.toLocaleString() : "n/a";
+    $("cases-region-lbl").textContent = `cases in ${d.region}`;
+    $("cases-utla").textContent       = uc!=null ? uc.toLocaleString() : (rc!=null ? "<10" : "n/a");
+    $("cases-pop").textContent        = fmt(d.pop);
+    $("cases-pop-lbl").textContent    = `people · ${fmt(d.under5)} under 5`;
+    const m = CASES._meta;
+    $("cases-asof").textContent = rc!=null
+      ? `Lab-confirmed measles, 1 Jan to ${m.asOf}; England total ${m.englandTotal}. Area counts under 10 are not individually published. Source: UKHSA (updated ~fortnightly).`
+      : `England case data shown for English regions only. Source: UKHSA.`;
+    $("cases-block").style.display = "block";
+  } else {
+    $("cases-block").style.display = "none";
   }
 
   // Unprotected count
@@ -907,7 +1037,7 @@ function buildWorstList(){
     li.className="worst-item";
     li.innerHTML=`<div><div class="wi-name">${d.name}</div><div class="wi-rgn">${d.region}</div></div>
                   <span class="wi-pct ${cls}">${(v*100).toFixed(1)}%</span>`;
-    li.addEventListener("click",()=>selectUTLA(code));
+    li.addEventListener("click",()=>{goStep(2);selectUTLA(code);});
     ul.appendChild(li);
   });
   $("worst-title").textContent=`Areas with lowest ${dis.label} coverage`;
@@ -985,6 +1115,7 @@ async function lookupPC(){
   const display = placeName || STATE.districtName || UTLA[code].name;
   $("pc-status").textContent="✓ "+display;
   $("pc-status").style.color="var(--good)";
+  goStep(2);                                    // advance to the map stage
   try{ selectUTLA(code, true); }
   catch(err){ console.error("postcode render error:", err); }  // logged, not shown as failure
 }
@@ -1051,6 +1182,7 @@ function wireNameSearch(){
         STATE.districtName=null;
         STATE.placeName=res.placeName;
         STATE.placeType="place";
+        goStep(2);
         selectUTLA(res.code, true);
         inp.value="";
       });
@@ -1062,7 +1194,7 @@ function wireNameSearch(){
       const item=document.createElement("div");
       item.className="ac-item"; item.dataset.code=code;
       item.innerHTML=`<span>${d.name}</span><span class="ac-rgn">${d.region}</span>`;
-      item.addEventListener("mousedown",e=>{e.preventDefault();selectUTLA(code);dd.classList.remove("open");inp.value="";});
+      item.addEventListener("mousedown",e=>{e.preventDefault();goStep(2);selectUTLA(code);dd.classList.remove("open");inp.value="";});
       dd.appendChild(item);
     });
     dd.classList.add("open");
