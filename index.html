@@ -76,9 +76,8 @@ body{
 .resize-handle:hover,.resize-handle.dragging{background:var(--accent);}
 .resize-handle.dragging{background:var(--accent);}
 @media(max-width:860px){
-  html,body{height:auto;}
-  body{min-height:100vh;overflow:auto;}        /* whole page scrolls naturally */
-  .layout{flex-direction:column;overflow:visible;flex:none;}
+  body{overflow:auto;}
+  .layout{flex-direction:column;}
   .resize-handle{display:none;}
 }
 /* ── Mobile / phone tuning ── */
@@ -88,11 +87,9 @@ body{
   .topbar-note{display:none;}
   .brand{font-size:13px;}
   .brand span{font-size:10px;}
-  /* Map stage: fixed-height map; page scrolls so the nav clears the iOS bar.
-     flex:none on BOTH panel and wrap — a flex:1 (basis 0) item collapses to 0
-     inside the content-sized (.layout flex:none) column. */
-  .layout[data-step="2"] .map-panel{flex:none;min-height:auto;}
-  .map-wrap{flex:none;height:60vh;min-height:0;}
+  /* Map stage: keep default flex:1 sizing (map fills the column, like desktop).
+     The nav below gets extra bottom padding so it clears the iOS toolbar;
+     map-wrap (flex-shrink:1) gives up that space, so nothing is clipped. */
   /* Stepper: force one row — hide separators and the long suffix */
   .stepper{gap:10px;padding:8px 6px;font-size:13px;flex-wrap:nowrap;}
   .step-sep{display:none;}
