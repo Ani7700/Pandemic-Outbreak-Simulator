@@ -1,7 +1,14 @@
 // Service Worker — Vaccination & Outbreak Risk app
-// Caches all static assets on install so the app works offline.
+// Strategy:
+//   - HTML + app data (.json/.geojson): NETWORK-FIRST  → always fresh when online,
+//     falls back to cache only when offline. (This is why a normal refresh now
+//     shows the latest deploy instead of a stale cached copy.)
+//   - Icons / CDN libraries: cache-first (they rarely change).
+//   - External APIs (postcodes.io, nominatim, the simulator API): network only.
+//
+// Bump CACHE (v2 -> v3 …) any time you want to force-drop the old cache.
 
-const CACHE = 'vax-risk-v1';
+const CACHE = 'vax-risk-v2';
 
 const PRECACHE = [
   './',
@@ -9,62 +16,80 @@ const PRECACHE = [
   './manifest.json',
   './utla_data.json',
   './utla.geojson',
-  '../sim_outputs/grid.json',
+  './measles_cases.json',
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/apple-touch-icon.png',
-  'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js',
 ];
 
-// Install: pre-cache everything we can
+// Install: pre-cache what we can, then take over immediately
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE).then(cache => {
-      // Cache what we can; don't fail if one resource is unavailable
-      return Promise.allSettled(
-        PRECACHE.map(url => cache.add(url).catch(() => {}))
-      );
-    }).then(() => self.skipWaiting())
+    caches.open(CACHE)
+      .then(cache => Promise.allSettled(PRECACHE.map(url => cache.add(url).catch(() => {}))))
+      .then(() => self.skipWaiting())
   );
 });
 
-// Activate: delete old caches
+// Activate: delete any older caches, then control open pages
 self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
-    ).then(() => self.clients.claim())
+    caches.keys()
+      .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
+      .then(() => self.clients.claim())
   );
 });
 
-// Fetch: cache-first for static assets, network-first for API calls
-self.addEventListener('fetch', event => {
-  const url = new URL(event.request.url);
+function networkFirst(request) {
+  return fetch(request)
+    .then(resp => {
+      if (request.method === 'GET' && resp && resp.status === 200) {
+        const clone = resp.clone();
+        caches.open(CACHE).then(c => c.put(request, clone));
+      }
+      return resp;
+    })
+    .catch(() => caches.match(request));
+}
 
-  // Always go to network for postcodes.io API
-  if (url.hostname === 'api.postcodes.io') {
+function cacheFirst(request) {
+  return caches.match(request).then(cached => cached || fetch(request).then(resp => {
+    if (request.method === 'GET' && resp && resp.status === 200) {
+      const clone = resp.clone();
+      caches.open(CACHE).then(c => c.put(request, clone));
+    }
+    return resp;
+  }));
+}
+
+self.addEventListener('fetch', event => {
+  const req = event.request;
+  const url = new URL(req.url);
+
+  // External services: always network (never cache)
+  const externalNetworkOnly =
+    url.hostname === 'api.postcodes.io' ||
+    url.hostname === 'nominatim.openstreetmap.org' ||
+    url.hostname.endsWith('onrender.com');
+  if (externalNetworkOnly) {
     event.respondWith(
-      fetch(event.request).catch(() =>
-        new Response(JSON.stringify({ status: 503, error: 'Offline' }), {
-          headers: { 'Content-Type': 'application/json' }
-        })
+      fetch(req).catch(() =>
+        new Response(JSON.stringify({ status: 503, error: 'Offline' }),
+          { headers: { 'Content-Type': 'application/json' } })
       )
     );
     return;
   }
 
-  // Cache-first for everything else
-  event.respondWith(
-    caches.match(event.request).then(cached => {
-      if (cached) return cached;
-      return fetch(event.request).then(response => {
-        // Cache successful GET responses
-        if (event.request.method === 'GET' && response.status === 200) {
-          const clone = response.clone();
-          caches.open(CACHE).then(c => c.put(event.request, clone));
-        }
-        return response;
-      });
-    })
-  );
+  // HTML documents + app data → network-first (fresh on every online refresh)
+  const isDocument = req.mode === 'navigate' ||
+    url.pathname === '/' || url.pathname.endsWith('/') || url.pathname.endsWith('.html');
+  const isData = /\.(json|geojson)$/.test(url.pathname);
+  if (isDocument || isData) {
+    event.respondWith(networkFirst(req));
+    return;
+  }
+
+  // Everything else (icons, CDN scripts) → cache-first
+  event.respondWith(cacheFirst(req));
 });
