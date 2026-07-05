@@ -505,13 +505,11 @@ body{
 
         <!-- Current measles cases + population in this area -->
         <div class="cases-block" id="cases-block">
-          <div class="cases-title">Current measles activity</div>
+          <div class="cases-title">Current measles cases</div>
           <div class="cases-grid">
-            <div class="cases-stat"><b id="cases-region">—</b><span id="cases-region-lbl">cases in region</span></div>
-            <div class="cases-stat"><b id="cases-utla">—</b><span>cases in this area</span></div>
-            <div class="cases-stat"><b id="cases-pop">—</b><span id="cases-pop-lbl">people</span></div>
+            <div class="cases-stat"><b id="cases-utla">—</b><span>in this area</span></div>
+            <div class="cases-stat"><b id="cases-region">—</b><span id="cases-region-lbl">in region</span></div>
           </div>
-          <div class="cases-asof" id="cases-asof"></div>
         </div>
 
         <!-- Risk for your child by measles vaccination status (3 tiers) -->
@@ -996,15 +994,9 @@ function renderRisk(){
   if(CASES){
     const rc = CASES.byRegion[d.region];   // region total (complete)
     const uc = CASES.byUTLA[d.name];        // UTLA count (only if >=10)
-    $("cases-region").textContent     = rc!=null ? rc.toLocaleString() : "n/a";
-    $("cases-region-lbl").textContent = `cases in ${d.region}`;
     $("cases-utla").textContent       = uc!=null ? uc.toLocaleString() : (rc!=null ? "<10" : "n/a");
-    $("cases-pop").textContent        = fmt(d.pop);
-    $("cases-pop-lbl").textContent    = `people · ${fmt(d.under5)} under 5`;
-    const m = CASES._meta;
-    $("cases-asof").textContent = rc!=null
-      ? `Lab-confirmed measles, 1 Jan to ${m.asOf}; England total ${m.englandTotal}. Area counts under 10 are not individually published. Source: UKHSA (updated ~fortnightly).`
-      : `England case data shown for English regions only. Source: UKHSA.`;
+    $("cases-region").textContent     = rc!=null ? rc.toLocaleString() : "n/a";
+    $("cases-region-lbl").textContent = `in ${d.region}`;
     $("cases-block").style.display = "block";
   } else {
     $("cases-block").style.display = "none";
