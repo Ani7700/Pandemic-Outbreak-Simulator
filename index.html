@@ -548,7 +548,6 @@ body{
           </div>
         </div>
 
-        <div class="comp-note" id="comp-note"></div>
 
         <!-- Unprotected children count -->
         <div class="unprotected-row" id="unprot-row">
@@ -994,12 +993,8 @@ function renderRisk(){
     $("t-unvacc-big").textContent = dynRisk.unvacc.gp; $("t-unvacc-exp").textContent = dynRisk.unvacc.exp;
     $("t-dose1-big").textContent  = dynRisk.dose1.gp;  $("t-dose1-exp").textContent  = dynRisk.dose1.exp;
     $("t-dose2-big").textContent  = dynRisk.dose2.gp;  $("t-dose2-exp").textContent  = dynRisk.dose2.exp;
-    $("comp-note").innerHTML =
-      `"General public" risk changes with local coverage; "if exposed" is fixed by the vaccine (same everywhere). `
-      + `Complications if infected: ${dis.unvaccComplications.join(" · ")}.`;
   } else {
     ["t-unvacc-big","t-unvacc-exp","t-dose1-big","t-dose1-exp","t-dose2-big","t-dose2-exp"].forEach(id=>$(id).textContent="—");
-    $("comp-note").textContent = "Coverage data unavailable for this area.";
   }
 
   // Current measles cases + population in this area
