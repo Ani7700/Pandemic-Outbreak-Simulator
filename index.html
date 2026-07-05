@@ -266,7 +266,7 @@ body{
   box-shadow:0 3px 16px rgba(0,0,0,.28);}
 .map-label .ml-name{font-size:12px;font-weight:700;color:var(--ink);}
 .map-label .ml-big{font-size:30px;font-weight:800;line-height:1.05;color:#B4341F;letter-spacing:-.01em;}
-.map-label .ml-lbl{font-size:10px;color:var(--ink-soft);}
+.map-label .ml-lbl{font-size:12px;color:var(--ink-soft);}
 
 /* Stage visibility — single column, one stage at a time */
 .layout[data-step]{flex-direction:column;}
@@ -303,6 +303,28 @@ body{
 .layout[data-step="3"] .worst-section{display:none;}
 .layout[data-step="3"] .map-or{display:none;}
 .layout[data-step="3"] #nav3{display:flex;}
+
+/* Step 3 — Apple-style risk page + readable minimum type (nothing below 13px) */
+.layout[data-step="3"] .panel-scroll{max-width:960px;margin:0 auto;padding:20px 24px 48px;}
+.layout[data-step="3"] .area-hdr h2{font-size:30px;letter-spacing:-.02em;line-height:1.1;}
+.layout[data-step="3"] .meta{font-size:14px;color:#6e6e73;}
+.layout[data-step="3"] .risk-badge{border-radius:16px;padding:16px 18px;box-shadow:0 2px 12px rgba(0,0,0,.04);}
+.layout[data-step="3"] .risk-label{font-size:14px;}
+.layout[data-step="3"] .risk-level{font-size:24px;letter-spacing:-.01em;}
+.layout[data-step="3"] .cov-bar-label{font-size:14px;}
+.layout[data-step="3"] .cov-ticks span{font-size:13px;}
+.layout[data-step="3"] .comparison-label{font-size:17px;font-weight:600;margin:22px 0 12px;letter-spacing:-.01em;}
+.layout[data-step="3"] .comp-grid3{gap:12px;}
+.layout[data-step="3"] .comp-card{border-radius:16px;padding:15px 16px;box-shadow:0 2px 12px rgba(0,0,0,.05);}
+.layout[data-step="3"] .comp-head{font-size:14px;}
+.layout[data-step="3"] .comp-big{font-size:28px;letter-spacing:-.01em;}
+.layout[data-step="3"] .comp-desc{font-size:13px;}
+.layout[data-step="3"] .comp-exp{font-size:13px;margin-top:6px;}
+.layout[data-step="3"] .comp-note{font-size:13px;color:#6e6e73;line-height:1.5;margin-top:12px;}
+.layout[data-step="3"] .unprotected-row{font-size:14px;border-radius:12px;padding:10px 14px;}
+.layout[data-step="3"] .unprotected-row strong{font-size:20px;}
+.layout[data-step="3"] .sim-title{font-size:16px;}
+.layout[data-step="3"] .sim-status,.layout[data-step="3"] .sim-legend{font-size:13px;}
 .sim-section{margin-top:12px;padding-top:10px;border-top:1px solid var(--line);}
 .sim-title{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:4px;}
 .sim-status{font-size:11px;color:var(--ink-soft);margin-bottom:6px;}
@@ -374,15 +396,15 @@ body{
   background:white;border-top:1px solid var(--line);
   padding:7px 16px;flex-shrink:0;
 }
-.legend{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted);}
+.legend{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);}
 .legend .bar{flex:1;height:7px;background:linear-gradient(to right,#8C3A2B 0%,#E1A95F 45%,#6B8E5A 75%,#355E3B 100%);}
-.legend-tick{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:1px;}
+.legend-tick{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-top:2px;}
 
 /* Map tooltip */
 .map-tt{
   position:absolute;pointer-events:none;
   background:var(--ink);color:white;
-  padding:5px 10px;font-size:12px;line-height:1.3;
+  padding:6px 11px;font-size:13px;line-height:1.35;
   opacity:0;transition:opacity 0.1s;z-index:50;white-space:nowrap;
 }
 .map-tt b{font-weight:700;}
@@ -487,7 +509,6 @@ body{
           <div class="risk-label-wrap">
             <div class="risk-label">Community measles risk</div>
             <div class="risk-level" id="risk-level">—</div>
-            <div class="risk-sub" id="risk-sub"></div>
           </div>
         </div>
 
@@ -504,14 +525,6 @@ body{
         </div>
 
         <!-- Current measles cases + population in this area -->
-        <div class="cases-block" id="cases-block">
-          <div class="cases-title">Current measles cases</div>
-          <div class="cases-grid">
-            <div class="cases-stat"><b id="cases-utla">—</b><span>in this area</span></div>
-            <div class="cases-stat"><b id="cases-region">—</b><span id="cases-region-lbl">in region</span></div>
-          </div>
-        </div>
-
         <!-- Risk for your child by measles vaccination status (3 tiers) -->
         <div class="comparison-label">Your child's chance of catching measles</div>
         <div class="comp-grid3">
@@ -973,7 +986,6 @@ function renderRisk(){
     $("risk-dot").className="risk-dot "+risk.key;
     $("risk-level").className="risk-level "+risk.key;
     $("risk-level").textContent=risk.label;
-    $("risk-sub").textContent=risk.sub;
   }
 
   // Three measles tiers: no doses / after 1st dose / after 2nd dose
@@ -991,16 +1003,6 @@ function renderRisk(){
   }
 
   // Current measles cases + population in this area
-  if(CASES){
-    const rc = CASES.byRegion[d.region];   // region total (complete)
-    const uc = CASES.byUTLA[d.name];        // UTLA count (only if >=10)
-    $("cases-utla").textContent       = uc!=null ? uc.toLocaleString() : (rc!=null ? "<10" : "n/a");
-    $("cases-region").textContent     = rc!=null ? rc.toLocaleString() : "n/a";
-    $("cases-region-lbl").textContent = `in ${d.region}`;
-    $("cases-block").style.display = "block";
-  } else {
-    $("cases-block").style.display = "none";
-  }
 
   // Unprotected count
   const covForCount = cov!=null ? cov : (mmr2||0);
