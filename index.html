@@ -100,6 +100,12 @@ body{
   .wiz-btn{padding:11px 16px;font-size:15px;}
   #search-btn,#pc-btn{padding:11px 14px;}
   #search-input{font-size:16px;}              /* 16px stops iOS auto-zoom */
+  /* Step 1 landing scales down on phones */
+  .layout[data-step="1"] .panel-title{font-size:27px;}
+  .layout[data-step="1"] .panel-sub{font-size:16px;margin-bottom:22px;}
+  .layout[data-step="1"] #search-input{padding:12px 8px;}
+  .layout[data-step="1"] #search-btn{padding:12px 18px;font-size:15px;}
+  .layout[data-step="1"] .pc-section{padding-bottom:6vh;}
   .disease-tag{padding:4px 12px;}
   /* Stack the 3 risk tiers and the case stats */
   .comp-grid3{grid-template-columns:1fr;}
@@ -270,10 +276,24 @@ body{
 .layout[data-step="1"] #risk-block{display:none;}
 .layout[data-step="1"] .worst-section{display:none;}   /* step 1: search box only */
 .layout[data-step="1"] .map-or{display:none;}
-/* Step 1: center the search as a clean landing screen */
+/* Step 1: refined "Apple-style" landing */
 .layout[data-step="1"] .panel-scroll{display:flex;flex-direction:column;justify-content:center;align-items:center;}
-.layout[data-step="1"] .pc-section{width:100%;max-width:620px;text-align:center;padding-bottom:8vh;}
-.layout[data-step="1"] .panel-sub{margin-bottom:18px;}
+.layout[data-step="1"] .pc-section{width:100%;max-width:600px;text-align:center;padding-bottom:9vh;}
+.layout[data-step="1"] .panel-title{font-size:40px;line-height:1.08;font-weight:700;letter-spacing:-.02em;margin-bottom:12px;}
+.layout[data-step="1"] .panel-sub{font-size:19px;line-height:1.45;color:#6e6e73;font-weight:400;margin-bottom:30px;}
+.layout[data-step="1"] .search-wrap{width:100%;}
+.layout[data-step="1"] .pc-row{display:flex;align-items:center;gap:2px;background:#fff;border:1px solid #d2d2d7;
+  border-radius:16px;padding:5px 5px 5px 14px;box-shadow:0 4px 20px rgba(0,0,0,.06);
+  transition:box-shadow .2s,border-color .2s;}
+.layout[data-step="1"] .pc-row:focus-within{border-color:#0071e3;box-shadow:0 0 0 4px rgba(0,113,227,.15);}
+.layout[data-step="1"] .search-ic{flex-shrink:0;}
+.layout[data-step="1"] #search-input{flex:1;border:none;outline:none;background:transparent;font-size:18px;padding:15px 12px;color:var(--ink);}
+.layout[data-step="1"] #search-input::placeholder{color:#a1a1a6;}
+.layout[data-step="1"] #search-btn{border:none;border-radius:12px;background:#0071e3;color:#fff;font-size:16px;font-weight:600;
+  padding:14px 28px;cursor:pointer;transition:background .18s,transform .08s;}
+.layout[data-step="1"] #search-btn:hover{background:#0077ed;}
+.layout[data-step="1"] #search-btn:active{transform:scale(.97);}
+.layout[data-step="1"] .ac-drop{border-radius:12px;margin-top:8px;box-shadow:0 8px 30px rgba(0,0,0,.13);overflow:hidden;text-align:left;}
 .layout[data-step="2"] .panel{display:none;}
 .layout[data-step="2"] #nav2{display:flex;}
 .layout[data-step="3"] #risk-block{display:block;}   /* risk-block shows ONLY in step 3 */
@@ -426,12 +446,13 @@ body{
 
       <!-- Stage 1: one combined search (postcode OR place name) -->
       <div class="pc-section">
-        <p class="panel-title">Step 1 — find your area</p>
-        <p class="panel-sub">Search by postcode, town, city or local authority.</p>
+        <p class="panel-title">How protected is your area?</p>
+        <p class="panel-sub">Enter a postcode, town or council to see local measles vaccination coverage and outbreak risk.</p>
 
         <div class="search-wrap">
           <div class="pc-row">
-            <input id="search-input" type="text" placeholder="e.g. CB3 9DF, Ely, or Cambridgeshire" autocomplete="off" aria-label="Search postcode or place">
+            <svg class="search-ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#86868b" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="20" y1="20" x2="16.65" y2="16.65"/></svg>
+            <input id="search-input" type="text" placeholder="Postcode, town or council…" autocomplete="off" aria-label="Search postcode or place">
             <button id="search-btn">Search</button>
           </div>
           <div class="ac-drop" id="ac-drop"></div>
