@@ -112,9 +112,9 @@ body{
   .cases-grid{gap:12px;}
   .wiz-nav{flex-wrap:wrap;padding-bottom:calc(90px + env(safe-area-inset-bottom));}
   .nav2-hint{order:3;flex-basis:100%;text-align:center;}
-  /* info card on phones */
-  .map-info{left:10px;bottom:12px;padding:11px 15px;max-width:66%;}
-  .mi-cases-big{font-size:34px;}
+  /* on-map label on phones */
+  .map-label .ml-big{font-size:26px;}
+  .map-label .ml-inner{padding:6px 11px;}
 }
 
 /* ── Left panel ── */
@@ -259,13 +259,14 @@ body{
 .wiz-btn.primary{background:var(--accent);color:#fff;border-color:var(--accent);}
 .wiz-btn:disabled{opacity:.45;cursor:not-allowed;}
 
-/* Map info card — prominent, focused on measles cases */
-.map-info{position:absolute;left:14px;bottom:16px;z-index:600;background:rgba(255,255,255,.97);
-  border:1px solid var(--line);border-radius:14px;padding:13px 18px;
-  box-shadow:0 4px 20px rgba(0,0,0,.22);max-width:280px;}
-.mi-name{font-weight:700;font-size:14px;color:var(--ink);margin-bottom:2px;}
-.mi-cases-big{font-size:40px;font-weight:800;line-height:1.02;color:#B4341F;letter-spacing:-.01em;}
-.mi-cases-lbl{font-size:12px;color:var(--ink-soft);margin-top:3px;line-height:1.35;}
+/* On-map label pinned to the selected area (shows measles cases there) */
+.map-label{background:none;border:none;}
+.map-label .ml-inner{transform:translate(-50%,-50%);background:rgba(255,255,255,.96);
+  border:1px solid var(--line);border-radius:12px;padding:7px 13px;text-align:center;white-space:nowrap;
+  box-shadow:0 3px 16px rgba(0,0,0,.28);}
+.map-label .ml-name{font-size:12px;font-weight:700;color:var(--ink);}
+.map-label .ml-big{font-size:30px;font-weight:800;line-height:1.05;color:#B4341F;letter-spacing:-.01em;}
+.map-label .ml-lbl{font-size:10px;color:var(--ink-soft);}
 
 /* Stage visibility — single column, one stage at a time */
 .layout[data-step]{flex-direction:column;}
@@ -581,12 +582,6 @@ body{
       <div id="map" aria-label="Map of English local authorities. Click to view risk for any area."></div>
       <div class="map-tt" id="map-tt"></div>
       <div class="map-hint" id="map-hint">Click any area to check vaccination coverage</div>
-      <!-- Selected-area info card: focus on measles cases -->
-      <div class="map-info" id="map-info" style="display:none">
-        <div class="mi-name" id="mi-name"></div>
-        <div class="mi-cases-big" id="mi-cases">—</div>
-        <div class="mi-cases-lbl" id="mi-cases-lbl">measles cases this year</div>
-      </div>
     </div>
     <div class="map-footer">
       <div class="legend">
@@ -704,7 +699,7 @@ function exposureNote(c, areaName) {
 
 let GEO = null, UTLA = null, CASES = null;
 let STATE = { code: null, disease: "mmr2", districtName: null, placeName: null, placeType: null };
-let LMAP = null, GJSON = null;
+let LMAP = null, GJSON = null, LABEL = null;
 const $ = id => document.getElementById(id);
 
 // ════════════════════════════════════════════════
@@ -888,6 +883,7 @@ function selectUTLA(code, keepDistrict){
     // Pan + zoom map to the selected area. Deferred so it runs after the
     // map becomes visible (stage switch) and is correctly sized.
     if(selBounds && LMAP){
+      placeMapLabel(selBounds.getCenter(), UTLA[code]);   // label pinned on the area
       setTimeout(()=>{ LMAP.invalidateSize(); LMAP.fitBounds(selBounds,{padding:[30,30],maxZoom:10,animate:true}); }, 90);
     }
   }
@@ -895,31 +891,26 @@ function selectUTLA(code, keepDistrict){
   // An area is chosen → enable the "see risk" button in the map stage
   const next=$("nav2-next"); if(next) next.disabled=false;
   const hint=$("nav2-hint"); if(hint && UTLA[code]) hint.textContent=UTLA[code].name;
-  updateMapInfo(UTLA[code]);
   renderRisk();
 }
 
-// Selected-area info card on the map — headline measles-case count
-function updateMapInfo(d){
-  const box=$("map-info"); if(!box) return;
-  if(!d){ box.style.display="none"; return; }
-  $("mi-name").textContent = d.name;
+// Pin a measles-case label onto the selected area, at its centre on the map.
+function placeMapLabel(center, d){
+  if(LABEL && LMAP){ LMAP.removeLayer(LABEL); LABEL=null; }
+  if(!center || !d || !LMAP) return;
+  let big="—", sub="measles cases this year";
   if(CASES){
     const rc=CASES.byRegion[d.region], uc=CASES.byUTLA[d.name];
-    if(uc!=null){                 // this UTLA has a published count (>=10)
-      $("mi-cases").textContent = uc.toLocaleString();
-      $("mi-cases-lbl").textContent = `measles cases in ${d.name} so far this year`;
-    } else if(rc!=null){          // fall back to the region total
-      $("mi-cases").textContent = rc.toLocaleString();
-      $("mi-cases-lbl").textContent = `measles cases in ${d.region} so far this year`;
-    } else {
-      $("mi-cases").textContent = "—";
-      $("mi-cases-lbl").textContent = "no England case data for this area";
-    }
-  } else {
-    $("mi-cases").textContent="—"; $("mi-cases-lbl").textContent="loading case data…";
+    if(uc!=null){ big=uc.toLocaleString(); }
+    else if(rc!=null){ big=rc.toLocaleString(); sub=`measles cases in ${d.region}`; }
+    else { big="—"; sub="no case data"; }
   }
-  box.style.display="block";
+  const html=`<div class="ml-inner"><div class="ml-name">${d.name}</div>`
+    + `<div class="ml-big">${big}</div><div class="ml-lbl">${sub}</div></div>`;
+  LABEL = L.marker(center, {
+    icon: L.divIcon({ className:'map-label', html, iconSize:null, iconAnchor:[0,0] }),
+    interactive:false, keyboard:false, zIndexOffset:1000
+  }).addTo(LMAP);
 }
 
 function renderRisk(){
