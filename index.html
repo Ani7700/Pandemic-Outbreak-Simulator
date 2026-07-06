@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Childhood Vaccination Risk — England</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#003078">
+<meta name="theme-color" content="#fbfbfd">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Vax Risk">
@@ -38,16 +38,16 @@ body{
 
 /* ── Topbar ── */
 .topbar{
-  background:var(--navy);border-bottom:4px solid var(--accent);
-  flex-shrink:0;
+  background:#fbfbfd;
+  border-bottom:1px solid #d2d2d7;flex-shrink:0;
 }
 .topbar-inner{
   display:flex;align-items:center;justify-content:space-between;
-  max-width:1800px;margin:0 auto;padding:0 20px;height:52px;
+  max-width:1100px;margin:0 auto;padding:0 22px;height:54px;
 }
-.brand{color:white;font-size:14px;font-weight:700;line-height:1.2;}
-.brand span{display:block;font-size:11px;font-weight:400;color:#adc4e3;margin-top:1px;}
-.topbar-note{font-size:12px;color:#adc4e3;}
+.brand{color:#1d1d1f;font-size:16px;font-weight:600;line-height:1.15;letter-spacing:-.01em;}
+.brand span{display:block;font-size:12px;font-weight:400;color:#6e6e73;margin-top:1px;letter-spacing:0;}
+.topbar-note{font-size:13px;color:#6e6e73;}
 
 /* ── Main layout ── */
 .layout{
@@ -374,11 +374,12 @@ body{
 
 /* ── Data note ── */
 .data-note{
-  border-top:1px solid var(--line-soft);
-  padding:10px 18px;font-size:11px;color:var(--muted);
-  background:var(--paper-2);flex-shrink:0;line-height:1.5;
+  border-top:1px solid #d2d2d7;
+  padding:16px 22px;font-size:13px;color:#6e6e73;
+  background:#f5f5f7;flex-shrink:0;line-height:1.6;text-align:center;
 }
-.data-note a{color:var(--accent);}
+.data-note a{color:#0066cc;text-decoration:none;}
+.data-note a:hover{text-decoration:underline;}
 
 /* ── Right: Map ── */
 .map-panel{
@@ -545,11 +546,6 @@ body{
           </div>
         </div>
 
-
-        <!-- Unprotected children count -->
-        <div class="unprotected-row" id="unprot-row">
-          Estimated <strong id="unprot-n">—</strong> children under 5 in this area are not fully vaccinated against measles.
-        </div>
 
         <!-- Live outbreak simulation (powered by the MORL simulator API) -->
         <div class="sim-section" id="sim-section" style="display:none">
@@ -993,17 +989,6 @@ function renderRisk(){
   } else {
     ["t-unvacc-big","t-unvacc-exp","t-dose1-big","t-dose1-exp","t-dose2-big","t-dose2-exp"].forEach(id=>$(id).textContent="—");
   }
-
-  // Current measles cases + population in this area
-
-  // Unprotected count
-  const covForCount = cov!=null ? cov : (mmr2||0);
-  const unprotected=Math.round((1-covForCount)*d.under5);
-  $("unprot-n").textContent=unprotected.toLocaleString();
-  // Update the label to match disease
-  const unprotRow=$("unprot-row");
-  unprotRow.innerHTML=`Estimated <strong>${unprotected.toLocaleString()}</strong> children under 5 in this area are not fully vaccinated against ${dis.unprotectedLabel}.`;
-  unprotRow.style.display=unprotected>0?"block":"none";
 
   // Threshold legend label
   $("thresh-label").textContent=dis.herdLabel;
