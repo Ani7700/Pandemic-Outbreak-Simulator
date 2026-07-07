@@ -264,6 +264,7 @@ body{
 .map-label .ml-name{font-size:12px;font-weight:700;color:var(--ink);}
 .map-label .ml-big{font-size:30px;font-weight:800;line-height:1.05;color:#B4341F;letter-spacing:-.01em;}
 .map-label .ml-lbl{font-size:12px;color:var(--ink-soft);}
+.map-label .ml-date{font-size:12px;color:#8a8a8e;margin-top:2px;}
 
 /* Stage visibility — single column, one stage at a time */
 .layout[data-step]{flex-direction:column;}
@@ -901,15 +902,24 @@ function selectUTLA(code, keepDistrict){
 function placeMapLabel(center, d){
   if(LABEL && LMAP){ LMAP.removeLayer(LABEL); LABEL=null; }
   if(!center || !d || !LMAP) return;
-  let big="—", sub="measles cases this year";
+  let big="—", sub="measles cases", range="";
   if(CASES){
     const rc=CASES.byRegion[d.region], uc=CASES.byUTLA[d.name];
-    if(uc!=null){ big=uc.toLocaleString(); }
+    if(uc!=null){ big=uc.toLocaleString(); sub="measles cases"; }
     else if(rc!=null){ big=rc.toLocaleString(); sub=`measles cases in ${d.region}`; }
     else { big="—"; sub="no case data"; }
+    // Approximate span from the start of the year to the data's "as of" date,
+    // phrased loosely, e.g. "over the past 6 months"
+    const m=CASES._meta;
+    if(m && m.asOf){
+      const months=new Date(m.asOf+"T00:00:00").getMonth()+1;   // Jan..current month
+      range=`over the past ${months} months`;
+    }
   }
   const html=`<div class="ml-inner"><div class="ml-name">${d.name}</div>`
-    + `<div class="ml-big">${big}</div><div class="ml-lbl">${sub}</div></div>`;
+    + `<div class="ml-big">${big}</div><div class="ml-lbl">${sub}</div>`
+    + (range ? `<div class="ml-date">${range}</div>` : "")
+    + `</div>`;
   LABEL = L.marker(center, {
     icon: L.divIcon({ className:'map-label', html, iconSize:null, iconAnchor:[0,0] }),
     interactive:false, keyboard:false, zIndexOffset:1000
