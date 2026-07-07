@@ -219,7 +219,7 @@ body{
   transform:translateX(-50%);
 }
 .cov-marker::after{content:none;}   /* drop the tiny overlapping label; the tick marks 93% */
-.cov-ticks{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);}
+.cov-ticks{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-top:2px;}
 
 /* ── Comparison cards ── */
 .comparison-label{
@@ -511,19 +511,6 @@ body{
           </div>
         </div>
 
-        <!-- Coverage bar -->
-        <div class="cov-bar-section">
-          <div class="cov-bar-label">
-            <span id="cov-label-text">MMR2 coverage</span>:&nbsp;<strong id="cov-pct">—</strong>
-          </div>
-          <div class="cov-track">
-            <div class="cov-fill" id="cov-fill"></div>
-            <div class="cov-marker" id="cov-marker" data-label="93% threshold"></div>
-          </div>
-          <div class="cov-ticks"><span>50%</span><span>70%</span><span>90%</span></div>
-        </div>
-
-        <!-- Current measles cases + population in this area -->
         <!-- Risk for your child by measles vaccination status (3 tiers) -->
         <div class="comparison-label">Your child's chance of catching measles</div>
         <div class="comp-grid3">
@@ -591,6 +578,17 @@ body{
       <div class="legend-tick" id="legend-tick">
         <span>low coverage — higher measles risk</span>
         <span id="thresh-label">herd immunity threshold ≈ 93%</span>
+      </div>
+      <!-- Selected-area coverage bar (moved here from the risk page) -->
+      <div class="cov-bar-section" id="cov-bar-section" style="margin-top:12px;display:none">
+        <div class="cov-bar-label">
+          <span id="cov-label-text">MMR2 coverage</span>:&nbsp;<strong id="cov-pct">—</strong>
+        </div>
+        <div class="cov-track">
+          <div class="cov-fill" id="cov-fill"></div>
+          <div class="cov-marker" id="cov-marker" data-label="93% threshold"></div>
+        </div>
+        <div class="cov-ticks"><span>50%</span><span>70%</span><span>90%</span></div>
       </div>
     </div>
     <!-- Stage 2 nav -->
@@ -961,6 +959,7 @@ function renderRisk(){
 
   // Disease label
   $("cov-label-text").textContent=`${dis.label} coverage`;
+  $("cov-bar-section").style.display="block";   // reveal the coverage bar on the map stage
 
   // Coverage
   if(cov!=null){
