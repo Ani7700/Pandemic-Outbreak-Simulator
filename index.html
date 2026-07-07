@@ -932,15 +932,15 @@ function renderRisk(){
     const sub = STATE.districtName
       ? `${STATE.districtName}, ${d.name} · ${d.region}`
       : `${d.name} · ${d.region}`;
-    $("area-meta").textContent=`${d.name} · ${fmt(d.under5)} under-5s`;
+    $("area-meta").textContent=`${d.name} · ${d.region}`;
     note.style.display="none";
   } else if(STATE.districtName){
     $("area-name").textContent=STATE.districtName;
-    $("area-meta").textContent=`${d.name} · ${fmt(d.under5)} under-5s`;
+    $("area-meta").textContent=`${d.name} · ${d.region}`;
     note.style.display="none";
   } else {
     $("area-name").textContent=d.name;
-    $("area-meta").textContent=`${d.region} · ${fmt(d.under5)} under-5s`;
+    $("area-meta").textContent=`${d.region}`;
     // Show Scotland data source note
     if(d.region === 'Scotland'){
       note.textContent=`ℹ Scotland data: Public Health Scotland Q4 2025. Age thresholds differ slightly from England (MMR1 @ 24m, DTaP @ 5y).`;
