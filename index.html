@@ -572,11 +572,6 @@ body{
 
     </div><!-- /panel-scroll -->
 
-    <div class="data-note">
-      Data: <a href="https://www.gov.uk/government/statistics/cover-of-vaccination-evaluated-rapidly-cover-programme-2025-to-2026-quarterly-data" target="_blank">UKHSA COVER Q3 2025–26</a> ·
-      <a href="https://www.publichealthscotland.scot/publications/childhood-immunisation-statistics-scotland/" target="_blank">PHS Scotland Q4 2025</a> ·
-      Risk estimates: UKHSA Green Book · Postcode: postcodes.io
-    </div>
   </div>
 
   <!-- ══ RIGHT: MAP ══ -->
@@ -852,7 +847,7 @@ function showTT(e,code,d){
   let casesLine="";
   if(CASES){
     const rc=CASES.byRegion[d.region], uc=CASES.byUTLA[d.name];
-    const txt = uc!=null ? `${uc.toLocaleString()} here` : (rc!=null ? `${rc.toLocaleString()} in ${d.region}` : "no data");
+    const txt = uc!=null ? `${uc.toLocaleString()}` : (rc!=null ? "fewer than 10" : "no data");
     casesLine = `<br>Measles cases: <span class="num">${txt}</span>`;
   }
   tt.innerHTML=`<b>${d.name}</b><br>${dis.label} coverage: <span class="num">${vs}</span>${approx}${casesLine}`;
@@ -905,9 +900,13 @@ function placeMapLabel(center, d){
   let big="—", sub="measles cases", range="";
   if(CASES){
     const rc=CASES.byRegion[d.region], uc=CASES.byUTLA[d.name];
-    if(uc!=null){ big=uc.toLocaleString(); sub="measles cases"; }
-    else if(rc!=null){ big=rc.toLocaleString(); sub=`measles cases in ${d.region}`; }
-    else { big="—"; sub="no case data"; }
+    if(uc!=null){                       // this area's own published count (>=10)
+      big=uc.toLocaleString(); sub="measles cases here";
+    } else if(rc!=null){                // area count suppressed by UKHSA (fewer than 10)
+      big="<10"; sub="measles cases here";
+    } else {
+      big="—"; sub="no case data";      // e.g. Scotland (not in England dataset)
+    }
     // Approximate span from the start of the year to the data's "as of" date,
     // phrased loosely, e.g. "over the past 6 months"
     const m=CASES._meta;
