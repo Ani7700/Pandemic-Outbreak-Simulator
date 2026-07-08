@@ -273,9 +273,11 @@ body{
 .cr-toggle{display:flex;gap:6px;margin-bottom:10px;}
 .cr-toggle button{flex:1;font-size:13px;padding:7px 4px;border:1px solid var(--line);background:#fff;border-radius:6px;cursor:pointer;}
 .cr-toggle button.active{background:var(--accent);color:#fff;border-color:var(--accent);}
-.cr-scene{display:grid;grid-template-columns:repeat(20,1fr);gap:2px;max-width:360px;margin:0 auto;}
-.cr-p{color:#d4d1c8;aspect-ratio:10/16;}
-.cr-cap,#cr-cap{text-align:center;margin-top:8px;}
+.cr-scene{display:grid;grid-template-columns:repeat(20,1fr);gap:4px;max-width:300px;margin:6px auto;}
+.cr-p{color:#d4d1c8;line-height:0;}
+.cr-p svg{width:100%;height:auto;display:block;}
+.cr-p.inf{/* colour set inline */}
+#cr-cap{text-align:center;margin-top:12px;}
 /* frequency bars (v4) */
 .rd-bar-row{display:flex;align-items:center;gap:10px;margin:8px 0;}
 .rd-bar-head{flex:0 0 92px;font-size:13px;font-weight:700;}
@@ -889,7 +891,7 @@ function wireSlider(dyn){
   const keys=["unvacc","dose1","dose2"];
   const upd=()=>{const i=+sl.value,d=dyn[keys[i]],n=Math.round(d.exp*100),col=tierColor(TIERS[i].cls);
     out.innerHTML=`<div style="color:${col};font-size:44px;font-weight:800;line-height:1">${n} in 100</div>
-      <div class="comp-desc">infected if exposed · ${fmt1inN(d.gp)} per year in the general public</div>`;};
+      <div class="comp-desc">infected if exposed to a case</div>`;};
   sl.addEventListener("input",upd); upd();
 }
 
@@ -940,6 +942,21 @@ function wireCrowd(dyn){
     tog.querySelectorAll("button").forEach(x=>x.classList.remove("active")); b.classList.add("active"); draw(+b.dataset.i);}));
   draw(0);
 }
+// V11 — gauge / speedometer per dose level
+function gaugeHTML(dyn){
+  return '<div class="comp-grid3">'+TIERS.map(t=>{
+    const p=dyn[t.key].exp, col=tierColor(t.cls), n=Math.round(p*100), r=40,cx=50,cy=50,len=Math.PI*r;
+    const arc=`M ${cx-r} ${cy} A ${r} ${r} 0 0 1 ${cx+r} ${cy}`;
+    const ang=Math.PI*(1-p), nx=cx+r*Math.cos(ang), ny=cy-r*Math.sin(ang);
+    let s=`<svg viewBox="0 0 100 60" style="width:100%;max-width:130px;margin:4px auto;display:block">`;
+    s+=`<path d="${arc}" fill="none" stroke="#e3e0d7" stroke-width="9" stroke-linecap="round"/>`;
+    s+=`<path d="${arc}" fill="none" stroke="${col}" stroke-width="9" stroke-linecap="round" stroke-dasharray="${(p*len).toFixed(1)} ${len.toFixed(1)}"/>`;
+    s+=`<line x1="${cx}" y1="${cy}" x2="${nx.toFixed(1)}" y2="${ny.toFixed(1)}" stroke="#333" stroke-width="2"/>`;
+    s+=`<circle cx="${cx}" cy="${cy}" r="3" fill="#333"/></svg>`;
+    return `<div class="comp-card ${t.cls}" style="text-align:center"><div class="comp-head ${t.cls}">${t.head}</div>${s}
+      <div class="comp-big ${t.cls}" style="font-size:20px">${n}%</div><div class="comp-desc">chance if exposed</div></div>`;
+  }).join('')+'</div>';
+}
 const WIRE = { 12: wireSlider, 13: wireDice, 15: wireCrowd };
 
 const RISK_VERSIONS = {
@@ -953,7 +970,7 @@ const RISK_VERSIONS = {
   8:  (dyn)    => ringHTML(dyn),                         // proportion rings
   9:  (dyn)    => colorScaleHTML(dyn),                   // qualitative colour scale
   10: (dyn)    => controlHTML(dyn),                      // control: single number
-  11: (dyn)    => ladderHTML(dyn),                       // risk ladder (vertical scale)
+  11: (dyn)    => gaugeHTML(dyn),                        // gauge / speedometer
   12: (dyn)    => sliderHTML(),                          // interactive dose slider
   13: (dyn)    => diceHTML(),                            // "roll the dice" outcome sim
   14: (dyn)    => analogyHTML(dyn),                      // everyday analogy (class of 30)
