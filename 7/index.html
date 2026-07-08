@@ -1029,7 +1029,8 @@ const RISK_VERSIONS = {
 function renderRiskDisplay(dyn, d){
   const box=$("risk-display"); if(!box) return;
   if(!dyn){ box.innerHTML='<p class="comp-desc">Coverage data unavailable for this area.</p>'; return; }
-  const v = APP_VERSION || 1;
+  // combined versions (16–20) pick a specific risk display; others use their own number
+  const v = (VCONF[APP_VERSION] && VCONF[APP_VERSION].risk) || APP_VERSION || 1;
   box.innerHTML = (RISK_VERSIONS[v] || RISK_VERSIONS[1])(dyn, d);
   if(WIRE[v]) WIRE[v](dyn, d);   // attach listeners for interactive versions
 }
@@ -1149,8 +1150,16 @@ function covColor(c){
   return"#355E3B";
 }
 
-// ── Page-2 (map) VERSION: how the map/cases are shown (versions 16–20) ──
-const MAP_MODE = ({16:"cases",17:"dots",18:"table",19:"threshold",20:"vsavg"})[APP_VERSION] || "coverage";
+// ── Combined interface config: versions 16–20 pair a MAP style with a
+//    RISK-display style (free combination, not just a map change). ──
+const VCONF = {
+  16:{map:"cases",    risk:2},   // cases choropleth  + icon array
+  17:{map:"dots",     risk:4},   // dot density       + frequency bars
+  18:{map:"table",    risk:6},   // ranked table      + frequency table
+  19:{map:"threshold",risk:11},  // threshold map     + gauge
+  20:{map:"vsavg",    risk:3},   // vs-average map    + percentages
+};
+const MAP_MODE = (VCONF[APP_VERSION] && VCONF[APP_VERSION].map) || "coverage";
 let DOTLAYER = null;
 
 function areaCaseCount(d){
