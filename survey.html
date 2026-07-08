@@ -8,42 +8,43 @@
   :root{--ink:#1d1d1f;--muted:#6e6e73;--line:#d2d2d7;--accent:#0071e3;--good:#00703c;--bad:#d4351c;}
   *{box-sizing:border-box;}
   body{font-family:-apple-system,"Helvetica Neue",Arial,sans-serif;color:var(--ink);margin:0;background:#f5f5f7;line-height:1.5;}
-  .wrap{max-width:820px;margin:0 auto;padding:28px 20px 80px;}
-  h1{font-size:26px;letter-spacing:-.02em;margin:0 0 12px;}
-  h2{font-size:19px;margin:26px 0 10px;}
+  .wrap{max-width:860px;margin:0 auto;padding:20px 18px 90px;}
+  h1{font-size:24px;letter-spacing:-.02em;margin:0 0 12px;}
+  h2{font-size:18px;margin:0 0 8px;}
   p{margin:0 0 12px;}
   .muted{color:var(--muted);}
-  .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px;margin-bottom:16px;box-shadow:0 2px 12px rgba(0,0,0,.04);}
-  .q{padding:16px 0;border-bottom:1px solid #eee;}
+  .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:16px;box-shadow:0 2px 12px rgba(0,0,0,.04);}
+  .progress{font-size:13px;color:var(--muted);margin-bottom:8px;}
+  .q{padding:14px 0;border-bottom:1px solid #eee;}
   .q:last-child{border-bottom:none;}
   .q .prompt{font-weight:600;margin-bottom:10px;}
   .opts label{display:block;padding:8px 10px;border:1px solid var(--line);border-radius:8px;margin-bottom:6px;cursor:pointer;font-size:15px;}
   .opts label:hover{background:#f5f5f7;}
   .opts input{margin-right:8px;}
   .likert{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
-  .likert label{display:flex;flex-direction:column;align-items:center;font-size:12px;color:var(--muted);cursor:pointer;width:44px;}
+  .likert label{display:flex;flex-direction:column;align-items:center;font-size:12px;color:var(--muted);cursor:pointer;width:42px;}
   .likert .end{font-size:12px;color:var(--muted);max-width:110px;}
-  input[type=text],input[type=number],select{font-size:15px;padding:9px 10px;border:1px solid var(--line);border-radius:8px;width:100%;max-width:340px;}
+  select{font-size:15px;padding:9px 10px;border:1px solid var(--line);border-radius:8px;width:100%;max-width:340px;}
   button{font-size:16px;font-weight:600;padding:13px 26px;border:0;border-radius:10px;background:var(--accent);color:#fff;cursor:pointer;}
   button:disabled{opacity:.45;cursor:not-allowed;}
-  .btnrow{margin-top:18px;}
-  iframe{width:100%;height:78vh;border:1px solid var(--line);border-radius:12px;background:#fff;}
-  .task-instr{background:#fff8e6;border:1px solid #f0d488;border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:15px;}
+  .btnrow{margin-top:16px;}
+  #tool{position:sticky;top:0;z-index:5;background:#f5f5f7;padding-top:8px;margin-bottom:14px;}
+  iframe{width:100%;height:56vh;border:1px solid var(--line);border-radius:12px;background:#fff;}
+  .instr{background:#fff8e6;border:1px solid #f0d488;border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:15px;}
   .err{color:var(--bad);font-size:14px;margin-top:8px;}
   .code{font-size:22px;font-weight:800;letter-spacing:2px;background:#f5f5f7;border-radius:8px;padding:8px 14px;display:inline-block;}
-  .step-hint{font-size:13px;color:var(--muted);margin-bottom:8px;}
 </style>
 </head>
 <body>
 <div class="wrap">
 
-  <!-- ══ 1. Consent ══ -->
+  <!-- Consent -->
   <div id="s-consent">
     <h1>Understanding measles risk information</h1>
     <div class="card">
       <p class="muted">Participant information &amp; consent</p>
-      <p><strong>What this is:</strong> a short study (about 8–10 minutes) about how people understand information on childhood vaccination and measles risk. You will look at an online tool and answer some questions about it.</p>
-      <p><strong>Voluntary &amp; anonymous:</strong> taking part is voluntary; you may stop at any time. We do not collect your name. Responses are stored anonymously and used only for research.</p>
+      <p><strong>What this is:</strong> a short study (about 8–10 minutes) about how people understand information on childhood vaccination and measles risk. You will use an online tool and answer questions about it as you go.</p>
+      <p><strong>Voluntary &amp; anonymous:</strong> taking part is voluntary and you may stop at any time. We do not collect your name; responses are stored anonymously and used only for research.</p>
       <p class="muted" style="font-size:13px">[Replace this box with your ethics-approved participant information sheet and data-handling statement before going live.]</p>
       <label style="display:block;margin-top:10px;font-size:15px"><input type="checkbox" id="consent-box"> I have read the above and agree to take part.</label>
       <div class="err" id="consent-err" style="display:none">Please tick the box to continue.</div>
@@ -51,28 +52,19 @@
     </div>
   </div>
 
-  <!-- ══ 2. Task (embedded interface) ══ -->
-  <div id="s-task" style="display:none">
-    <h1>Step 1 — Use the tool</h1>
-    <div class="task-instr">
-      Imagine you are a parent checking measles risk where you live. In the tool below,
-      search for <strong>CB3 9DF</strong> (Cambridge) and look through the information about that area.
-      When you have finished exploring, click <em>Continue</em> at the bottom.
+  <!-- Survey (interleaved: tool stays on top, one block at a time below) -->
+  <div id="s-survey" style="display:none">
+    <div class="progress" id="progress"></div>
+    <div id="tool"><iframe id="tool-frame" title="vaccination risk tool"></iframe></div>
+    <div class="card">
+      <div class="instr" id="block-instr"></div>
+      <div id="block-body"></div>
+      <div class="err" id="block-err" style="display:none">Please answer everything on this page before continuing.</div>
+      <div class="btnrow"><button id="block-btn">Next →</button></div>
     </div>
-    <iframe id="task-frame" title="vaccination risk tool"></iframe>
-    <div class="btnrow"><button id="task-btn">Continue to the questions →</button></div>
   </div>
 
-  <!-- ══ 3. Questions ══ -->
-  <div id="s-quiz" style="display:none">
-    <h1>Step 2 — A few questions</h1>
-    <p class="muted">Please answer based on what you saw. It's fine to say “Not sure”.</p>
-    <div id="quiz-body"></div>
-    <div class="err" id="quiz-err" style="display:none">Please answer all questions before submitting.</div>
-    <div class="btnrow"><button id="quiz-btn">Submit</button></div>
-  </div>
-
-  <!-- ══ 4. Thanks ══ -->
+  <!-- Thanks -->
   <div id="s-done" style="display:none">
     <div class="card">
       <h1>Thank you</h1>
@@ -85,30 +77,35 @@
 </div>
 
 <script>
-// ─────────────────────────────────────────────────────────────
-// CONFIG
-// ─────────────────────────────────────────────────────────────
-const ENDPOINT = "PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE"; // <- put your Google Apps Script URL here
+const ENDPOINT = "PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE"; // <- your Google Apps Script URL
 const N_VERSIONS = 22;
-
 const $ = id => document.getElementById(id);
 const P = new URLSearchParams(location.search);
 
-// Participant + assignment
-const participantId = P.get("PROLIFIC_PID") || P.get("pid") || ("anon-" + Math.random().toString(36).slice(2,10));
-const version = parseInt(P.get("v")) >=1 && parseInt(P.get("v"))<=N_VERSIONS ? parseInt(P.get("v"))
-              : Math.floor(Math.random()*N_VERSIONS)+1;   // random assignment
+const participantId = P.get("PROLIFIC_PID") || P.get("pid") || ("anon-"+Math.random().toString(36).slice(2,10));
+const version = (parseInt(P.get("v"))>=1 && parseInt(P.get("v"))<=N_VERSIONS) ? parseInt(P.get("v"))
+              : Math.floor(Math.random()*N_VERSIONS)+1;
 const started = Date.now();
-let taskStart=0, taskEnd=0;
+let toolStart=0;
+const ANS = {};
 
-// ─────────────────────────────────────────────────────────────
-// QUESTIONS  (correct answers assume the fixed area: Cambridgeshire, ~90.8% coverage)
-// ─────────────────────────────────────────────────────────────
-const RADIO = (id,prompt,opts,correct)=>({id,type:"radio",prompt,opts,correct});
-const LIK   = (id,prompt,lo,hi)=>({id,type:"likert",prompt,lo,hi});
+const RADIO=(id,prompt,opts,correct)=>({id,type:"radio",prompt,opts,correct});
+const LIK  =(id,prompt,lo,hi)=>({id,type:"likert",prompt,lo,hi});
+const SEL  =(id,prompt,opts)=>({id,type:"select",prompt,opts});
 
-const SECTIONS = [
- {title:"Understanding the information", items:[
+// One block per stage — questions sit right beside the thing they are about.
+const BLOCKS = [
+ {tool:true,
+  instr:"In the tool above, search for <strong>CB3 9DF</strong> and open the <strong>Map</strong> stage. With the map in front of you, answer:",
+  items:[
+   RADIO("C6","Is this area's vaccination coverage above or below the level needed for herd immunity (about 93%)?",
+     ["Above","Below","Exactly at the level","Not sure"],1),
+   RADIO("C7","Compared with other areas, does this area currently have a high or low number of measles cases?",
+     ["High","Low","About average","Not sure"],1),
+ ]},
+ {tool:true,
+  instr:"Now, in the tool above, open the <strong>Risk &amp; coverage</strong> stage (the “See risk &amp; coverage” button). With it in front of you, answer:",
+  items:[
    RADIO("C1","If an unvaccinated child is exposed to a case of measles, how likely are they to catch it?",
      ["Almost none","About 1 in 10","About half","About 9 in 10","Not sure"],3),
    RADIO("C2","Which child is LEAST likely to catch measles?",
@@ -119,134 +116,121 @@ const SECTIONS = [
      ["The first dose","The second dose","Both equally","Not sure"],0),
    RADIO("C5","If 200 unvaccinated children were all exposed to measles, about how many would catch it?",
      ["About 6","About 30","About 100","About 180","Not sure"],3),
-   RADIO("C6","Was the area's vaccination coverage above or below the level needed for herd immunity (about 93%)?",
-     ["Above","Below","Exactly at the level","Not sure"],1),
-   RADIO("C7","Compared with other areas, does this area currently have a high or low number of measles cases?",
-     ["High","Low","About average","Not sure"],1),
- ]},
- {title:"Certainty of the information", items:[
    RADIO("U1","Do you think the figures you saw are exact, or estimates that could be somewhat higher or lower?",
      ["Exact figures","Estimates","Not sure"],null),
    LIK("U2","How certain do you think scientists are about these numbers?","Not at all certain","Completely certain"),
  ]},
- {title:"Your impression", items:[
+ {tool:true,
+  instr:"Thinking about <strong>the way this information was shown</strong> to you:",
+  items:[
    LIK("E1","How easy or difficult was this information to understand?","Very difficult","Very easy"),
    LIK("E2","How much do you trust the numbers you were shown?","Not at all","Completely"),
-   LIK("E3","How confident are you that your answers above were correct?","Not at all","Completely"),
+   LIK("E3","How confident are you that your answers so far were correct?","Not at all","Completely"),
    LIK("E4","How much did you like this way of showing the information?","Disliked it","Liked it a lot"),
    LIK("E5","How much mental effort did it take to use?","Very little","A great deal"),
  ]},
- {title:"Measles and vaccination", items:[
+ {tool:false,
+  instr:"A few questions about measles and vaccination in general:",
+  items:[
    LIK("RP1","How risky do you think measles is for an unvaccinated child in this area?","Not at all risky","Extremely risky"),
    LIK("IN1","How important is it for a child to receive both MMR doses?","Not at all important","Extremely important"),
    LIK("IN2","If you were deciding for a child, how likely would you be to make sure they get both doses?","Very unlikely","Very likely"),
  ]},
- {title:"About you", items:[
+ {tool:false,
+  instr:"Finally, a little about you (anonymous):",
+  items:[
    RADIO("BG_parent","Do you have children of your own?",["Yes","No"],null),
    RADIO("BG_under5","Do you have a child under 5?",["Yes","No"],null),
    LIK("BG_attitude","In general, how do you feel about childhood vaccination?","Strongly against","Strongly in favour"),
-   {id:"BG_edu",type:"select",prompt:"Highest level of education completed",opts:["Secondary / high school","College / vocational","Undergraduate degree","Postgraduate degree","Prefer not to say"]},
+   SEL("BG_edu","Highest level of education completed",["Secondary / high school","College / vocational","Undergraduate degree","Postgraduate degree","Prefer not to say"]),
    LIK("BG_health","How confident are you filling out medical forms by yourself?","Not at all","Extremely"),
  ]},
 ];
 
-// ─────────────────────────────────────────────────────────────
-// RENDER
-// ─────────────────────────────────────────────────────────────
-function renderQuiz(){
-  const body=$("quiz-body"); let html="";
-  SECTIONS.forEach(sec=>{
-    html+=`<div class="card"><h2>${sec.title}</h2>`;
-    sec.items.forEach(q=>{
-      html+=`<div class="q" data-id="${q.id}"><div class="prompt">${q.prompt}</div>`;
-      if(q.type==="radio"||q.type==="select"){
-        if(q.type==="select"){
-          html+=`<select name="${q.id}"><option value="">— choose —</option>`+
-            q.opts.map((o,i)=>`<option value="${i}">${o}</option>`).join("")+`</select>`;
-        } else {
-          html+=`<div class="opts">`+q.opts.map((o,i)=>
-            `<label><input type="radio" name="${q.id}" value="${i}">${o}</label>`).join("")+`</div>`;
-        }
-      } else if(q.type==="likert"){
-        html+=`<div class="likert"><span class="end">${q.lo}</span>`;
-        for(let i=1;i<=7;i++) html+=`<label>${i}<input type="radio" name="${q.id}" value="${i}"></label>`;
-        html+=`<span class="end">${q.hi}</span></div>`;
-      }
-      html+=`</div>`;
-    });
-    html+=`</div>`;
-  });
-  body.innerHTML=html;
+let bi = 0;
+
+function itemHTML(q){
+  let h=`<div class="q" data-id="${q.id}"><div class="prompt">${q.prompt}</div>`;
+  if(q.type==="select"){
+    h+=`<select name="${q.id}"><option value="">— choose —</option>`+
+       q.opts.map((o,i)=>`<option value="${i}">${o}</option>`).join("")+`</select>`;
+  } else if(q.type==="radio"){
+    h+=`<div class="opts">`+q.opts.map((o,i)=>`<label><input type="radio" name="${q.id}" value="${i}">${o}</label>`).join("")+`</div>`;
+  } else if(q.type==="likert"){
+    h+=`<div class="likert"><span class="end">${q.lo}</span>`;
+    for(let i=1;i<=7;i++) h+=`<label>${i}<input type="radio" name="${q.id}" value="${i}"></label>`;
+    h+=`<span class="end">${q.hi}</span></div>`;
+  }
+  return h+`</div>`;
 }
 
-// collect + validate
-function collect(){
-  const rec={
-    participantId, version, assignedUrl:`./${version}/`,
-    timestamp:new Date().toISOString(),
+function renderBlock(){
+  const b=BLOCKS[bi];
+  $("progress").textContent=`Step ${bi+2} of ${BLOCKS.length+1}`;
+  $("tool").style.display = b.tool ? "block" : "none";
+  $("block-instr").innerHTML=b.instr;
+  $("block-body").innerHTML=b.items.map(itemHTML).join("");
+  $("block-err").style.display="none";
+  $("block-btn").textContent = (bi===BLOCKS.length-1) ? "Submit" : "Next →";
+  window.scrollTo(0,0);
+}
+
+function saveBlock(){
+  const b=BLOCKS[bi]; let missing=false;
+  b.items.forEach(q=>{
+    let val="";
+    if(q.type==="select") val=document.querySelector(`select[name="${q.id}"]`).value;
+    else { const el=document.querySelector(`[name="${q.id}"]:checked`); val=el?el.value:""; }
+    if(val==="") missing=true;
+    ANS[q.id]=val;
+  });
+  return !missing;
+}
+
+function buildRecord(){
+  const rec={participantId,version,assignedUrl:`./${version}/`,timestamp:new Date().toISOString(),
     seconds_total:Math.round((Date.now()-started)/1000),
-    seconds_on_tool:taskEnd&&taskStart?Math.round((taskEnd-taskStart)/1000):"",
-    user_agent:navigator.userAgent
-  };
-  let missing=false, correct=0, graded=0;
-  SECTIONS.forEach(sec=>sec.items.forEach(q=>{
-    const el=document.querySelector(`[name="${q.id}"]:checked`) || document.querySelector(`select[name="${q.id}"]`);
-    let val = el ? el.value : "";
-    if(q.type==="select") val = document.querySelector(`select[name="${q.id}"]`).value;
-    if(val===""||val==null){ missing=true; }
-    rec[q.id]=val;
+    seconds_on_tool:toolStart?Math.round((Date.now()-toolStart)/1000):"",
+    user_agent:navigator.userAgent};
+  let correct=0,graded=0;
+  BLOCKS.forEach(b=>b.items.forEach(q=>{
+    rec[q.id]=ANS[q.id]!=null?ANS[q.id]:"";
     if(q.type==="radio" && q.correct!=null){
-      const ok = (val!=="" && parseInt(val)===q.correct) ? 1 : 0;
-      rec[q.id+"_correct"]=val===""?"":ok; graded++; if(ok)correct++;
+      const ok=(ANS[q.id]!==""&&parseInt(ANS[q.id])===q.correct)?1:0;
+      rec[q.id+"_correct"]=ANS[q.id]===""?"":ok; graded++; if(ok)correct++;
     }
   }));
-  rec.comprehension_score = correct;    // out of the graded comprehension items
-  rec.comprehension_max = graded;
-  return {rec, missing};
+  rec.comprehension_score=correct; rec.comprehension_max=graded;
+  return rec;
 }
 
 function submit(rec){
   const done=()=>showDone();
   if(ENDPOINT.startsWith("http")){
-    fetch(ENDPOINT,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(rec)})
-      .then(done).catch(done);
+    fetch(ENDPOINT,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(rec)}).then(done).catch(done);
   } else {
-    // no endpoint set yet → offer a download so nothing is lost
     const blob=new Blob([JSON.stringify(rec,null,2)],{type:"application/json"});
-    const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
-    a.download=`response_${participantId}.json`; a.click();
+    const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=`response_${participantId}.json`; a.click();
     showDone();
   }
 }
-
 function showDone(){
-  ["s-consent","s-task","s-quiz"].forEach(s=>$(s).style.display="none");
-  $("s-done").style.display="block";
-  $("done-code").textContent = "MRV-"+String(version).padStart(2,"0")+"-"+participantId.slice(-4).toUpperCase();
-  $("done-note").textContent = ENDPOINT.startsWith("http") ? "You can close this window." :
-    "(Test mode: a data file was downloaded because no storage endpoint is set yet.)";
+  $("s-survey").style.display="none"; $("s-done").style.display="block";
+  $("done-code").textContent="MRV-"+String(version).padStart(2,"0")+"-"+participantId.slice(-4).toUpperCase();
+  $("done-note").textContent=ENDPOINT.startsWith("http")?"You can close this window.":"(Test mode: a data file was downloaded because no storage endpoint is set yet.)";
   window.scrollTo(0,0);
 }
 
-// ─────────────────────────────────────────────────────────────
-// FLOW
-// ─────────────────────────────────────────────────────────────
 $("consent-btn").addEventListener("click",()=>{
   if(!$("consent-box").checked){ $("consent-err").style.display="block"; return; }
-  $("s-consent").style.display="none"; $("s-task").style.display="block";
-  $("task-frame").src=`./${version}/`;
-  taskStart=Date.now(); window.scrollTo(0,0);
+  $("s-consent").style.display="none"; $("s-survey").style.display="block";
+  $("tool-frame").src=`./${version}/`; toolStart=Date.now();
+  bi=0; renderBlock();
 });
-$("task-btn").addEventListener("click",()=>{
-  taskEnd=Date.now();
-  $("s-task").style.display="none"; $("s-quiz").style.display="block";
-  renderQuiz(); window.scrollTo(0,0);
-});
-$("quiz-btn").addEventListener("click",()=>{
-  const {rec,missing}=collect();
-  if(missing){ $("quiz-err").style.display="block"; window.scrollTo(0,document.body.scrollHeight); return; }
-  $("quiz-btn").disabled=true; $("quiz-err").style.display="none";
-  submit(rec);
+$("block-btn").addEventListener("click",()=>{
+  if(!saveBlock()){ $("block-err").style.display="block"; window.scrollTo(0,document.body.scrollHeight); return; }
+  if(bi<BLOCKS.length-1){ bi++; renderBlock(); }
+  else { $("block-btn").disabled=true; submit(buildRecord()); }
 });
 </script>
 </body>
