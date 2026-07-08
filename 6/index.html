@@ -234,6 +234,12 @@ body{
 .ia-dot.on{background:#8C3A2B;}
 .ia-dot.on.partial{background:#c8923a;}
 .ia-dot.on.vacc{background:#00703c;}
+.ia-dot.fuzzy.unvacc{background:#8C3A2B;opacity:.32;}
+.ia-dot.fuzzy.partial{background:#c8923a;opacity:.32;}
+.ia-dot.fuzzy.vacc{background:#00703c;opacity:.32;}
+/* dual coding (v12) 10-dot row */
+.dc-row{display:flex;gap:4px;justify-content:center;margin:8px 0 2px;}
+.ia-dot.dc{width:12px;height:12px;}
 /* frequency bars (v4) */
 .rd-bar-row{display:flex;align-items:center;gap:10px;margin:8px 0;}
 .rd-bar-head{flex:0 0 92px;font-size:13px;font-weight:700;}
@@ -538,19 +544,6 @@ body{
         <div id="risk-display"></div>
 
 
-        <!-- Live outbreak simulation (powered by the MORL simulator API) -->
-        <div class="sim-section" id="sim-section" style="display:none">
-          <div class="sim-title">Modelled outbreak if a case arrives here</div>
-          <div class="sim-status" id="sim-status">—</div>
-          <svg id="sim-chart" viewBox="0 0 360 300" preserveAspectRatio="none"
-               style="width:100%;max-width:560px;height:360px;background:#fdfdfb;border:1px solid var(--line);border-radius:8px;display:none"></svg>
-          <div class="sim-legend" id="sim-legend" style="display:none">
-            <span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#8C3A2B;vertical-align:middle"></span> infected (median + 5–95%)
-            &nbsp;&nbsp;
-            <span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#1F2937;vertical-align:middle"></span> deaths
-          </div>
-        </div>
-
       </div><!-- /risk-block -->
 
       <!-- Worst areas (browse alternative, stage 1) -->
@@ -827,6 +820,67 @@ function controlHTML(dyn){
       <div class="comp-desc">chance of catching measles per year</div></div>`).join('')+'</div>';
 }
 
+// V11 — explicit uncertainty range (per 100 exposed, with a band)
+function intervalHTML(dyn){
+  return '<div class="comp-grid3">'+TIERS.map(t=>{
+    const n=Math.round(dyn[t.key].exp*100), m=Math.max(2,Math.round(n*0.12));
+    const lo=Math.max(0,n-m), hi=Math.min(100,n+m);
+    return `<div class="comp-card ${t.cls}"><div class="comp-head ${t.cls}">${t.head}</div>
+      <div class="comp-big ${t.cls}">${lo}–${hi}</div>
+      <div class="comp-desc">in 100 exposed (best estimate ${n})</div></div>`;
+  }).join('')+'</div>';
+}
+
+// V12 — dual coding: natural-frequency number + a 10-dot icon
+function dualHTML(dyn){
+  return '<div class="comp-grid3">'+TIERS.map(t=>{
+    const d=dyn[t.key], k=Math.round(d.exp*10);
+    let dots=''; for(let i=0;i<10;i++) dots+=`<span class="ia-dot dc${i<k?' on '+t.cls:''}"></span>`;
+    return `<div class="comp-card ${t.cls}"><div class="comp-head ${t.cls}">${t.head}</div>
+      <div class="comp-big ${t.cls}">${fmt1inN(d.gp)}</div>
+      <div class="comp-desc">in the general public, per year</div>
+      <div class="dc-row">${dots}</div>
+      <div class="comp-desc">${k} in 10 if exposed</div></div>`;
+  }).join('')+'</div>';
+}
+
+// V13 — relative risk vs a child with both doses
+function relRiskHTML(dyn){
+  const base=dyn.dose2.exp||1e-9;
+  const maxR=Math.max(...TIERS.map(t=>dyn[t.key].exp/base));
+  return '<div class="rd-bars">'+TIERS.map(t=>{
+    const r=dyn[t.key].exp/base, w=Math.max(6,r/maxR*100);
+    const lab = t.key==="dose2" ? "baseline (safest)" : (r<1.5?"about the same":"~"+Math.round(r)+"× the risk");
+    return `<div class="rd-bar-row">
+      <div class="rd-bar-head ${t.cls}">${t.head}</div>
+      <div class="rd-bar-track"><div class="rd-bar-fill ${t.cls}" style="width:${w.toFixed(0)}%"></div></div>
+      <div class="rd-bar-val" style="flex-basis:118px;text-align:left">${lab}</div></div>`;
+  }).join('')+'<p class="comp-desc" style="margin-top:8px">risk compared with a child who has had both doses</p></div>';
+}
+
+// V14 — verbal label + number
+function verbalNumHTML(dyn){
+  const word=p=> p>=0.5?"Very high" : p>=0.1?"High" : p>=0.02?"Moderate" : "Low";
+  return '<div class="comp-grid3">'+TIERS.map(t=>{const d=dyn[t.key];
+    return `<div class="comp-card ${t.cls}"><div class="comp-head ${t.cls}">${t.head}</div>
+      <div class="comp-big ${t.cls}" style="font-size:22px">${word(d.exp)}</div>
+      <div class="comp-desc">about ${fmtChance(d.exp)} if exposed</div></div>`;}).join('')+'</div>';
+}
+
+// V15 — icon array with a faded "uncertain" band (dotplot of uncertainty)
+function fuzzyIconHTML(dyn){
+  return '<div class="comp-grid3">'+TIERS.map(t=>{
+    const n=Math.round(dyn[t.key].exp*100), band=Math.max(2,Math.round(n*0.12));
+    const solid=Math.max(0,n-band), fend=Math.min(100,n+band);
+    let dots='';
+    for(let i=0;i<100;i++){ let c='ia-dot'; if(i<solid)c+=' on '+t.cls; else if(i<fend)c+=' fuzzy '+t.cls; dots+=`<span class="${c}"></span>`; }
+    return `<div class="comp-card ${t.cls}"><div class="comp-head ${t.cls}">${t.head}</div>
+      <div class="ia-grid">${dots}</div>
+      <div class="comp-big ${t.cls}" style="font-size:20px">${solid}–${fend} in 100</div>
+      <div class="comp-desc">infected if exposed (faded = uncertain)</div></div>`;
+  }).join('')+'</div>';
+}
+
 const RISK_VERSIONS = {
   1:  (dyn)    => cardsHTML(dyn, fmt1inN, fmtChance),    // natural frequencies (baseline)
   2:  (dyn)    => iconArrayHTML(dyn),                    // icon array (100 people)
@@ -834,10 +888,15 @@ const RISK_VERSIONS = {
   4:  (dyn)    => barsHTML(dyn),                         // frequency bars
   5:  (dyn)    => treeHTML(dyn),                         // natural-frequency tree
   6:  (dyn)    => tableHTML(dyn),                        // frequency table
-  7:  (dyn,d)  => lineHTML(dyn, d),                      // line chart (risk vs coverage)
+  7:  (dyn,d)  => lineHTML(dyn, d),                      // line chart (risk vs doses)
   8:  (dyn)    => ringHTML(dyn),                         // proportion rings
   9:  (dyn)    => colorScaleHTML(dyn),                   // qualitative colour scale
   10: (dyn)    => controlHTML(dyn),                      // control: single number
+  11: (dyn)    => intervalHTML(dyn),                     // explicit uncertainty range
+  12: (dyn)    => dualHTML(dyn),                         // dual coding: number + icons
+  13: (dyn)    => relRiskHTML(dyn),                      // relative risk vs 2 doses
+  14: (dyn)    => verbalNumHTML(dyn),                    // verbal label + number
+  15: (dyn)    => fuzzyIconHTML(dyn),                    // icon array with uncertainty band
 };
 
 function renderRiskDisplay(dyn, d){
@@ -872,7 +931,7 @@ let GEO = null, UTLA = null, CASES = null;
 const APP_VERSION = (function(){
   const m = location.pathname.match(/\/(\d{1,2})\/?$/);
   const n = m ? parseInt(m[1],10) : 0;
-  return (n>=1 && n<=10) ? n : 0;      // 0 = root (baseline)
+  return (n>=1 && n<=20) ? n : 0;      // 0 = root (baseline)
 })();
 const DATA_BASE = APP_VERSION ? "../" : "";   // data files live at the repo root
 let STATE = { code: null, disease: "mmr2", districtName: null, placeName: null, placeType: null };
@@ -1173,9 +1232,6 @@ function renderRisk(){
 
   // Threshold legend label
   $("thresh-label").textContent=dis.herdLabel;
-
-  // Kick off a live outbreak simulation for this area (async, non-blocking).
-  runAreaSim(d, cov);
 }
 
 // ════════════════════════════════════════════════
