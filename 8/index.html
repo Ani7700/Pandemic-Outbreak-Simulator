@@ -240,6 +240,42 @@ body{
 /* dual coding (v12) 10-dot row */
 .dc-row{display:flex;gap:4px;justify-content:center;margin:8px 0 2px;}
 .ia-dot.dc{width:12px;height:12px;}
+/* ranked case table (map version 18) */
+#map-table{flex:1;min-height:340px;overflow-y:auto;padding:14px 16px;background:#fff;}
+.rank-table{width:100%;border-collapse:collapse;font-size:14px;}
+.rank-table caption{caption-side:top;text-align:left;font-weight:700;font-size:15px;margin-bottom:10px;color:var(--ink);}
+.rank-table th{text-align:left;font-size:12px;color:#6e6e73;border-bottom:2px solid #e0ddd4;padding:6px 8px;}
+.rank-table td{padding:8px;border-bottom:1px solid #efeee9;}
+.rank-table tr[data-code]{cursor:pointer;}
+.rank-table tr[data-code]:hover{background:#f5f5f7;}
+.rank-table .rk-name{font-weight:600;}
+.rank-table .rk-n{text-align:right;font-weight:800;color:#8C3A2B;}
+/* plain-text control (v10) */
+.rd-plain-row{font-size:15px;line-height:1.9;color:var(--ink);}
+.rd-plain-head{font-weight:700;}
+/* v12 slider */
+.rd-slider{padding:6px 2px;}
+.rd-slider input[type=range]{width:100%;}
+.ds-labels{display:flex;justify-content:space-between;font-size:13px;color:var(--ink-soft);margin:2px 2px 12px;}
+.ds-out{text-align:center;min-height:70px;}
+/* v13 dice */
+.dc-controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:12px;}
+.dc-controls select{font-size:14px;padding:6px 8px;border:1px solid var(--line);border-radius:6px;}
+#dice-roll{font-size:14px;font-weight:600;padding:9px 16px;border:0;border-radius:8px;background:#0071e3;color:#fff;cursor:pointer;}
+.dc-result{font-size:18px;padding:14px;background:#f7f6f2;border-radius:10px;text-align:center;}
+.dc-tally{font-size:14px;color:var(--ink-soft);margin-top:8px;text-align:center;}
+/* v14 analogy */
+.an-row{display:flex;gap:12px;align-items:baseline;padding:9px 0;border-bottom:1px solid #efeee9;}
+.an-head{flex:0 0 92px;font-weight:700;}
+.an-head.unvacc{color:#8C3A2B;} .an-head.partial{color:#9a6a1c;} .an-head.vacc{color:#00703c;}
+.an-txt{font-size:15px;line-height:1.4;}
+/* v15 crowd scene */
+.cr-toggle{display:flex;gap:6px;margin-bottom:10px;}
+.cr-toggle button{flex:1;font-size:13px;padding:7px 4px;border:1px solid var(--line);background:#fff;border-radius:6px;cursor:pointer;}
+.cr-toggle button.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.cr-scene{display:grid;grid-template-columns:repeat(20,1fr);gap:2px;max-width:360px;margin:0 auto;}
+.cr-p{color:#d4d1c8;aspect-ratio:10/16;}
+.cr-cap,#cr-cap{text-align:center;margin-top:8px;}
 /* frequency bars (v4) */
 .rd-bar-row{display:flex;align-items:center;gap:10px;margin:8px 0;}
 .rd-bar-head{flex:0 0 92px;font-size:13px;font-weight:700;}
@@ -565,6 +601,8 @@ body{
       <div class="map-tt" id="map-tt"></div>
       <div class="map-hint" id="map-hint">Click any area to check vaccination coverage</div>
     </div>
+    <!-- Version 18: ranked table instead of a map -->
+    <div id="map-table" style="display:none"></div>
     <div class="map-footer">
       <div class="legend">
         <span>50%</span>
@@ -812,74 +850,97 @@ function colorScaleHTML(dyn){
       <div class="comp-desc">risk if exposed</div></div>`;}).join('')+'</div>';
 }
 
-// V10 — control: a single plain number, no uncertainty framing
+// V10 — control: plain text numbers, no cards / colour / extra framing
 function controlHTML(dyn){
-  return '<div class="comp-grid3">'+TIERS.map(t=>
-    `<div class="comp-card ${t.cls}"><div class="comp-head ${t.cls}">${t.head}</div>
-      <div class="comp-big ${t.cls}">${fmt1inN(dyn[t.key].gp)}</div>
-      <div class="comp-desc">chance of catching measles per year</div></div>`).join('')+'</div>';
+  return '<div class="rd-plain">'+TIERS.map(t=>
+    `<div class="rd-plain-row"><span class="rd-plain-head">${t.head}:</span> ${fmt1inN(dyn[t.key].gp)} chance of catching measles per year</div>`
+  ).join('')+'</div>';
 }
 
-// V11 — explicit uncertainty range (per 100 exposed, with a band)
-function intervalHTML(dyn){
-  return '<div class="comp-grid3">'+TIERS.map(t=>{
-    const n=Math.round(dyn[t.key].exp*100), m=Math.max(2,Math.round(n*0.12));
-    const lo=Math.max(0,n-m), hi=Math.min(100,n+m);
-    return `<div class="comp-card ${t.cls}"><div class="comp-head ${t.cls}">${t.head}</div>
-      <div class="comp-big ${t.cls}">${lo}–${hi}</div>
-      <div class="comp-desc">in 100 exposed (best estimate ${n})</div></div>`;
-  }).join('')+'</div>';
+function personSVG(){ return '<svg viewBox="0 0 10 16" width="100%" height="100%" fill="currentColor"><circle cx="5" cy="3.3" r="2.7"/><path d="M0.6 15.5c0-3.1 1.9-5.2 4.4-5.2s4.4 2.1 4.4 5.2z"/></svg>'; }
+
+// V11 — risk ladder: a low→high vertical scale with the 3 dose levels placed on it
+function ladderHTML(dyn){
+  const W=380,H=272,padT=22,padB=22,ax=150;
+  const Y=v=>H-padB-(H-padT-padB)*(v/100);
+  let s=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:440px">`;
+  s+=`<line x1="${ax}" y1="${padT}" x2="${ax}" y2="${H-padB}" stroke="#ccc" stroke-width="2"/>`;
+  [0,25,50,75,100].forEach(g=>{s+=`<line x1="${ax-4}" y1="${Y(g).toFixed(1)}" x2="${ax+4}" y2="${Y(g).toFixed(1)}" stroke="#bbb"/><text x="${ax-9}" y="${(Y(g)+4).toFixed(1)}" text-anchor="end" font-size="11" fill="#9a9a9a">${g}</text>`;});
+  s+=`<text x="${ax-9}" y="${(padT+8).toFixed(1)}" text-anchor="end" font-size="11" font-weight="700" fill="#8C3A2B">high risk</text>`;
+  s+=`<text x="${ax-9}" y="${(H-padB-1).toFixed(1)}" text-anchor="end" font-size="11" font-weight="700" fill="#00703c">low risk</text>`;
+  TIERS.forEach((t,i)=>{const n=Math.round(dyn[t.key].exp*100),y=Y(n),col=tierColor(t.cls),ly=padT+22+i*30;
+    s+=`<circle cx="${ax}" cy="${y.toFixed(1)}" r="7" fill="${col}"/>`;
+    s+=`<line x1="${ax+7}" y1="${y.toFixed(1)}" x2="${ax+42}" y2="${ly}" stroke="${col}" stroke-width="1" opacity=".5"/>`;
+    s+=`<text x="${ax+46}" y="${ly+4}" font-size="13" font-weight="700" fill="${col}">${t.head}: ${n} in 100</text>`;});
+  s+='</svg>';
+  return `<div class="rd-tree">${s}<p class="comp-desc">Chance of infection if exposed, placed on a low→high scale.</p></div>`;
 }
 
-// V12 — dual coding: natural-frequency number + a 10-dot icon
-function dualHTML(dyn){
-  return '<div class="comp-grid3">'+TIERS.map(t=>{
-    const d=dyn[t.key], k=Math.round(d.exp*10);
-    let dots=''; for(let i=0;i<10;i++) dots+=`<span class="ia-dot dc${i<k?' on '+t.cls:''}"></span>`;
-    return `<div class="comp-card ${t.cls}"><div class="comp-head ${t.cls}">${t.head}</div>
-      <div class="comp-big ${t.cls}">${fmt1inN(d.gp)}</div>
-      <div class="comp-desc">in the general public, per year</div>
-      <div class="dc-row">${dots}</div>
-      <div class="comp-desc">${k} in 10 if exposed</div></div>`;
-  }).join('')+'</div>';
+// V12 — interactive slider: drag through 0 / 1 / 2 doses, value updates live
+function sliderHTML(){
+  return `<div class="rd-slider">
+    <input type="range" id="dose-slider" min="0" max="2" step="1" value="0" aria-label="doses">
+    <div class="ds-labels"><span>No doses</span><span>1 dose</span><span>2 doses</span></div>
+    <div class="ds-out" id="ds-out"></div>
+    <p class="comp-desc">Drag the slider to see how each dose changes the chance.</p></div>`;
+}
+function wireSlider(dyn){
+  const sl=$("dose-slider"), out=$("ds-out"); if(!sl) return;
+  const keys=["unvacc","dose1","dose2"];
+  const upd=()=>{const i=+sl.value,d=dyn[keys[i]],n=Math.round(d.exp*100),col=tierColor(TIERS[i].cls);
+    out.innerHTML=`<div style="color:${col};font-size:44px;font-weight:800;line-height:1">${n} in 100</div>
+      <div class="comp-desc">infected if exposed · ${fmt1inN(d.gp)} per year in the general public</div>`;};
+  sl.addEventListener("input",upd); upd();
 }
 
-// V13 — relative risk vs a child with both doses
-function relRiskHTML(dyn){
-  const base=dyn.dose2.exp||1e-9;
-  const maxR=Math.max(...TIERS.map(t=>dyn[t.key].exp/base));
-  return '<div class="rd-bars">'+TIERS.map(t=>{
-    const r=dyn[t.key].exp/base, w=Math.max(6,r/maxR*100);
-    const lab = t.key==="dose2" ? "baseline (safest)" : (r<1.5?"about the same":"~"+Math.round(r)+"× the risk");
-    return `<div class="rd-bar-row">
-      <div class="rd-bar-head ${t.cls}">${t.head}</div>
-      <div class="rd-bar-track"><div class="rd-bar-fill ${t.cls}" style="width:${w.toFixed(0)}%"></div></div>
-      <div class="rd-bar-val" style="flex-basis:118px;text-align:left">${lab}</div></div>`;
-  }).join('')+'<p class="comp-desc" style="margin-top:8px">risk compared with a child who has had both doses</p></div>';
+// V13 — "roll the dice": simulate one exposed child, repeat to build up frequency
+function diceHTML(){
+  return `<div class="rd-dice">
+    <div class="dc-controls">
+      <label>Vaccination: <select id="dice-dose"><option value="0">No doses</option><option value="1">1 dose</option><option value="2">2 doses</option></select></label>
+      <button id="dice-roll">See one exposed child →</button></div>
+    <div class="dc-result" id="dice-result">Press the button to simulate one child exposed to measles.</div>
+    <div class="dc-tally" id="dice-tally"></div></div>`;
+}
+function wireDice(dyn){
+  const sel=$("dice-dose"), btn=$("dice-roll"), res=$("dice-result"), tal=$("dice-tally");
+  if(!btn) return;
+  const keys=["unvacc","dose1","dose2"]; let inf=0,tot=0;
+  const reset=()=>{inf=0;tot=0;tal.textContent="";res.textContent="Press the button to simulate one child exposed to measles.";};
+  sel.addEventListener("change",reset);
+  btn.addEventListener("click",()=>{const p=dyn[keys[+sel.value]].exp,hit=Math.random()<p; tot++; if(hit)inf++;
+    res.innerHTML=hit?'<span style="color:#8C3A2B;font-weight:800">● This child caught measles</span>'
+                     :'<span style="color:#00703c;font-weight:800">● This child stayed well</span>';
+    tal.textContent=`So far: ${inf} caught measles out of ${tot} children`;});
 }
 
-// V14 — verbal label + number
-function verbalNumHTML(dyn){
-  const word=p=> p>=0.5?"Very high" : p>=0.1?"High" : p>=0.02?"Moderate" : "Low";
-  return '<div class="comp-grid3">'+TIERS.map(t=>{const d=dyn[t.key];
-    return `<div class="comp-card ${t.cls}"><div class="comp-head ${t.cls}">${t.head}</div>
-      <div class="comp-big ${t.cls}" style="font-size:22px">${word(d.exp)}</div>
-      <div class="comp-desc">about ${fmtChance(d.exp)} if exposed</div></div>`;}).join('')+'</div>';
+// V14 — everyday analogy: a class of 30 children
+function analogyHTML(dyn){
+  return '<div class="rd-analogy">'+TIERS.map(t=>{const n=Math.round(dyn[t.key].exp*30);
+    return `<div class="an-row"><div class="an-head ${t.cls}">${t.head}</div>
+      <div class="an-txt">In a class of 30 exposed children, about <strong style="color:${tierColor(t.cls)}">${n}</strong> would catch measles.</div></div>`;}).join('')
+    +'</div>';
 }
 
-// V15 — icon array with a faded "uncertain" band (dotplot of uncertainty)
-function fuzzyIconHTML(dyn){
-  return '<div class="comp-grid3">'+TIERS.map(t=>{
-    const n=Math.round(dyn[t.key].exp*100), band=Math.max(2,Math.round(n*0.12));
-    const solid=Math.max(0,n-band), fend=Math.min(100,n+band);
-    let dots='';
-    for(let i=0;i<100;i++){ let c='ia-dot'; if(i<solid)c+=' on '+t.cls; else if(i<fend)c+=' fuzzy '+t.cls; dots+=`<span class="${c}"></span>`; }
-    return `<div class="comp-card ${t.cls}"><div class="comp-head ${t.cls}">${t.head}</div>
-      <div class="ia-grid">${dots}</div>
-      <div class="comp-big ${t.cls}" style="font-size:20px">${solid}–${fend} in 100</div>
-      <div class="comp-desc">infected if exposed (faded = uncertain)</div></div>`;
-  }).join('')+'</div>';
+// V15 — one big crowd scene of 100 children, with a dose toggle
+function crowdHTML(){
+  return `<div class="rd-crowd">
+    <div class="cr-toggle" id="cr-toggle">
+      <button data-i="0" class="active">No doses</button><button data-i="1">1 dose</button><button data-i="2">2 doses</button></div>
+    <div class="cr-scene" id="cr-scene"></div>
+    <div class="comp-desc" id="cr-cap"></div></div>`;
 }
+function wireCrowd(dyn){
+  const scene=$("cr-scene"), cap=$("cr-cap"), tog=$("cr-toggle"); if(!scene) return;
+  const keys=["unvacc","dose1","dose2"];
+  const draw=i=>{const n=Math.round(dyn[keys[i]].exp*100),col=tierColor(TIERS[i].cls);
+    let h=''; for(let k=0;k<100;k++) h+=`<span class="cr-p${k<n?' inf':''}" style="${k<n?'color:'+col:''}">${personSVG()}</span>`;
+    scene.innerHTML=h; cap.innerHTML=`Out of 100 children exposed to a case, <strong style="color:${col}">${n}</strong> catch measles.`;};
+  tog.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{
+    tog.querySelectorAll("button").forEach(x=>x.classList.remove("active")); b.classList.add("active"); draw(+b.dataset.i);}));
+  draw(0);
+}
+const WIRE = { 12: wireSlider, 13: wireDice, 15: wireCrowd };
 
 const RISK_VERSIONS = {
   1:  (dyn)    => cardsHTML(dyn, fmt1inN, fmtChance),    // natural frequencies (baseline)
@@ -892,11 +953,11 @@ const RISK_VERSIONS = {
   8:  (dyn)    => ringHTML(dyn),                         // proportion rings
   9:  (dyn)    => colorScaleHTML(dyn),                   // qualitative colour scale
   10: (dyn)    => controlHTML(dyn),                      // control: single number
-  11: (dyn)    => intervalHTML(dyn),                     // explicit uncertainty range
-  12: (dyn)    => dualHTML(dyn),                         // dual coding: number + icons
-  13: (dyn)    => relRiskHTML(dyn),                      // relative risk vs 2 doses
-  14: (dyn)    => verbalNumHTML(dyn),                    // verbal label + number
-  15: (dyn)    => fuzzyIconHTML(dyn),                    // icon array with uncertainty band
+  11: (dyn)    => ladderHTML(dyn),                       // risk ladder (vertical scale)
+  12: (dyn)    => sliderHTML(),                          // interactive dose slider
+  13: (dyn)    => diceHTML(),                            // "roll the dice" outcome sim
+  14: (dyn)    => analogyHTML(dyn),                      // everyday analogy (class of 30)
+  15: (dyn)    => crowdHTML(),                           // crowd scene of 100, dose toggle
 };
 
 function renderRiskDisplay(dyn, d){
@@ -904,6 +965,7 @@ function renderRiskDisplay(dyn, d){
   if(!dyn){ box.innerHTML='<p class="comp-desc">Coverage data unavailable for this area.</p>'; return; }
   const v = APP_VERSION || 1;
   box.innerHTML = (RISK_VERSIONS[v] || RISK_VERSIONS[1])(dyn, d);
+  if(WIRE[v]) WIRE[v](dyn, d);   // attach listeners for interactive versions
 }
 
 // Risk levels based on MMR2 coverage
@@ -942,7 +1004,11 @@ const $ = id => document.getElementById(id);
 // Bootstrap
 // ════════════════════════════════════════════════
 // Current measles case counts (non-blocking — page works without it)
-fetch(DATA_BASE+"measles_cases.json").then(r=>r.json()).then(j=>{ CASES=j; if(STATE.code) renderRisk(); }).catch(()=>{});
+fetch(DATA_BASE+"measles_cases.json").then(r=>r.json()).then(j=>{
+  CASES=j;
+  if(STATE.code) renderRisk();
+  if(GJSON){ repaintMap(); updateLegend(); if(MAP_MODE==="dots") addCaseDots(); if(MAP_MODE==="table") buildCaseTable(); }
+}).catch(()=>{});
 
 Promise.all([
   fetch(DATA_BASE+"utla.geojson").then(r=>r.json()),
@@ -1017,6 +1083,33 @@ function covColor(c){
   return"#355E3B";
 }
 
+// ── Page-2 (map) VERSION: how the map/cases are shown (versions 16–20) ──
+const MAP_MODE = ({16:"cases",17:"dots",18:"table",19:"threshold",20:"vsavg"})[APP_VERSION] || "coverage";
+let DOTLAYER = null;
+
+function areaCaseCount(d){
+  if(!CASES || !d) return null;
+  const uc = CASES.byUTLA[d.name];
+  return uc!=null ? uc : 0;            // 0 = suppressed (<10)
+}
+function caseColor(d){
+  const n = areaCaseCount(d);
+  if(n==null) return "#CFCAB9";
+  if(n < 10)  return "#f4ead9";        // fewer than 10 (suppressed)
+  return lerpColor("#f0b07a","#7a1f12", Math.min(1,(n-10)/100));
+}
+// Fill colour for an area, per map version
+function fillFor(d){
+  const cov = d ? d.mmr2 : null;
+  switch(MAP_MODE){
+    case "cases":     return caseColor(d);
+    case "threshold": return cov==null?"#CFCAB9":(cov<0.93?"#d4351c":"#00703c");
+    case "vsavg":     return cov==null?"#CFCAB9":(cov<MEASLES.natCov?"#d4351c":"#00703c");
+    case "dots":      return "#e9e6dd";     // neutral base; dots drawn on top
+    default:          return covColor(cov); // coverage choropleth
+  }
+}
+
 // ════════════════════════════════════════════════
 // Map rendering
 // ════════════════════════════════════════════════
@@ -1053,13 +1146,20 @@ function renderMap(){
   }).addTo(LMAP);
 
   LMAP.fitBounds(GJSON.getBounds(), {padding:[4,4]});
+  updateLegend();
+  if(MAP_MODE==="dots") addCaseDots();
+  if(MAP_MODE==="table"){
+    $("map-wrap").style.display="none";
+    document.querySelector(".legend").style.display="none";
+    $("map-table").style.display="block";
+    buildCaseTable();
+  }
 }
 
 function styleFeature(feature, selected){
   const code = feature.properties.code, d = UTLA[code];
-  const cov  = d ? d[DISEASES[STATE.disease].field] : null;
   return {
-    fillColor:   covColor(cov),
+    fillColor:   fillFor(d),
     fillOpacity: d&&d.approx ? 0.40 : 0.60,
     color:       selected ? "#003078" : "#111",
     weight:      selected ? 4 : 2.5,
@@ -1070,10 +1170,66 @@ function styleFeature(feature, selected){
 function repaintMap(){
   if(!GJSON) return;
   GJSON.eachLayer(layer => {
-    const code = layer.feature.properties.code;
-    const d = UTLA[code]; if(!d) return;
-    layer.setStyle({ fillColor: covColor(d[DISEASES[STATE.disease].field]) });
+    const d = UTLA[layer.feature.properties.code]; if(!d) return;
+    layer.setStyle({ fillColor: fillFor(d) });
   });
+}
+
+// Dot-density overlay (version 17): a circle on each area with >=10 cases
+function addCaseDots(){
+  if(!LMAP || !GJSON || !CASES) return;
+  if(DOTLAYER){ LMAP.removeLayer(DOTLAYER); DOTLAYER=null; }
+  DOTLAYER = L.layerGroup();
+  GJSON.eachLayer(layer=>{
+    const d = UTLA[layer.feature.properties.code]; if(!d) return;
+    const n = CASES.byUTLA[d.name];
+    if(n>=10){
+      L.circleMarker(layer.getBounds().getCenter(), {
+        radius: 3+Math.sqrt(n), color:"#7a1f12", weight:1,
+        fillColor:"#b4341f", fillOpacity:.7, interactive:false
+      }).addTo(DOTLAYER);
+    }
+  });
+  DOTLAYER.addTo(LMAP);
+}
+
+// Ranked table instead of a map (version 18)
+function buildCaseTable(){
+  const box=$("map-table"); if(!box||!CASES) return;
+  const name2code={}; Object.entries(UTLA).forEach(([code,d])=>name2code[d.name]=code);
+  const rows=Object.entries(CASES.byUTLA).sort((a,b)=>b[1]-a[1]);
+  box.innerHTML='<table class="rank-table"><caption>Confirmed measles cases by area (past ~6 months)</caption>'
+    +'<thead><tr><th>#</th><th>Area</th><th>Region</th><th>Cases</th></tr></thead><tbody>'
+    + rows.map(([nm,n],i)=>{const code=name2code[nm], reg=code&&UTLA[code]?UTLA[code].region:"";
+        return `<tr data-code="${code||''}"><td>${i+1}</td><td class="rk-name">${nm}</td><td>${reg}</td><td class="rk-n">${n}</td></tr>`;}).join('')
+    +'</tbody></table><p class="comp-desc">Areas with fewer than 10 cases are not individually listed.</p>';
+  box.querySelectorAll("tr[data-code]").forEach(tr=>{
+    tr.addEventListener("click",()=>{ const c=tr.dataset.code; if(c) selectUTLA(c); });
+  });
+}
+
+// Update the map legend text/colours for the current map version
+function updateLegend(){
+  const legend=document.querySelector(".legend"), bar=document.querySelector(".legend .bar"),
+        spans=document.querySelectorAll(".legend span"), tick=$("legend-tick");
+  if(!tick) return;
+  const setTick=t=>tick.innerHTML=`<span>${t}</span>`;
+  if(MAP_MODE==="cases"){
+    if(bar) bar.style.background="linear-gradient(to right,#f4ead9,#f0b07a,#7a1f12)";
+    if(spans[0])spans[0].textContent="few"; if(spans[1])spans[1].textContent="many";
+    setTick("colour = confirmed measles cases (past ~6 months)");
+  } else if(MAP_MODE==="threshold"){
+    if(bar) bar.style.background="linear-gradient(to right,#d4351c 50%,#00703c 50%)";
+    if(spans[0])spans[0].textContent="below 93%"; if(spans[1])spans[1].textContent="93%+";
+    setTick("red = below herd-immunity coverage · green = at/above 93%");
+  } else if(MAP_MODE==="vsavg"){
+    if(bar) bar.style.background="linear-gradient(to right,#d4351c 50%,#00703c 50%)";
+    if(spans[0])spans[0].textContent="below avg"; if(spans[1])spans[1].textContent="above avg";
+    setTick("red = below the national average coverage · green = above");
+  } else if(MAP_MODE==="dots"){
+    if(legend) legend.style.display="none";
+    setTick("each dot = an area with confirmed measles cases (bigger = more)");
+  }
 }
 
 // Map tooltip
@@ -1133,6 +1289,7 @@ function selectUTLA(code, keepDistrict){
 // Pin a measles-case label onto the selected area, at its centre on the map.
 function placeMapLabel(center, d){
   if(LABEL && LMAP){ LMAP.removeLayer(LABEL); LABEL=null; }
+  if(MAP_MODE==="cases" || MAP_MODE==="table") return;   // colour/table conveys cases instead
   if(!center || !d || !LMAP) return;
   let big="—", sub="measles cases", range="";
   if(CASES){
