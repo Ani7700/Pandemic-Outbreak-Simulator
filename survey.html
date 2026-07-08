@@ -43,7 +43,7 @@
     <h1>Understanding measles risk information</h1>
     <div class="card">
       <p class="muted">Participant information &amp; consent</p>
-      <p><strong>What this is:</strong> a short study (about 8–10 minutes) about how people understand information on childhood vaccination and measles risk. You will use an online tool and answer questions about it as you go.</p>
+      <p><strong>What this is:</strong> a study (about 20–25 minutes) about how people understand information on childhood vaccination and measles risk. You will use an online tool to look up two areas and answer questions about them as you go.</p>
       <p><strong>Voluntary &amp; anonymous:</strong> taking part is voluntary and you may stop at any time. We do not collect your name; responses are stored anonymously and used only for research.</p>
       <p class="muted" style="font-size:13px">[Replace this box with your ethics-approved participant information sheet and data-handling statement before going live.]</p>
       <label style="display:block;margin-top:10px;font-size:15px"><input type="checkbox" id="consent-box"> I have read the above and agree to take part.</label>
@@ -94,18 +94,23 @@ const LIK  =(id,prompt,lo,hi)=>({id,type:"likert",prompt,lo,hi});
 const SEL  =(id,prompt,opts)=>({id,type:"select",prompt,opts});
 
 // One block per stage — questions sit right beside the thing they are about.
+// Two areas are looked up: AREA A = Cambridgeshire (~91%, medium risk),
+// AREA B = Hackney (~56%, high risk). Answer keys assume these areas.
+const RL = ["Low","Medium","High","Very high","Not sure"];  // risk-level options
 const BLOCKS = [
+ // ── AREA A (medium) ──
  {tool:true,
-  instr:"In the tool above, search for <strong>CB3 9DF</strong> and open the <strong>Map</strong> stage. With the map in front of you, answer:",
+  instr:"AREA 1 of 2. In the tool above, search for <strong>CB3 9DF</strong> (Cambridge) and open the <strong>Map</strong> stage. With the map in front of you, answer:",
   items:[
-   RADIO("C6","Is this area's vaccination coverage above or below the level needed for herd immunity (about 93%)?",
+   RADIO("A_cov","Is this area's vaccination coverage above or below the level needed for herd immunity (about 93%)?",
      ["Above","Below","Exactly at the level","Not sure"],1),
-   RADIO("C7","Compared with other areas, does this area currently have a high or low number of measles cases?",
+   RADIO("A_cases","Compared with other areas, does this area currently have a high or low number of measles cases?",
      ["High","Low","About average","Not sure"],1),
  ]},
  {tool:true,
-  instr:"Now, in the tool above, open the <strong>Risk &amp; coverage</strong> stage (the “See risk &amp; coverage” button). With it in front of you, answer:",
+  instr:"Still on AREA 1 (Cambridge, CB3 9DF): open the <strong>Risk &amp; coverage</strong> stage. With it in front of you, answer:",
   items:[
+   RADIO("A_level","What community measles-risk level was shown for this area?",RL,1),
    RADIO("C1","If an unvaccinated child is exposed to a case of measles, how likely are they to catch it?",
      ["Almost none","About 1 in 10","About half","About 9 in 10","Not sure"],3),
    RADIO("C2","Which child is LEAST likely to catch measles?",
@@ -120,6 +125,23 @@ const BLOCKS = [
      ["Exact figures","Estimates","Not sure"],null),
    LIK("U2","How certain do you think scientists are about these numbers?","Not at all certain","Completely certain"),
  ]},
+ // ── AREA B (high) ──
+ {tool:true,
+  instr:"AREA 2 of 2. In the tool, click the <strong>Location</strong> step and search for <strong>Hackney</strong> (a London borough). Open the <strong>Map</strong> stage, then answer:",
+  items:[
+   RADIO("B_cov","Is Hackney's vaccination coverage above or below the herd-immunity level (about 93%)?",
+     ["Above","Below","Exactly at the level","Not sure"],1),
+   RADIO("B_cases","Compared with other areas, does Hackney currently have a high or low number of measles cases?",
+     ["High","Low","About average","Not sure"],0),
+ ]},
+ {tool:true,
+  instr:"Still on AREA 2 (Hackney): open the <strong>Risk &amp; coverage</strong> stage, then answer:",
+  items:[
+   RADIO("B_level","What community measles-risk level was shown for Hackney?",RL,3),
+   RADIO("XA","Thinking about the two areas, in which is an UNVACCINATED child more likely to catch measles over a year?",
+     ["Cambridge / Cambridgeshire","Hackney (London)","About the same","Not sure"],1),
+ ]},
+ // ── Impression, load, views, background ──
  {tool:true,
   instr:"Thinking about <strong>the way this information was shown</strong> to you:",
   items:[
@@ -127,12 +149,20 @@ const BLOCKS = [
    LIK("E2","How much do you trust the numbers you were shown?","Not at all","Completely"),
    LIK("E3","How confident are you that your answers so far were correct?","Not at all","Completely"),
    LIK("E4","How much did you like this way of showing the information?","Disliked it","Liked it a lot"),
-   LIK("E5","How much mental effort did it take to use?","Very little","A great deal"),
+ ]},
+ {tool:false,
+  instr:"How did using the tool feel? (workload)",
+  items:[
+   LIK("TLX_mental","How mentally demanding was it to use the tool?","Very low","Very high"),
+   LIK("TLX_effort","How hard did you have to work to understand the information?","Very low","Very high"),
+   LIK("TLX_frustration","How stressed, irritated or frustrated did you feel?","Very low","Very high"),
+   LIK("TLX_pace","How hurried or rushed did the task feel?","Very low","Very high"),
+   LIK("TLX_perf","How successful were you at understanding the information?","A complete failure","Perfectly"),
  ]},
  {tool:false,
   instr:"A few questions about measles and vaccination in general:",
   items:[
-   LIK("RP1","How risky do you think measles is for an unvaccinated child in this area?","Not at all risky","Extremely risky"),
+   LIK("RP1","How risky do you think measles is for an unvaccinated child in a low-coverage area?","Not at all risky","Extremely risky"),
    LIK("IN1","How important is it for a child to receive both MMR doses?","Not at all important","Extremely important"),
    LIK("IN2","If you were deciding for a child, how likely would you be to make sure they get both doses?","Very unlikely","Very likely"),
  ]},
