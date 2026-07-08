@@ -28,8 +28,8 @@
   button{font-size:16px;font-weight:600;padding:13px 26px;border:0;border-radius:10px;background:var(--accent);color:#fff;cursor:pointer;}
   button:disabled{opacity:.45;cursor:not-allowed;}
   .btnrow{margin-top:16px;}
-  #tool{position:sticky;top:0;z-index:5;background:#f5f5f7;padding-top:8px;margin-bottom:14px;}
-  iframe{width:100%;height:56vh;border:1px solid var(--line);border-radius:12px;background:#fff;}
+  #tool{margin-bottom:14px;}
+  iframe{width:100%;height:78vh;min-height:560px;border:1px solid var(--line);border-radius:12px;background:#fff;}
   .instr{background:#fff8e6;border:1px solid #f0d488;border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:15px;}
   .err{color:var(--bad);font-size:14px;margin-top:8px;}
   .code{font-size:22px;font-weight:800;letter-spacing:2px;background:#f5f5f7;border-radius:8px;padding:8px 14px;display:inline-block;}
@@ -108,7 +108,7 @@ const BLOCKS = [
      ["High","Low","About average","Not sure"],1),
  ]},
  {tool:true,
-  instr:"Still on AREA 1 (Cambridge, CB3 9DF): open the <strong>Risk &amp; coverage</strong> stage. With it in front of you, answer:",
+  instr:"Still on AREA 1 (Cambridge, CB3 9DF): open the <strong>Risk &amp; coverage</strong> stage. <strong>Explore everything on that page first</strong> — if there are buttons, a slider, a toggle or a dice, try them a few times — then answer:",
   items:[
    RADIO("A_level","What community measles-risk level was shown for this area?",RL,1),
    RADIO("C1","If an unvaccinated child is exposed to a case of measles, how likely are they to catch it?",
@@ -135,7 +135,7 @@ const BLOCKS = [
      ["High","Low","About average","Not sure"],0),
  ]},
  {tool:true,
-  instr:"Still on AREA 2 (Hackney): open the <strong>Risk &amp; coverage</strong> stage, then answer:",
+  instr:"Still on AREA 2 (Hackney): open the <strong>Risk &amp; coverage</strong> stage. <strong>Explore everything on that page first</strong> (try any buttons, slider, toggle or dice a few times), then answer:",
   items:[
    RADIO("B_level","What community measles-risk level was shown for Hackney?",RL,3),
    RADIO("XA","Thinking about the two areas, in which is an UNVACCINATED child more likely to catch measles over a year?",

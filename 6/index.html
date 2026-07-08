@@ -852,11 +852,14 @@ function colorScaleHTML(dyn){
       <div class="comp-desc">risk if exposed</div></div>`;}).join('')+'</div>';
 }
 
-// V10 — control: plain text numbers, no cards / colour / extra framing
+// V10 — control: plain text numbers, no cards / colour / extra framing.
+// Shows the same quantity as the other versions (per-100 if exposed) so the
+// comprehension questions are answerable across all conditions.
 function controlHTML(dyn){
-  return '<div class="rd-plain">'+TIERS.map(t=>
-    `<div class="rd-plain-row"><span class="rd-plain-head">${t.head}:</span> ${fmt1inN(dyn[t.key].gp)} chance of catching measles per year</div>`
-  ).join('')+'</div>';
+  return '<div class="rd-plain">'+TIERS.map(t=>{
+    const n=Math.round(dyn[t.key].exp*100);
+    return `<div class="rd-plain-row"><span class="rd-plain-head">${t.head}:</span> about ${n} out of 100 children catch measles if exposed to a case</div>`;
+  }).join('')+'</div>';
 }
 
 function personSVG(){ return '<svg viewBox="0 0 10 16" width="100%" height="100%" fill="currentColor"><circle cx="5" cy="3.3" r="2.7"/><path d="M0.6 15.5c0-3.1 1.9-5.2 4.4-5.2s4.4 2.1 4.4 5.2z"/></svg>'; }
@@ -1351,7 +1354,9 @@ function selectUTLA(code, keepDistrict){
     // map becomes visible (stage switch) and is correctly sized.
     if(selBounds && LMAP){
       placeMapLabel(selBounds.getCenter(), UTLA[code]);   // label pinned on the area
-      setTimeout(()=>{ LMAP.invalidateSize(); LMAP.fitBounds(selBounds,{padding:[30,30],maxZoom:10,animate:true}); }, 90);
+      // tighter zoom + a second pass, so it lands correctly even when embedded (iframe) and slow to lay out
+      const fit=()=>{ LMAP.invalidateSize(); LMAP.fitBounds(selBounds,{padding:[15,15],maxZoom:11,animate:false}); };
+      setTimeout(fit,120); setTimeout(fit,450);
     }
   }
   $("map-hint").style.opacity="0";
