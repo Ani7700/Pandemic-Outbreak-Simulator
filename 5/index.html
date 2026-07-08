@@ -957,7 +957,54 @@ function gaugeHTML(dyn){
       <div class="comp-big ${t.cls}" style="font-size:20px">${n}%</div><div class="comp-desc">chance if exposed</div></div>`;
   }).join('')+'</div>';
 }
-const WIRE = { 12: wireSlider, 13: wireDice, 15: wireCrowd };
+// V21 — thermometer per dose level
+function thermoHTML(dyn){
+  return '<div class="comp-grid3">'+TIERS.map(t=>{
+    const p=dyn[t.key].exp, col=tierColor(t.cls), n=Math.round(p*100);
+    const top=6, tubeH=92, fillH=tubeH*p, fillY=top+tubeH-fillH;
+    let s=`<svg viewBox="0 0 40 124" width="40" height="124" style="margin:6px auto;display:block">`;
+    s+=`<rect x="15" y="${top}" width="10" height="${tubeH}" rx="5" fill="#eceae3"/>`;
+    s+=`<rect x="15" y="${fillY.toFixed(1)}" width="10" height="${fillH.toFixed(1)}" rx="5" fill="${col}"/>`;
+    s+=`<rect x="15" y="96" width="10" height="14" fill="${col}"/>`;
+    s+=`<circle cx="20" cy="110" r="11" fill="${col}"/></svg>`;
+    return `<div class="comp-card ${t.cls}" style="text-align:center"><div class="comp-head ${t.cls}">${t.head}</div>${s}
+      <div class="comp-big ${t.cls}" style="font-size:18px">${n} in 100</div><div class="comp-desc">if exposed</div></div>`;
+  }).join('')+'</div>';
+}
+
+// V22 — flow / sankey: 100 exposed split into infected vs safe (dose toggle)
+function flowHTML(){
+  return `<div class="rd-flowwrap">
+    <div class="cr-toggle" id="fl-toggle"><button data-i="0" class="active">No doses</button><button data-i="1">1 dose</button><button data-i="2">2 doses</button></div>
+    <div id="fl-scene"></div><div class="comp-desc" id="fl-cap"></div></div>`;
+}
+function wireFlow(dyn){
+  const scene=$("fl-scene"), cap=$("fl-cap"), tog=$("fl-toggle"); if(!scene) return;
+  const keys=["unvacc","dose1","dose2"];
+  const draw=i=>{
+    const p=dyn[keys[i]].exp, col=tierColor(TIERS[i].cls), n=Math.round(p*100), m=100-n;
+    const W=340,H=170,srcX=8,srcW=26,pad=12,inner=H-2*pad, dx=W-150, gap=14;
+    const IH=inner*p, SH=inner*(1-p);
+    const iS0=pad, iS1=pad+IH, sS0=iS1, sS1=H-pad;                 // source bands
+    const iD0=pad, iD1=pad+IH, sD0=iD1+gap, sD1=H-pad+gap;         // dest bands (safe shifted down)
+    const midx=(srcX+srcW+dx)/2;
+    const band=(y0,y1,d0,d1)=>`M ${srcX+srcW} ${y0.toFixed(1)} C ${midx} ${y0.toFixed(1)}, ${midx} ${d0.toFixed(1)}, ${dx} ${d0.toFixed(1)} L ${dx} ${d1.toFixed(1)} C ${midx} ${d1.toFixed(1)}, ${midx} ${y1.toFixed(1)}, ${srcX+srcW} ${y1.toFixed(1)} Z`;
+    let s=`<svg viewBox="0 0 ${W} ${H+gap}" style="width:100%;max-width:${W}px">`;
+    s+=`<rect x="${srcX}" y="${pad}" width="${srcW}" height="${inner}" rx="4" fill="#8a8577"/>`;
+    s+=`<text x="${srcX+srcW/2}" y="${pad-3}" text-anchor="middle" font-size="11" fill="#6e6e73">100</text>`;
+    s+=`<path d="${band(iS0,iS1,iD0,iD1)}" fill="${col}" opacity=".9"/>`;
+    s+=`<path d="${band(sS0,sS1,sD0,sD1)}" fill="#dcd9d0"/>`;
+    s+=`<text x="${dx+8}" y="${((iD0+iD1)/2+4).toFixed(1)}" font-size="14" font-weight="800" fill="${col}">${n} infected</text>`;
+    s+=`<text x="${dx+8}" y="${((sD0+sD1)/2+4).toFixed(1)}" font-size="14" fill="#6e6e73">${m} stay well</text>`;
+    s+='</svg>';
+    scene.innerHTML=s; cap.textContent="Of 100 children exposed to a measles case";
+  };
+  tog.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{
+    tog.querySelectorAll("button").forEach(x=>x.classList.remove("active")); b.classList.add("active"); draw(+b.dataset.i);}));
+  draw(0);
+}
+
+const WIRE = { 12: wireSlider, 13: wireDice, 15: wireCrowd, 22: wireFlow };
 
 const RISK_VERSIONS = {
   1:  (dyn)    => cardsHTML(dyn, fmt1inN, fmtChance),    // natural frequencies (baseline)
@@ -975,6 +1022,8 @@ const RISK_VERSIONS = {
   13: (dyn)    => diceHTML(),                            // "roll the dice" outcome sim
   14: (dyn)    => analogyHTML(dyn),                      // everyday analogy (class of 30)
   15: (dyn)    => crowdHTML(),                           // crowd scene of 100, dose toggle
+  21: (dyn)    => thermoHTML(dyn),                       // thermometer
+  22: (dyn)    => flowHTML(),                            // flow / sankey (dose toggle)
 };
 
 function renderRiskDisplay(dyn, d){
@@ -1010,7 +1059,7 @@ let GEO = null, UTLA = null, CASES = null;
 const APP_VERSION = (function(){
   const m = location.pathname.match(/\/(\d{1,2})\/?$/);
   const n = m ? parseInt(m[1],10) : 0;
-  return (n>=1 && n<=20) ? n : 0;      // 0 = root (baseline)
+  return (n>=1 && n<=25) ? n : 0;      // 0 = root (baseline)
 })();
 const DATA_BASE = APP_VERSION ? "../" : "";   // data files live at the repo root
 let STATE = { code: null, disease: "mmr2", districtName: null, placeName: null, placeType: null };

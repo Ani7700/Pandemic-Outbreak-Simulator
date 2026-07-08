@@ -3,7 +3,7 @@
 # Each copy auto-detects its version from its URL path, so the files are identical.
 # Run this after editing index.html (specifically the RISK_VERSIONS block).
 cd "$(dirname "$0")" || exit 1
-for n in $(seq 1 20); do
+for n in $(seq 1 25); do
   if [ -d "$n" ]; then
     cp index.html "$n/index.html"
     echo "synced -> $n/index.html"
