@@ -778,22 +778,23 @@ function tableHTML(dyn){
 function lineHTML(dyn){
   const pts=TIERS.map(t=>Math.round(dyn[t.key].exp*100));   // e.g. [90, 6, 3]
   const labels=["No doses","1 dose","2 doses"];
-  const W=360,H=214,padL=32,padR=16,padT=20,padB=44;
-  const xs=[0,1,2].map(i=>padL+(W-padL-padR)*(i/2));
+  const W=380,H=216,padL=46,padR=22,padT=36,padB=46;
+  const leftX=padL+26, rightX=W-padR-14, midX=(leftX+rightX)/2, xs=[leftX,midX,rightX];
   const Y=v=>H-padB-(H-padT-padB)*(v/100);
-  let s=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:460px">`;
+  const midY=(padT+(H-padB))/2;
+  let s=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:480px">`;
   [0,25,50,75,100].forEach(g=>{const y=Y(g).toFixed(1);
     s+=`<line x1="${padL}" y1="${y}" x2="${W-padR}" y2="${y}" stroke="#eee"/>`;
-    s+=`<text x="${padL-6}" y="${(Y(g)+4).toFixed(1)}" text-anchor="end" font-size="11" fill="#9a9a9a">${g}</text>`;});
+    s+=`<text x="${padL-8}" y="${(Y(g)+4).toFixed(1)}" text-anchor="end" font-size="11" fill="#9a9a9a">${g}</text>`;});
+  s+=`<text x="14" y="${midY.toFixed(1)}" transform="rotate(-90 14 ${midY.toFixed(1)})" text-anchor="middle" font-size="11" fill="#9a9a9a">infected out of 100</text>`;
   const path=xs.map((x,i)=>(i?'L':'M')+x.toFixed(1)+' '+Y(pts[i]).toFixed(1)).join(' ');
   s+=`<path d="${path}" fill="none" stroke="#8C3A2B" stroke-width="2.5"/>`;
   xs.forEach((x,i)=>{const col=tierColor(TIERS[i].cls);
-    s+=`<circle cx="${x.toFixed(1)}" cy="${Y(pts[i]).toFixed(1)}" r="5.5" fill="${col}"/>`;
-    s+=`<text x="${x.toFixed(1)}" y="${(Y(pts[i])-11).toFixed(1)}" text-anchor="middle" font-size="15" font-weight="800" fill="${col}">${pts[i]}</text>`;
-    s+=`<text x="${x.toFixed(1)}" y="${H-22}" text-anchor="middle" font-size="12" font-weight="600" fill="#333">${labels[i]}</text>`;});
-  s+=`<text x="${(padL-6)}" y="${padT-6}" text-anchor="end" font-size="10" fill="#9a9a9a">in 100</text>`;
+    s+=`<circle cx="${x.toFixed(1)}" cy="${Y(pts[i]).toFixed(1)}" r="6" fill="${col}"/>`;
+    s+=`<text x="${x.toFixed(1)}" y="${(Y(pts[i])-12).toFixed(1)}" text-anchor="middle" font-size="15" font-weight="800" fill="${col}">${pts[i]}</text>`;
+    s+=`<text x="${x.toFixed(1)}" y="${H-18}" text-anchor="middle" font-size="12.5" font-weight="600" fill="#333">${labels[i]}</text>`;});
   s+='</svg>';
-  return `<div class="rd-tree">${s}<p class="comp-desc">Out of 100 children exposed to a measles case, how many catch it — by number of MMR doses.</p></div>`;
+  return `<div class="rd-tree">${s}</div>`;
 }
 
 // V8 — proportion rings (share of 100 exposed who get infected)
