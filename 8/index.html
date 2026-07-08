@@ -322,7 +322,7 @@ body{
 .wiz-btn.primary{background:var(--accent);color:#fff;border-color:var(--accent);}
 .wiz-btn:disabled{opacity:.45;cursor:not-allowed;}
 
-/* On-map label pinned to the selected area (shows measles cases there) */
+/* On-map label pinned to the selected area (shows Verrow fever cases there) */
 .map-label{background:none;border:none;}
 .map-label .ml-inner{transform:translate(-50%,-50%);background:rgba(255,255,255,.96);
   border:1px solid var(--line);border-radius:12px;padding:7px 13px;text-align:center;white-space:nowrap;
@@ -535,7 +535,7 @@ body{
       <!-- Stage 1: one combined search (postcode OR place name) -->
       <div class="pc-section">
         <p class="panel-title">How protected is your area?</p>
-        <p class="panel-sub">Enter a postcode, town or council to see local measles vaccination coverage and outbreak risk.</p>
+        <p class="panel-sub">Enter a postcode, town or council to see local Verrow fever vaccination coverage and outbreak risk.</p>
 
         <div class="search-wrap">
           <div class="pc-row">
@@ -563,22 +563,22 @@ body{
           <div class="district-note" id="district-note" style="display:none"></div>
         </div>
 
-        <!-- Measles only (map shows 2nd-dose / MMR2 coverage) -->
+        <!-- Verrow fever only (map shows 2nd-dose / 2nd-dose coverage) -->
         <div class="disease-row" id="disease-row">
-          <span class="disease-tag">Measles</span>
+          <span class="disease-tag">Verrow fever</span>
         </div>
 
         <!-- Risk badge -->
         <div class="risk-badge" id="risk-badge">
           <div class="risk-dot" id="risk-dot"></div>
           <div class="risk-label-wrap">
-            <div class="risk-label">Community measles risk</div>
+            <div class="risk-label">Community Verrow fever risk</div>
             <div class="risk-level" id="risk-level">—</div>
           </div>
         </div>
 
         <!-- Risk for your child — rendered per interface VERSION (uncertainty display) -->
-        <div class="comparison-label">Your child's chance of catching measles</div>
+        <div class="comparison-label">Your child's chance of catching Verrow fever</div>
         <div id="risk-display"></div>
 
 
@@ -587,7 +587,7 @@ body{
       <!-- Worst areas (browse alternative, stage 1) -->
       <div class="or-div map-or" style="margin-bottom:10px">or pick a high-risk area</div>
       <div class="worst-section">
-        <div class="worst-title" id="worst-title">Areas with lowest MMR2 coverage</div>
+        <div class="worst-title" id="worst-title">Areas with lowest 2nd-dose coverage</div>
         <ul class="worst-list" id="worst-list"></ul>
       </div>
 
@@ -612,13 +612,13 @@ body{
         <span>98%</span>
       </div>
       <div class="legend-tick" id="legend-tick">
-        <span>low coverage — higher measles risk</span>
+        <span>low coverage — higher Verrow fever risk</span>
         <span id="thresh-label">herd immunity threshold ≈ 93%</span>
       </div>
       <!-- Selected-area coverage bar (moved here from the risk page) -->
       <div class="cov-bar-section" id="cov-bar-section" style="margin-top:12px;display:none">
         <div class="cov-bar-label">
-          <span id="cov-label-text">MMR2 coverage</span>:&nbsp;<strong id="cov-pct">—</strong>
+          <span id="cov-label-text">2nd-dose coverage</span>:&nbsp;<strong id="cov-pct">—</strong>
         </div>
         <div class="cov-track">
           <div class="cov-fill" id="cov-fill"></div>
@@ -642,34 +642,35 @@ body{
 // ════════════════════════════════════════════════
 // Data & constants
 // ════════════════════════════════════════════════
-// Only measles now. MMR2 = 2nd dose, MMR1 = 1st dose of the SAME vaccine
-// against measles. The two entries differ only in which coverage field/label
-// the map shows; the disease is measles in both cases.
+// Only Verrow fever now. 2nd dose = 2nd dose, 1st dose = 1st dose of the SAME vaccine
+// against Verrow fever. The two entries differ only in which coverage field/label
+// the map shows; the disease is Verrow fever in both cases.
 const DISEASES = {
   mmr2:{
-    label:"2nd dose (MMR2)", field:"mmr2", herd:0.93, herdLabel:"herd immunity ≈ 93%",
+    label:"2nd dose", field:"mmr2", herd:0.93, herdLabel:"herd immunity ≈ 93%",
     unvaccComplications:["1 in 15 develop pneumonia","1 in 1,000 get brain inflammation"],
-    unprotectedLabel:"measles",
+    unprotectedLabel:"Verrow fever",
   },
   mmr1:{
-    label:"1st dose (MMR1)", field:"mmr1", herd:0.93, herdLabel:"herd immunity ≈ 93%",
+    label:"1st dose", field:"mmr1", herd:0.93, herdLabel:"herd immunity ≈ 93%",
     unvaccComplications:["1 in 15 develop pneumonia","1 in 1,000 get brain inflammation"],
-    unprotectedLabel:"measles",
+    unprotectedLabel:"Verrow fever",
   },
 };
 
 // ── Dynamic 5-year risk calculation ─────────────────────────────────────────
-// Parameters calibrated to England surveillance data (UKHSA) + Green Book
+// FICTIONAL parameters for a hypothetical disease — not calibrated to any real data
 // base5yr = estimated 5-year cumulative risk for an UNVACCINATED child
 //           at the national-average coverage level
-// Single measles parameter set (no more per-vaccine "diseases").
-//   ve1 / ve2 = vaccine efficacy after the 1st / 2nd MMR dose
+// Single Verrow fever parameter set (no more per-vaccine "diseases").
+//   ve1 / ve2 = vaccine efficacy after the 1st / 2nd the Verrow vaccine dose
 //   sar       = secondary attack rate among susceptibles (per-exposure)
-//   base5yr   = 5-year cumulative measles risk for an UNVACCINATED child at
-//               national-average coverage; natCov = national MMR2 coverage
-const MEASLES = { R0: 15, natCov: 0.863, base5yr: 0.0012, sar: 0.90, ve1: 0.93, ve2: 0.97 };
+//   base5yr   = 5-year cumulative Verrow fever risk for an UNVACCINATED child at
+//               national-average coverage; natCov = national 2nd-dose coverage
+// FICTIONAL parameters for a hypothetical disease ("Verrow fever") — not real.
+const MEASLES = { R0: 12, natCov: 0.85, base5yr: 0.0015, sar: 0.80, ve1: 0.70, ve2: 0.95 };
 
-// Annual measles risk for an UNVACCINATED child at a given 2-dose coverage.
+// Annual Verrow fever risk for an UNVACCINATED child at a given 2-dose coverage.
 function annualUnvaccAt(cov){
   const M = MEASLES, c = Math.min(cov, 0.999);
   const s_local = (1 - c) + c * (1 - M.ve2);
@@ -684,7 +685,7 @@ function annualUnvaccAt(cov){
 
 // Returns infection risk for the three individual tiers (unvaccinated / 1 dose /
 // 2 doses), each in two scenarios: gp = general-public annual, exp = if exposed.
-// Community transmission level is driven by the area's 2nd-dose (MMR2) coverage.
+// Community transmission level is driven by the area's 2nd-dose (2nd dose) coverage.
 function calcDynRisk(d){
   const cov = d && d.mmr2;
   if(cov == null) return null;
@@ -803,7 +804,7 @@ function treeHTML(dyn){
 function tableHTML(dyn){
   const rows=TIERS.map(t=>{const d=dyn[t.key],inf=Math.round(d.exp*100);
     return `<tr><td class="rd-th">${t.head}</td><td style="color:${tierColor(t.cls)};font-weight:800">${inf}</td><td>${100-inf}</td></tr>`;}).join('');
-  return `<table class="rd-table"><caption>Out of 100 children exposed to a measles case:</caption>
+  return `<table class="rd-table"><caption>Out of 100 children exposed to a Verrow fever case:</caption>
     <thead><tr><th></th><th>infected</th><th>stay well</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 
@@ -858,7 +859,7 @@ function colorScaleHTML(dyn){
 function controlHTML(dyn){
   return '<div class="rd-plain">'+TIERS.map(t=>{
     const n=Math.round(dyn[t.key].exp*100);
-    return `<div class="rd-plain-row"><span class="rd-plain-head">${t.head}:</span> about ${n} out of 100 children catch measles if exposed to a case</div>`;
+    return `<div class="rd-plain-row"><span class="rd-plain-head">${t.head}:</span> about ${n} out of 100 children catch Verrow fever if exposed to a case</div>`;
   }).join('')+'</div>';
 }
 
@@ -904,26 +905,26 @@ function diceHTML(){
     <div class="dc-controls">
       <label>Vaccination: <select id="dice-dose"><option value="0">No doses</option><option value="1">1 dose</option><option value="2">2 doses</option></select></label>
       <button id="dice-roll">See one exposed child →</button></div>
-    <div class="dc-result" id="dice-result">Press the button to simulate one child exposed to measles.</div>
+    <div class="dc-result" id="dice-result">Press the button to simulate one child exposed to Verrow fever.</div>
     <div class="dc-tally" id="dice-tally"></div></div>`;
 }
 function wireDice(dyn){
   const sel=$("dice-dose"), btn=$("dice-roll"), res=$("dice-result"), tal=$("dice-tally");
   if(!btn) return;
   const keys=["unvacc","dose1","dose2"]; let inf=0,tot=0;
-  const reset=()=>{inf=0;tot=0;tal.textContent="";res.textContent="Press the button to simulate one child exposed to measles.";};
+  const reset=()=>{inf=0;tot=0;tal.textContent="";res.textContent="Press the button to simulate one child exposed to Verrow fever.";};
   sel.addEventListener("change",reset);
   btn.addEventListener("click",()=>{const p=dyn[keys[+sel.value]].exp,hit=Math.random()<p; tot++; if(hit)inf++;
-    res.innerHTML=hit?'<span style="color:#8C3A2B;font-weight:800">● This child caught measles</span>'
+    res.innerHTML=hit?'<span style="color:#8C3A2B;font-weight:800">● This child caught Verrow fever</span>'
                      :'<span style="color:#00703c;font-weight:800">● This child stayed well</span>';
-    tal.textContent=`So far: ${inf} caught measles out of ${tot} children`;});
+    tal.textContent=`So far: ${inf} caught Verrow fever out of ${tot} children`;});
 }
 
 // V14 — everyday analogy: a class of 30 children
 function analogyHTML(dyn){
   return '<div class="rd-analogy">'+TIERS.map(t=>{const n=Math.round(dyn[t.key].exp*30);
     return `<div class="an-row"><div class="an-head ${t.cls}">${t.head}</div>
-      <div class="an-txt">In a class of 30 exposed children, about <strong style="color:${tierColor(t.cls)}">${n}</strong> would catch measles.</div></div>`;}).join('')
+      <div class="an-txt">In a class of 30 exposed children, about <strong style="color:${tierColor(t.cls)}">${n}</strong> would catch Verrow fever.</div></div>`;}).join('')
     +'</div>';
 }
 
@@ -940,7 +941,7 @@ function wireCrowd(dyn){
   const keys=["unvacc","dose1","dose2"];
   const draw=i=>{const n=Math.round(dyn[keys[i]].exp*100),col=tierColor(TIERS[i].cls);
     let h=''; for(let k=0;k<100;k++) h+=`<span class="cr-p${k<n?' inf':''}" style="${k<n?'color:'+col:''}">${personSVG()}</span>`;
-    scene.innerHTML=h; cap.innerHTML=`Out of 100 children exposed to a case, <strong style="color:${col}">${n}</strong> catch measles.`;};
+    scene.innerHTML=h; cap.innerHTML=`Out of 100 children exposed to a case, <strong style="color:${col}">${n}</strong> catch Verrow fever.`;};
   tog.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{
     tog.querySelectorAll("button").forEach(x=>x.classList.remove("active")); b.classList.add("active"); draw(+b.dataset.i);}));
   draw(0);
@@ -1000,7 +1001,7 @@ function wireFlow(dyn){
     s+=`<text x="${dx+8}" y="${((iD0+iD1)/2+4).toFixed(1)}" font-size="14" font-weight="800" fill="${col}">${n} infected</text>`;
     s+=`<text x="${dx+8}" y="${((sD0+sD1)/2+4).toFixed(1)}" font-size="14" fill="#6e6e73">${m} stay well</text>`;
     s+='</svg>';
-    scene.innerHTML=s; cap.textContent="Of 100 children exposed to a measles case";
+    scene.innerHTML=s; cap.textContent="Of 100 children exposed to a Verrow fever case";
   };
   tog.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{
     tog.querySelectorAll("button").forEach(x=>x.classList.remove("active")); b.classList.add("active"); draw(+b.dataset.i);}));
@@ -1038,7 +1039,7 @@ function renderRiskDisplay(dyn, d){
   if(WIRE[v]) WIRE[v](dyn, d);   // attach listeners for interactive versions
 }
 
-// Risk levels based on MMR2 coverage
+// Risk levels based on 2nd-dose coverage
 function riskFromCov(c) {
   if (c == null) return null;
   if (c >= 0.95) return { key:"low",       label:"LOW",       sub:"Strong community protection." };
@@ -1053,7 +1054,7 @@ function exposureNote(c, areaName) {
   if (c >= 0.95) return `Community protection is strong in ${areaName}. Even unvaccinated children have some herd protection — but remain personally at risk.`;
   if (c >= 0.90) return `${areaName} is approaching the herd immunity threshold. Unvaccinated children face meaningful exposure risk during any local outbreak.`;
   if (c >= 0.85) return `Coverage in ${areaName} is below the threshold. Unvaccinated children are at elevated risk — community protection has significant gaps.`;
-  return `Coverage in ${areaName} is well below safe levels. Unvaccinated children face a HIGH probability of exposure if measles enters the community.`;
+  return `Coverage in ${areaName} is well below safe levels. Unvaccinated children face a HIGH probability of exposure if Verrow fever enters the community.`;
 }
 
 let GEO = null, UTLA = null, CASES = null;
@@ -1073,7 +1074,7 @@ const $ = id => document.getElementById(id);
 // ════════════════════════════════════════════════
 // Bootstrap
 // ════════════════════════════════════════════════
-// Current measles case counts (non-blocking — page works without it)
+// Current Verrow fever case counts (non-blocking — page works without it)
 fetch(DATA_BASE+"measles_cases.json").then(r=>r.json()).then(j=>{
   CASES=j;
   if(STATE.code) renderRisk();
@@ -1276,7 +1277,7 @@ function buildCaseTable(){
   const box=$("map-table"); if(!box||!CASES) return;
   const name2code={}; Object.entries(UTLA).forEach(([code,d])=>name2code[d.name]=code);
   const rows=Object.entries(CASES.byUTLA).sort((a,b)=>b[1]-a[1]);
-  box.innerHTML='<table class="rank-table"><caption>Confirmed measles cases by area (past ~6 months)</caption>'
+  box.innerHTML='<table class="rank-table"><caption>Confirmed Verrow fever cases by area (past ~6 months)</caption>'
     +'<thead><tr><th>#</th><th>Area</th><th>Region</th><th>Cases</th></tr></thead><tbody>'
     + rows.map(([nm,n],i)=>{const code=name2code[nm], reg=code&&UTLA[code]?UTLA[code].region:"";
         return `<tr data-code="${code||''}"><td>${i+1}</td><td class="rk-name">${nm}</td><td>${reg}</td><td class="rk-n">${n}</td></tr>`;}).join('')
@@ -1295,7 +1296,7 @@ function updateLegend(){
   if(MAP_MODE==="cases"){
     if(bar) bar.style.background="linear-gradient(to right,#f4ead9,#f0b07a,#7a1f12)";
     if(spans[0])spans[0].textContent="few"; if(spans[1])spans[1].textContent="many";
-    setTick("colour = confirmed measles cases (past ~6 months)");
+    setTick("colour = confirmed Verrow fever cases (past ~6 months)");
   } else if(MAP_MODE==="threshold"){
     if(bar) bar.style.background="linear-gradient(to right,#d4351c 50%,#00703c 50%)";
     if(spans[0])spans[0].textContent="below 93%"; if(spans[1])spans[1].textContent="93%+";
@@ -1306,7 +1307,7 @@ function updateLegend(){
     setTick("red = below the national average coverage · green = above");
   } else if(MAP_MODE==="dots"){
     if(legend) legend.style.display="none";
-    setTick("each dot = an area with confirmed measles cases (bigger = more)");
+    setTick("each dot = an area with confirmed Verrow fever cases (bigger = more)");
   }
 }
 
@@ -1319,7 +1320,7 @@ function showTT(e,code,d){
   if(CASES){
     const rc=CASES.byRegion[d.region], uc=CASES.byUTLA[d.name];
     const txt = uc!=null ? `${uc.toLocaleString()}` : (rc!=null ? "fewer than 10" : "no data");
-    casesLine = `<br>Measles cases: <span class="num">${txt}</span>`;
+    casesLine = `<br>Verrow fever cases: <span class="num">${txt}</span>`;
   }
   tt.innerHTML=`<b>${d.name}</b><br>${dis.label} coverage: <span class="num">${vs}</span>${approx}${casesLine}`;
   tt.style.opacity=1; moveTT(e);
@@ -1366,28 +1367,25 @@ function selectUTLA(code, keepDistrict){
   renderRisk();
 }
 
-// Pin a measles-case label onto the selected area, at its centre on the map.
+// Pin a Verrow fever-case label onto the selected area, at its centre on the map.
 function placeMapLabel(center, d){
   if(LABEL && LMAP){ LMAP.removeLayer(LABEL); LABEL=null; }
   if(MAP_MODE==="cases" || MAP_MODE==="table") return;   // colour/table conveys cases instead
   if(!center || !d || !LMAP) return;
-  let big="—", sub="measles cases", range="";
+  let big="—", sub="Verrow fever cases", range="";
   if(CASES){
     const rc=CASES.byRegion[d.region], uc=CASES.byUTLA[d.name];
     if(uc!=null){                       // this area's own published count (>=10)
-      big=uc.toLocaleString(); sub="measles cases here";
-    } else if(rc!=null){                // area count suppressed by UKHSA (fewer than 10)
-      big="<10"; sub="measles cases here";
+      big=uc.toLocaleString(); sub="Verrow fever cases here";
+    } else if(rc!=null){                // area count not shown individually (fewer than 10)
+      big="<10"; sub="Verrow fever cases here";
     } else {
       big="—"; sub="no case data";      // e.g. Scotland (not in England dataset)
     }
     // Approximate span from the start of the year to the data's "as of" date,
     // phrased loosely, e.g. "over the past 6 months"
-    const m=CASES._meta;
-    if(m && m.asOf){
-      const months=new Date(m.asOf+"T00:00:00").getMonth()+1;   // Jan..current month
-      range=`over the past ${months} months`;
-    }
+    const nMonths=(CASES.monthly && Object.keys(CASES.monthly).length) || 6;
+    range=`over the past ${nMonths} months`;
   }
   const html=`<div class="ml-inner"><div class="ml-name">${d.name}</div>`
     + `<div class="ml-big">${big}</div><div class="ml-lbl">${sub}</div>`
@@ -1404,7 +1402,7 @@ function renderRisk(){
   if(!d)return;
   const dis=DISEASES[STATE.disease];
   const cov=d[dis.field]; // may be null
-  const mmr2=d.mmr2;      // always use MMR2 for risk level
+  const mmr2=d.mmr2;      // always use 2nd dose for risk level
 
   // (risk-block visibility is controlled by the wizard step CSS, not here)
   // Determine what to show in the header
@@ -1426,7 +1424,7 @@ function renderRisk(){
     $("area-meta").textContent=`${d.region}`;
     // Show Scotland data source note
     if(d.region === 'Scotland'){
-      note.textContent=`ℹ Scotland data: Public Health Scotland Q4 2025. Age thresholds differ slightly from England (MMR1 @ 24m, DTaP @ 5y).`;
+      note.textContent=`ℹ Coverage shown for this area is an illustrative (hypothetical) estimate.`;
       note.style.display="block";
     } else {
       note.style.display="none";
@@ -1456,7 +1454,7 @@ function renderRisk(){
     $("cov-fill").style.width="0";
   }
 
-  // Risk badge (always based on MMR2)
+  // Risk badge (always based on 2nd dose)
   const risk=riskFromCov(mmr2);
   if(risk){
     $("risk-dot").className="risk-dot "+risk.key;
@@ -1493,7 +1491,7 @@ async function simulate({disease, region, coverage, days = 120, n_runs = 20}){
 let SIM_SEQ = 0;  // guard against out-of-order responses when clicking fast
 async function runAreaSim(d, cov){
   const sec = $("sim-section");
-  // mmr1/mmr2 both map to measles on the API side
+  // mmr1/mmr2 both map to Verrow fever on the API side
   if(cov == null){ sec.style.display = "none"; return; }
   sec.style.display = "block";
   $("sim-chart").style.display = "none";

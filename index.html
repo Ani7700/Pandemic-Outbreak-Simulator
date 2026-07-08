@@ -1384,12 +1384,8 @@ function placeMapLabel(center, d){
     }
     // Approximate span from the start of the year to the data's "as of" date,
     // phrased loosely, e.g. "over the past 6 months"
-    const m=CASES._meta;
-    if(m && m.monthly){
-      range=`over the past ${Object.keys(m.monthly||{}).length||6} months`;
-    } else if(CASES.monthly){
-      range=`over the past ${Object.keys(CASES.monthly).length} months`;
-    }
+    const nMonths=(CASES.monthly && Object.keys(CASES.monthly).length) || 6;
+    range=`over the past ${nMonths} months`;
   }
   const html=`<div class="ml-inner"><div class="ml-name">${d.name}</div>`
     + `<div class="ml-big">${big}</div><div class="ml-lbl">${sub}</div>`
