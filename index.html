@@ -581,6 +581,17 @@ body{
         <div class="comparison-label">Your child's chance of catching Verrow fever</div>
         <div id="risk-display"></div>
 
+        <!-- Local outbreak projection (simulator) -->
+        <div class="sim-section" id="sim-section" style="display:none">
+          <div class="sim-title">If Verrow fever started spreading here — projected cases over the next 6 months</div>
+          <div class="sim-status" id="sim-status"></div>
+          <svg class="sim-chart" id="sim-chart" viewBox="0 0 360 300" preserveAspectRatio="xMidYMid meet"
+               style="width:100%;height:auto;display:none" xmlns="http://www.w3.org/2000/svg"></svg>
+          <div class="sim-legend" id="sim-legend" style="display:none">
+            Solid line = most likely number of people infected · shaded band = range of model outcomes.
+            This is a hypothetical model of a fictional disease for a local population of this size — a projection to illustrate the trend, not a real prediction.
+          </div>
+        </div>
 
       </div><!-- /risk-block -->
 
@@ -1462,6 +1473,9 @@ function renderRisk(){
   // Risk display — the ONLY thing that differs between interface versions
   renderRiskDisplay(calcDynRisk(d), d);
 
+  // Local 6-month outbreak projection (community-level risk uses 2nd-dose coverage)
+  runAreaSim(d, mmr2);
+
   // Threshold legend label
   $("thresh-label").textContent=dis.herdLabel;
 }
@@ -1472,6 +1486,9 @@ function renderRisk(){
 // ════════════════════════════════════════════════
 const API_BASE = new URLSearchParams(location.search).get("api")
                  || "https://morl-simulator-api.onrender.com";
+
+// Warm the (free-tier) API on load so it isn't cold when the user reaches step 3.
+fetch(`${API_BASE}/health`).catch(()=>{});
 
 async function simulate({disease, region, coverage, days = 120, n_runs = 20}){
   const res = await fetch(`${API_BASE}/simulate`, {
@@ -1488,29 +1505,32 @@ async function simulate({disease, region, coverage, days = 120, n_runs = 20}){
 let SIM_SEQ = 0;  // guard against out-of-order responses when clicking fast
 async function runAreaSim(d, cov){
   const sec = $("sim-section");
-  // mmr1/mmr2 both map to Verrow fever on the API side
-  if(cov == null){ sec.style.display = "none"; return; }
+  // Need a coverage AND a local population to run a local projection.
+  if(cov == null || !d || !d.pop){ sec.style.display = "none"; return; }
   sec.style.display = "block";
   $("sim-chart").style.display = "none";
   $("sim-legend").style.display = "none";
-  $("sim-status").textContent = "Running outbreak model…";
+  $("sim-status").textContent = "Modelling a possible local outbreak… (first run can take up to a minute)";
   const seq = ++SIM_SEQ;
   try{
-    const sim = await simulate({ disease: STATE.disease, region: d.region, coverage: cov });
+    // Local projection: use THIS area's own population so the scale reflects
+    // the locality; 180 days ≈ the next 6 months.
+    const sim = await simulate({ disease: STATE.disease, population: d.pop, coverage: cov, days: 180 });
     if(seq !== SIM_SEQ) return;  // a newer click superseded this one
     drawSimChart(sim);
     const peak = Math.max(...sim.I.med);
+    const peakDay = sim.I.med.indexOf(peak);
+    const peakMonth = Math.max(1, Math.round(peakDay/30));
     $("sim-status").innerHTML =
-      `${d.region} · ${(cov*100).toFixed(0)}% coverage · peak ≈ <strong>${Math.round(peak).toLocaleString()}</strong> infected, `
-      + `≈ <strong>${Math.round(sim.D.med[sim.D.med.length-1]).toLocaleString()}</strong> deaths over ${sim.meta.days} days`;
+      `${d.name} · ${(cov*100).toFixed(0)}% coverage · projected to peak at about `
+      + `<strong>${Math.round(peak).toLocaleString()}</strong> people infected around month <strong>${peakMonth}</strong>`;
     $("sim-chart").style.display = "block";
     $("sim-legend").style.display = "block";
   }catch(e){
     if(seq !== SIM_SEQ) return;
     // Graceful fallback: the static page still works without the API.
     $("sim-status").innerHTML =
-      `Outbreak model unavailable (API not reachable at <code>${API_BASE}</code>). `
-      + `Coverage stats above are unaffected.`;
+      `The outbreak projection is temporarily unavailable. The coverage and risk figures above are unaffected.`;
   }
 }
 
@@ -1533,12 +1553,17 @@ function drawSimChart(sim){
     ticks += `<line x1="${padL}" y1="${yy}" x2="${W-padR}" y2="${yy}" stroke="#eee"/>`
       + `<text x="${padL-4}" y="${yy+3}" text-anchor="end" font-size="8" fill="#999">${shortNum(v)}</text>`;
   }
+  // Month gridlines/labels along the x-axis (≈30 days each) for a 6-month view.
+  let xlabels="";
+  const months=Math.round((n-1)/30);
+  for(let m=0;m<=months;m++){
+    const idx=Math.min(n-1, m*30), xx=x(idx);
+    xlabels += `<text x="${xx.toFixed(1)}" y="${H-4}" text-anchor="middle" font-size="8" fill="#999">${m===0?"now":m+"mo"}</text>`;
+  }
   $("sim-chart").innerHTML = ticks
     + `<path d="${band}" fill="#8C3A2B22" stroke="none"/>`
     + `<path d="${line(I.med)}" fill="none" stroke="#8C3A2B" stroke-width="1.8"/>`
-    + `<path d="${line(D.med)}" fill="none" stroke="#1F2937" stroke-width="1.8"/>`
-    + `<text x="${padL}" y="${H-4}" font-size="8" fill="#999">day 0</text>`
-    + `<text x="${W-padR}" y="${H-4}" text-anchor="end" font-size="8" fill="#999">day ${n-1}</text>`;
+    + xlabels;
 }
 function shortNum(v){
   if(v>=1e6) return (v/1e6).toFixed(1)+"M";
