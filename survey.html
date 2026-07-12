@@ -137,6 +137,13 @@ const BLOCKS = [
      ["Fully protected","Still a meaningful chance","Not sure"],1),
    RADIO("D2","Compared with a child who has had 1 dose, a child who has had 2 doses is…",
      ["More likely to catch it","About the same","Less likely to catch it","Not sure"],2),
+   // ── Future trend / outbreak projection (ordered easy → harder) ──
+   RADIO("F1","On the 6-month outbreak projection, how does the number of people infected change over time?",
+     ["It keeps rising for the whole 6 months","It rises to a peak and then falls again","It stays completely flat","Not sure"],1),
+   RADIO("F2","What does the shaded band around the line on the projection show?",
+     ["How uncertain the projection is — the range of possible outcomes","The number of deaths","The area's vaccination coverage","Not sure"],0),
+   RADIO("F3","The outbreak projection is best described as…",
+     ["A record of cases that already happened","A guaranteed prediction of exactly what will happen","A model of what could happen if an outbreak started here","Not sure"],2),
  ]},
  // ── PART 2: a DIFFERENT area, Hackney (high risk) ──
  {tool:true,
@@ -154,6 +161,9 @@ const BLOCKS = [
    RADIO("XB","Which of the two areas had the HIGHER vaccination coverage?",
      ["Cambridge / Cambridgeshire","Hackney (London)","About the same","Not sure"],0),
    RADIO("XC","Which of the two areas currently has MORE Verrow fever cases?",
+     ["Cambridge / Cambridgeshire","Hackney (London)","About the same","Not sure"],1),
+   // ── Hardest: link coverage to how an outbreak would unfold across the two areas ──
+   RADIO("XD","If Verrow fever started spreading, in which area would an outbreak grow more quickly and reach a larger share of the population?",
      ["Cambridge / Cambridgeshire","Hackney (London)","About the same","Not sure"],1),
  ]},
  // ── Impression, load, views, background ──
