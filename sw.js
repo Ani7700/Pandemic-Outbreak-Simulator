@@ -8,7 +8,7 @@
 //
 // Bump CACHE (v2 -> v3 …) any time you want to force-drop the old cache.
 
-const CACHE = 'vax-risk-v11';
+const CACHE = 'vax-risk-v12';
 
 const PRECACHE = [
   './',
