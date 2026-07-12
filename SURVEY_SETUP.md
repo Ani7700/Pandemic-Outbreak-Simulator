@@ -38,7 +38,7 @@ Each visit is randomly assigned a version and embeds `./1/` … `./22/`.
 `participantId, version, assignedUrl, timestamp, seconds_total, seconds_on_tool,
 C1…C7` (raw answer + `C1_correct…C7_correct`), `comprehension_score`, `comprehension_max`,
 `U1, U2, E1…E5, RP1, IN1, IN2, BG_*`, `user_agent`.
-Answers are stored as option indices (0-based) for multiple choice and 1–7 for scales.
+Answers are stored as option indices (0-based) for multiple choice and 1–5 for scales.
 
 ## Before going live
 - Replace the **consent / participant-information** box in `survey.html` with your

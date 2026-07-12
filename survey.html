@@ -170,7 +170,7 @@ const BLOCKS = [
   items:[
    LIK("TLX_mental","How mentally demanding was it to use the tool?","Very low","Very high"),
    LIK("TLX_effort","How hard did you have to work to understand the information?","Very low","Very high"),
-   LIK("TLX_frustration","How stressed, irritated or frustrated did you feel?","Very low","Very high"),
+   LIK("TLX_frustration","How did you feel while using the tool?","Very relaxed","Very stressed"),
    LIK("TLX_pace","How hurried or rushed did the task feel?","Very low","Very high"),
    LIK("TLX_perf","How successful were you at understanding the information?","A complete failure","Perfectly"),
  ]},
@@ -187,7 +187,7 @@ function itemHTML(q){
     h+=`<div class="opts">`+q.opts.map((o,i)=>`<label><input type="radio" name="${q.id}" value="${i}">${o}</label>`).join("")+`</div>`;
   } else if(q.type==="likert"){
     h+=`<div class="likert"><span class="end">${q.lo}</span>`;
-    for(let i=1;i<=7;i++) h+=`<label>${i}<input type="radio" name="${q.id}" value="${i}"></label>`;
+    for(let i=1;i<=5;i++) h+=`<label>${i}<input type="radio" name="${q.id}" value="${i}"></label>`;
     h+=`<span class="end">${q.hi}</span></div>`;
   }
   return h+`</div>`;
