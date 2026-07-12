@@ -1490,11 +1490,11 @@ const API_BASE = new URLSearchParams(location.search).get("api")
 // Warm the (free-tier) API on load so it isn't cold when the user reaches step 3.
 fetch(`${API_BASE}/health`).catch(()=>{});
 
-async function simulate({disease, region, coverage, days = 120, n_runs = 20}){
+async function simulate({disease, region, population, coverage, days = 120, n_runs = 20}){
   const res = await fetch(`${API_BASE}/simulate`, {
     method: "POST",
     headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({disease, region, coverage, days, n_runs}),
+    body: JSON.stringify({disease, region, population, coverage, days, n_runs}),
   });
   if(!res.ok) throw new Error("API " + res.status);
   const out = await res.json();
