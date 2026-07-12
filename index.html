@@ -1514,9 +1514,13 @@ async function runAreaSim(d, cov){
     const sim = await simulate({ disease: STATE.disease, population: d.pop, coverage: cov, days: 180 });
     if(seq !== SIM_SEQ) return;  // a newer click superseded this one
     drawSimChart(sim);
-    // Success: hide the status line — the chart speaks for itself.
-    $("sim-status").textContent = "";
-    $("sim-status").style.display = "none";
+    const peak = Math.max(...sim.I.med);
+    const peakDay = sim.I.med.indexOf(peak);
+    const peakMonth = Math.max(1, Math.round(peakDay/30));
+    $("sim-status").style.display = "";
+    $("sim-status").innerHTML =
+      `${d.name} · projected to peak at about `
+      + `<strong>${Math.round(peak).toLocaleString()}</strong> people infected around month <strong>${peakMonth}</strong>`;
     $("sim-chart").style.display = "block";
   }catch(e){
     if(seq !== SIM_SEQ) return;
