@@ -113,7 +113,7 @@ body{
   .wiz-nav{flex-wrap:wrap;padding-bottom:calc(90px + env(safe-area-inset-bottom));}
   .nav2-hint{order:3;flex-basis:100%;text-align:center;}
   /* on-map label on phones */
-  .map-label .ml-big{font-size:26px;}
+  .map-label .ml-big{font-size:30px;}
   .map-label .ml-inner{padding:6px 11px;}
 }
 
@@ -327,10 +327,10 @@ body{
 .map-label .ml-inner{transform:translate(-50%,-50%);background:rgba(255,255,255,.96);
   border:1px solid var(--line);border-radius:12px;padding:7px 13px;text-align:center;white-space:nowrap;
   box-shadow:0 3px 16px rgba(0,0,0,.28);}
-.map-label .ml-name{font-size:12px;font-weight:700;color:var(--ink);}
-.map-label .ml-big{font-size:30px;font-weight:800;line-height:1.05;color:#B4341F;letter-spacing:-.01em;}
-.map-label .ml-lbl{font-size:12px;color:var(--ink-soft);}
-.map-label .ml-date{font-size:12px;color:#8a8a8e;margin-top:2px;}
+.map-label .ml-name{font-size:15px;font-weight:700;color:var(--ink);}
+.map-label .ml-big{font-size:34px;font-weight:800;line-height:1.05;color:#B4341F;letter-spacing:-.01em;}
+.map-label .ml-lbl{font-size:15px;color:var(--ink-soft);}
+.map-label .ml-date{font-size:15px;color:#8a8a8e;margin-top:2px;}
 
 /* Stage visibility — single column, one stage at a time */
 .layout[data-step]{flex-direction:column;}
@@ -461,15 +461,15 @@ body{
   background:white;border-top:1px solid var(--line);
   padding:7px 16px;flex-shrink:0;
 }
-.legend{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);}
+.legend{display:flex;align-items:center;gap:8px;font-size:16px;color:var(--muted);}
 .legend .bar{flex:1;height:7px;background:linear-gradient(to right,#8C3A2B 0%,#E1A95F 45%,#6B8E5A 75%,#355E3B 100%);}
-.legend-tick{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-top:2px;}
+.legend-tick{display:flex;justify-content:space-between;font-size:16px;color:var(--muted);margin-top:2px;}
 
 /* Map tooltip */
 .map-tt{
   position:absolute;pointer-events:none;
   background:var(--ink);color:white;
-  padding:6px 11px;font-size:13px;line-height:1.35;
+  padding:6px 11px;font-size:16px;line-height:1.35;
   opacity:0;transition:opacity 0.1s;z-index:50;white-space:nowrap;
 }
 .map-tt b{font-weight:700;}
@@ -482,7 +482,7 @@ body{
 .map-hint{
   position:absolute;bottom:10px;left:50%;transform:translateX(-50%);
   background:rgba(0,0,0,0.65);color:white;
-  font-size:12px;padding:4px 14px;pointer-events:none;
+  font-size:15px;padding:4px 14px;pointer-events:none;
   transition:opacity 0.4s;
 }
 
@@ -1169,13 +1169,12 @@ let DOTLAYER = null;
 function areaCaseCount(d){
   if(!CASES || !d) return null;
   const uc = CASES.byUTLA[d.name];
-  return uc!=null ? uc : 0;            // 0 = suppressed (<10)
+  return uc!=null ? uc : 0;            // every area has an exact count
 }
 function caseColor(d){
   const n = areaCaseCount(d);
   if(n==null) return "#CFCAB9";
-  if(n < 10)  return "#f4ead9";        // fewer than 10 (suppressed)
-  return lerpColor("#f0b07a","#7a1f12", Math.min(1,(n-10)/100));
+  return lerpColor("#f4ead9","#7a1f12", Math.min(1, n/130));
 }
 // Fill colour for an area, per map version
 function fillFor(d){
@@ -1262,7 +1261,7 @@ function addCaseDots(){
   GJSON.eachLayer(layer=>{
     const d = UTLA[layer.feature.properties.code]; if(!d) return;
     const n = CASES.byUTLA[d.name];
-    if(n>=10){
+    if(n>=1){
       L.circleMarker(layer.getBounds().getCenter(), {
         radius: 3+Math.sqrt(n), color:"#7a1f12", weight:1,
         fillColor:"#b4341f", fillOpacity:.7, interactive:false
@@ -1281,7 +1280,7 @@ function buildCaseTable(){
     +'<thead><tr><th>#</th><th>Area</th><th>Region</th><th>Cases</th></tr></thead><tbody>'
     + rows.map(([nm,n],i)=>{const code=name2code[nm], reg=code&&UTLA[code]?UTLA[code].region:"";
         return `<tr data-code="${code||''}"><td>${i+1}</td><td class="rk-name">${nm}</td><td>${reg}</td><td class="rk-n">${n}</td></tr>`;}).join('')
-    +'</tbody></table><p class="comp-desc">Areas with fewer than 10 cases are not individually listed.</p>';
+    +'</tbody></table>';
   box.querySelectorAll("tr[data-code]").forEach(tr=>{
     tr.addEventListener("click",()=>{ const c=tr.dataset.code; if(c) selectUTLA(c); });
   });
@@ -1318,8 +1317,8 @@ function showTT(e,code,d){
   const approx=d.approx?` <span style="font-size:10px;color:#aaa">(regional avg)</span>`:"";
   let casesLine="";
   if(CASES){
-    const rc=CASES.byRegion[d.region], uc=CASES.byUTLA[d.name];
-    const txt = uc!=null ? `${uc.toLocaleString()}` : (rc!=null ? "fewer than 10" : "no data");
+    const uc=CASES.byUTLA[d.name];
+    const txt = uc!=null ? `${uc.toLocaleString()}` : "no data";
     casesLine = `<br>Verrow fever cases: <span class="num">${txt}</span>`;
   }
   tt.innerHTML=`<b>${d.name}</b><br>${dis.label} coverage: <span class="num">${vs}</span>${approx}${casesLine}`;
@@ -1374,13 +1373,11 @@ function placeMapLabel(center, d){
   if(!center || !d || !LMAP) return;
   let big="—", sub="Verrow fever cases", range="";
   if(CASES){
-    const rc=CASES.byRegion[d.region], uc=CASES.byUTLA[d.name];
-    if(uc!=null){                       // this area's own published count (>=10)
+    const uc=CASES.byUTLA[d.name];
+    if(uc!=null){                       // this area's own exact count
       big=uc.toLocaleString(); sub="Verrow fever cases here";
-    } else if(rc!=null){                // area count not shown individually (fewer than 10)
-      big="<10"; sub="Verrow fever cases here";
     } else {
-      big="—"; sub="no case data";      // e.g. Scotland (not in England dataset)
+      big="—"; sub="no case data";
     }
     // Approximate span from the start of the year to the data's "as of" date,
     // phrased loosely, e.g. "over the past 6 months"
