@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Verrow fever information assistant</title>
+<style>
+  :root{
+    --ink:#1d1d1f; --muted:#6e6e73; --line:#d9d7d0; --paper:#faf9f6;
+    --accent:#0b4f6c; --accent2:#e8f0f3; --bot:#f2f0ea; --user:#0b4f6c;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;height:100%;}
+  body{
+    font-family:-apple-system,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+    color:var(--ink); background:#efeee9; line-height:1.5;
+    display:flex; justify-content:center;
+  }
+  .app{
+    width:100%; max-width:720px; height:100vh; min-height:0;
+    display:flex; flex-direction:column; background:var(--paper);
+    border-left:1px solid var(--line); border-right:1px solid var(--line);
+  }
+  header{
+    padding:14px 18px; border-bottom:1px solid var(--line); background:#fff;
+    flex-shrink:0;
+  }
+  header h1{font-size:16px; margin:0; letter-spacing:-.01em;}
+  header p{font-size:12.5px; color:var(--muted); margin:3px 0 0;}
+  .area-row{display:flex; gap:8px; align-items:center; margin-top:10px; flex-wrap:wrap;}
+  .area-row .lbl{font-size:12px; color:var(--muted);}
+  .area-chip{
+    font-size:12.5px; padding:5px 11px; border-radius:999px; cursor:pointer;
+    border:1px solid var(--line); background:#fff; color:var(--ink);
+  }
+  .area-chip.on{background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600;}
+
+  .scroll{flex:1; overflow-y:auto; padding:16px 18px 8px;}
+  .msg{display:flex; margin-bottom:12px;}
+  .msg.bot{justify-content:flex-start;}
+  .msg.user{justify-content:flex-end;}
+  .bubble{
+    max-width:82%; padding:10px 13px; border-radius:14px; font-size:14.5px;
+    white-space:pre-wrap; word-wrap:break-word;
+  }
+  .msg.bot .bubble{background:var(--bot); border-bottom-left-radius:4px;}
+  .msg.user .bubble{background:var(--user); color:#fff; border-bottom-right-radius:4px;}
+
+  .chips{padding:2px 18px 10px; display:flex; gap:8px; flex-wrap:wrap; flex-shrink:0;}
+  .chip{
+    font-size:12.5px; padding:6px 11px; border-radius:999px; cursor:pointer;
+    border:1px solid var(--line); background:#fff; color:var(--accent);
+  }
+  .chip:hover{background:var(--accent2);}
+
+  .composer{
+    display:flex; gap:8px; padding:12px 14px calc(12px + env(safe-area-inset-bottom));
+    border-top:1px solid var(--line); background:#fff; flex-shrink:0;
+  }
+  .composer input{
+    flex:1; border:1px solid var(--line); border-radius:12px; padding:11px 13px;
+    font-size:15px; outline:none;
+  }
+  .composer input:focus{border-color:var(--accent); box-shadow:0 0 0 3px rgba(11,79,108,.12);}
+  .composer button{
+    border:none; border-radius:12px; background:var(--accent); color:#fff;
+    font-size:14px; font-weight:600; padding:0 18px; cursor:pointer;
+  }
+  .composer button:active{transform:scale(.97);}
+  .note{font-size:11px; color:var(--muted); padding:0 18px 8px; text-align:center;}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>Verrow fever information assistant</h1>
+    <p>Ask me about vaccination and outbreak risk. I’ll help you work things out — I won’t read out exact figures or tell you what to answer.</p>
+    <div class="area-row">
+      <span class="lbl">Area:</span>
+      <span class="area-chip on" data-area="cambridge">Cambridge / Cambridgeshire</span>
+      <span class="area-chip" data-area="hackney">Hackney (London)</span>
+    </div>
+  </header>
+
+  <div class="scroll" id="scroll"></div>
+
+  <div class="chips" id="chips"></div>
+
+  <div class="composer">
+    <input id="input" type="text" placeholder="Type a question…" autocomplete="off"/>
+    <button id="send">Send</button>
+  </div>
+  <div class="note">A research tool. Verrow fever is a fictional disease; all figures are hypothetical.</div>
+</div>
+
+<script>
+// ============================================================
+// Controlled, scripted assistant. Every reply is authored here.
+// Design rule: NEVER state a value that is a quiz option
+// (coverage %, risk-level word, high/low cases, exact chances,
+//  which-area verdict). Give concepts + derivable cues + Socratic
+// prompts so the participant reasons it out. Never mentions the survey.
+// ============================================================
+
+// Per-area INDIRECT cues (relative / derivable — never the raw option value).
+const AREAS = {
+  cambridge: {
+    name: "Cambridge / Cambridgeshire",
+    coverage: "Coverage here sits just a little below the 93% herd-immunity line — close to it, but not quite there.",
+    cases: "Compared with the current hotspots, this area is seeing relatively few Verrow fever cases.",
+    combine: "So — coverage a touch below the line, and not many cases. Put those two together: where would that place the community risk?",
+    outbreak: "Because coverage here is only a little below the line, an outbreak would build more slowly and stay smaller than in a low-coverage area."
+  },
+  hackney: {
+    name: "Hackney (London)",
+    coverage: "Coverage here is a long way below the 93% herd-immunity line — well under two-thirds of children are covered.",
+    cases: "This is one of the areas seeing the most Verrow fever cases right now.",
+    combine: "So — coverage far below the line, and lots of cases. Combine those: what community-risk level would that add up to?",
+    outbreak: "Because coverage here is far below the line, an outbreak would spread fast and reach a large share of the population."
+  }
+};
+let area = "cambridge";
+
+// ---- Suggested questions (fill the box; they still get the guided reply) ----
+const SUGGESTIONS = [
+  "What’s the vaccination coverage here?",
+  "Is this area protected by herd immunity?",
+  "What’s the community risk level?",
+  "Does it have many cases right now?",
+  "How much do the vaccine doses help?",
+  "What would an outbreak look like over the next 6 months?",
+  "Which area is worse — Cambridge or Hackney?"
+];
+
+// ---- Intent matching: keyword sets -> handler ----
+function classify(t){
+  t = t.toLowerCase();
+  const has = (...ws)=>ws.some(w=>t.includes(w));
+  if(has("answer","which option","what should i","is it correct","right answer","quiz","survey","choose","pick the")) return "meta";
+  if(has("hello","hi ","hey","start","what can you","help","how does this")) return "greeting";
+  if(has("what is verrow","what's verrow","about verrow","this disease","measles")) return "what";
+  if(has("compare","which area","worse","cambridge or hackney","hackney or cambridge","between the two","two areas")) return "compare";
+  if(has("outbreak","trend","projection","6 month","six month","future","forecast","peak","spread over","next few months","curve")) return "outbreak";
+  if(has("uncertain","band","shaded","range of outcomes","confidence")) return "band";
+  if(has("herd","immunity","protected","threshold","93")) return "herd";
+  if(has("risk level","community risk","how risky","risk here","dangerous","risk rating")) return "risk";
+  if(has("coverage","vaccination rate","vaccinated","how many are vaccinated","uptake","percent","%")) return "coverage";
+  if(has("case","cases","how many cases","infections now","outbreak now")) return "cases";
+  if(has("exposed","if exposed","catch it","catch verrow","likely to catch","chance of catching")) return "exposed";
+  if(has("no dose","unvaccinated","not vaccinated","zero dose","never vaccinated")) return "unvacc";
+  if(has("one dose","1 dose","first dose","single dose")) return "onedose";
+  if(has("two dose","2 dose","both dose","second dose","fully vaccinated","fully protected")) return "twodose";
+  if(has("dose","doses","vaccine work","how does the vaccine","protection")) return "doses";
+  return "fallback";
+}
+
+function reply(intent){
+  const A = AREAS[area];
+  switch(intent){
+    case "meta":
+      return "I can’t tell you what to pick or whether an answer is right — that wouldn’t be fair. What I can do is help you understand the idea so you can decide for yourself. What would you like to understand?";
+    case "greeting":
+      return "Happy to help. You can ask me about this area’s vaccination coverage, herd immunity, the community risk level, current cases, how the vaccine doses protect a child, and how an outbreak might unfold. I’ll give you the reasoning and the clues — you draw the conclusion. Where shall we start?";
+    case "what":
+      return "Verrow fever is a highly contagious disease (fictional, for this study). It spreads easily between people and is prevented by a two-dose childhood vaccine. The more children in an area are vaccinated, the harder it is for the disease to spread. What would you like to look at for this area?";
+    case "herd":
+      return "Herd immunity for Verrow fever kicks in at roughly 93% coverage with two doses — above that, the disease struggles to spread even to unvaccinated children. " + A.coverage + " Given that, do you think this area is comfortably protected, or not quite?";
+    case "coverage":
+      return "I won’t read out the exact percentage — but I can point you to it. " + A.coverage + " From that, what figure would you estimate, and is it above or below the 93% line?";
+    case "cases":
+      return A.cases + " I’ll let you judge whether that counts as a high or a low number for an area like this.";
+    case "risk":
+      return "A community’s risk level is judged from two things: how far its coverage sits below the 93% herd-immunity line, and how many cases it currently has. " + A.coverage + " " + A.cases + " " + A.combine;
+    case "exposed":
+      return "If a child is actually exposed to a case, whether they catch it depends a lot on their vaccination. An unvaccinated child is very likely to catch it — Verrow fever is extremely contagious. Each dose cuts that chance. I won’t give you the exact numbers — but think in terms of ‘out of 10’: would an unvaccinated exposed child be near the top of that scale, or near the bottom?";
+    case "unvacc":
+      return "An unvaccinated child has no vaccine protection, so if Verrow fever is around they’re the most likely to catch it — both in everyday life and if directly exposed. Compared with a fully vaccinated child, would you say that’s a big difference or a small one?";
+    case "onedose":
+      return "One dose gives real protection — a big step up from none — but it doesn’t finish the job: a child with only one dose still has a meaningful chance of catching it if exposed. Is the jump from 0 to 1 dose bigger, or the jump from 1 to 2 doses? Have a think.";
+    case "twodose":
+      return "Two doses give the strongest protection — a child with both is the least likely to catch it. But ‘strongest’ isn’t the same as ‘none’: even after both doses, a small chance remains, because no vaccine is 100%. Does that change how you’d describe a fully vaccinated child’s risk?";
+    case "doses":
+      return "Two things worth reasoning through: (1) each dose lowers the chance of catching Verrow fever, but does the first or the second dose give the bigger single improvement? (2) after both doses, is the risk exactly zero, or just small? Work those two out and you’ll understand most of what the doses do.";
+    case "outbreak":
+      return "Picture what happens if Verrow fever starts spreading here over about six months: the number infected doesn’t stay flat — it climbs to a peak and then falls away as the outbreak burns out. " + A.outbreak + " Where in those six months would you expect the number infected to be highest?";
+    case "band":
+      return "On an outbreak projection, the single line is the most likely path, and the shaded band around it shows how uncertain that is — the range of outcomes that could plausibly happen. It is not deaths, and not past cases. Wider band means more uncertainty. Does that help you read it?";
+    case "compare":
+      return "Rather than me declaring a winner: think about which of the two areas is further below the 93% coverage line, and which has more cases right now. The one that’s worse on both counts is where an outbreak would spread faster and reach more people. Based on what we’ve discussed, which one is that?";
+    default:
+      return "I can help you understand this area’s vaccination coverage, herd immunity, community risk, current cases, how the doses protect a child, and how an outbreak might unfold over six months. I won’t hand you figures or answers — I’ll help you reason them out. Which of those would you like to explore?";
+  }
+}
+
+// ============================================================
+// UI plumbing + simple transcript log (for the study).
+// ============================================================
+const LOG = [];              // {t, role, area, text}
+const $ = id=>document.getElementById(id);
+const scroll = $("scroll");
+
+function add(role, text){
+  LOG.push({t:Date.now(), role, area, text});
+  const m = document.createElement("div");
+  m.className = "msg " + role;
+  const b = document.createElement("div");
+  b.className = "bubble";
+  b.textContent = text;
+  m.appendChild(b);
+  scroll.appendChild(m);
+  scroll.scrollTop = scroll.scrollHeight;
+}
+
+function botRespond(userText){
+  const intent = classify(userText);
+  // tiny delay so it feels conversational
+  setTimeout(()=>add("bot", reply(intent)), 260);
+}
+
+function submit(text){
+  text = (text||"").trim();
+  if(!text) return;
+  add("user", text);
+  $("input").value = "";
+  botRespond(text);
+}
+
+// suggested-question chips
+function renderChips(){
+  const box = $("chips"); box.innerHTML = "";
+  SUGGESTIONS.forEach(q=>{
+    const c = document.createElement("span");
+    c.className = "chip"; c.textContent = q;
+    c.onclick = ()=>submit(q);
+    box.appendChild(c);
+  });
+}
+
+// area switch
+document.querySelectorAll(".area-chip").forEach(el=>{
+  el.onclick = ()=>{
+    document.querySelectorAll(".area-chip").forEach(x=>x.classList.remove("on"));
+    el.classList.add("on");
+    area = el.dataset.area;
+    add("bot", "Okay — let’s look at " + AREAS[area].name + ". Ask me whatever you’d like about it.");
+  };
+});
+
+$("send").onclick = ()=>submit($("input").value);
+$("input").addEventListener("keydown", e=>{ if(e.key==="Enter") submit($("input").value); });
+
+// opening message
+renderChips();
+add("bot", "Hi! I’m here to help you understand Verrow fever vaccination and outbreak risk for " + AREAS[area].name + ". Ask me anything — or tap a question below. I’ll guide your thinking rather than give you the figures outright.");
+</script>
+</body>
+</html>
