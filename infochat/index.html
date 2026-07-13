@@ -104,55 +104,103 @@ const AREAS = {
 let area = "cambridge";
 const EXPOSED_UNVACC="about 6 in 10 (≈60%)", EXPOSED_1DOSE="about 3 in 10 (≈27%)", EXPOSED_2DOSE="about 7 in 100 (≈7%)";
 const SUGGESTIONS = [
-  "How does herd immunity work?","How do the vaccine doses protect a child?",
-  "How is an area’s community risk decided?","How should I read the case numbers?",
-  "What would an outbreak look like?","How do the two areas compare?"
+  "Is coverage above or below herd immunity?","What is this area’s coverage?",
+  "Is the number of cases high or low?","What is the community risk level?",
+  "How do the vaccine doses protect a child?","Which dose gives the most protection?",
+  "How do the two areas compare?","What would an outbreak look like over 6 months?",
+  "What does the projection’s range mean?"
 ];
+// Route a question to a guiding reply. There is a reply for every comprehension
+// topic in the survey. Order matters: specific / disambiguating checks first.
 function classify(t){
-  t=t.toLowerCase(); const has=(...w)=>w.some(x=>t.includes(x));
-  if(has("what should i","which option","is it correct","is that right","the answer","help me answer","survey","quiz")) return "meta";
-  if(has("hello","hi ","hey","what can you","help")) return "greeting";
-  if(has("what is verrow","about verrow","this disease","measles")) return "what";
-  if(has("compare","which area","worse","other area","two areas","between them")) return "compare";
-  if(has("outbreak","trend","projection","6 month","six month","future","peak","over time","curve")) return "outbreak";
-  if(has("uncertain","band","range of outcomes","confidence")) return "band";
-  if(has("herd","immunity","threshold","93")) return "herd";
-  if(has("risk level","community risk","how risky","risk here","dangerous")) return "risk";
-  if(has("coverage","vaccination rate","vaccinated","uptake","percent","% ")) return "coverage";
-  if(has("case","cases","infections now")) return "cases";
-  if(has("exposed","catch it","catch verrow","chance of catching","likely to catch")) return "exposed";
-  if(has("no dose","unvaccinated","not vaccinated")) return "unvacc";
-  if(has("one dose","1 dose","first dose")) return "onedose";
-  if(has("two dose","2 dose","both dose","second dose","fully vacc")) return "twodose";
-  if(has("which dose","most protection","dose matter")) return "whichdose";
-  if(has("200","out of 100","proportion")) return "howmany";
-  if(has("dose","doses","vaccine work","protection")) return "doses";
+  t=t.toLowerCase(); const tt=t.trim(); const has=(...w)=>w.some(x=>t.includes(x));
+  if(has("what should i","which option","is it correct","is that right","the answer","help me answer","survey","quiz","what do i pick")) return "meta";
+  if((tt.length<16 && /^(hi|hey|hello|help|start)\b/.test(tt)) || has("what can you","how does this work")) return "greeting";
+  if(has("what is verrow","what's verrow","about verrow","this disease","measles")) return "what";
+
+  // Single-area "high or low cases" (A_cases/B_cases) — before area comparison,
+  // since it is phrased "compared with other areas".
+  if(has("high or low","low or high")) return "cases";
+
+  // ── which-area comparisons (XA–XD): need an explicit area cue ──
+  if(has("which area","in which area","which of the two","cambridge or hackney","hackney or cambridge","the two areas","both areas","other area","compare the two")){
+    if(has("outbreak","spread","faster","wider","reach more","larger share","grow more")) return "xd";
+    if(has("case","cases")) return "xc";
+    if(has("over a year","more likely to catch","catch it","catch verrow","unvaccinated")) return "xa";
+    if(has("coverage","better vaccinated","higher vaccination")) return "xb";
+    return "compare";
+  }
+
+  // ── trend / projection (F1–F3) ──
+  if(has("range","band","shaded","uncertain","spread of outcomes","how confident")) return "f2";
+  if(has("guaranteed","certain","will happen","a prediction","just a model","really happen","for sure","best described","a model of")) return "f3";
+  if(has("outbreak","trend","projection","6 month","six month","over time","peak","change over","how would the number","curve","next few months","future")) return "f1";
+
+  // ── doses / exposure (C1–C5, D1–D2) ──
+  if(has("least likely","which child","most protected child")) return "least";
+  if(has("most protection","which dose","dose matter","biggest difference","heaviest lifting")) return "whichdose";
+  if(has("no chance","small chance","any chance","completely protected","zero chance")) return "still";
+  if(has("200","out of 200")) return "scale";
+  if(has("out of 100","per 100")) return "cdose2";
+  if(has("one dose","1 dose","first dose","single dose")){
+    if(has("two dose","2 dose","second dose","both")) return "twovsone";
+    return "onedose";
+  }
+  if(has("two dose","2 dose","both dose","second dose","fully vaccinated")){
+    if(has("unvaccinated","no dose","no doses","compared with no")) return "c3";
+    return "cdose2";
+  }
+  if(has("unvaccinated","no dose","no doses","not vaccinated","zero dose","exposed","catch it","chance of catching","likely to catch")) return "c1";
+
+  // ── area facts (A_/B_) ──
+  if(has("above or below","herd","immunity","threshold","93","reach the level","enough coverage")) return "herd";
+  if(has("risk level","community risk","how risky","risk rating","level of risk","how dangerous")) return "risk";
+  if(has("coverage","vaccination rate","vaccinated","uptake","percent","% ","what proportion","how many are vaccinated")) return "covval";
+  if(has("case","cases","how many cases","infections")) return "cases";
+  if(has("dose","doses","vaccine work","how does the vaccine","protection")) return "doses";
+
   return "fallback";
 }
 // The assistant EXPLAINS the ideas and helps the reader reason. The specific
 // figures and judgements live in the briefing on the left; it points there and
 // nudges rather than stating this area's numbers or verdicts outright.
 function reply(intent){
-  const A=AREAS[area];
   switch(intent){
     case "meta": return "I can’t tell you what to pick or whether an answer is right. But I can explain the ideas so you can work it out from the briefing on the left. What would you like to understand?";
-    case "greeting": return "Happy to help you make sense of the briefing on the left. I can explain how herd immunity works, how the vaccine doses protect a child, how an area’s risk level is judged, and how an outbreak unfolds. The figures for each area are in the briefing; ask and I’ll help you read and reason about them.";
+    case "greeting": return "Happy to help you make sense of the briefing on the left. I can explain how herd immunity works, how the vaccine doses protect a child, how an area’s risk is judged, and how an outbreak unfolds. The figures for each area are in the briefing; ask and I’ll help you read and reason about them.";
     case "what": return "Verrow fever is a highly contagious disease, fictional for this study, prevented by a two-dose vaccine. The more children are vaccinated, the harder it spreads. The exact figures for each area are in the briefing on the left.";
-    case "coverage": return "The exact coverage figures for "+A.name+" are in the briefing on the left. The number to compare them against is the roughly 93% needed for herd immunity.";
-    case "herd": return "Herd immunity for Verrow fever takes about 93% of children having had both doses. Whether an area reaches it depends on its coverage, which the briefing gives; compare the two to see where it stands.";
-    case "risk": return "An area’s community risk level comes from two things: how far its coverage sits below the 93% mark, and how many cases it currently has. Both are in the briefing; put them together to work out the level.";
-    case "cases": return "The briefing gives this area’s recent case count. Whether that counts as high or low is clearest when you compare it with the other area and with the worst affected places.";
-    case "exposed": return "If a child is exposed to a case, the chance of catching it depends on their doses. The briefing gives the figures for no doses, one dose and two doses. Notice which dose makes the biggest difference, and that even two doses leave a small chance.";
-    case "unvacc": return "An unvaccinated child has no vaccine protection, so if exposed they are the most likely to catch it. The briefing gives the exact chance.";
-    case "onedose": return "One dose already makes a big difference from none, but it does not finish the job: a child with one dose still has a real chance if exposed. The briefing has the figures. Is the jump from none to one dose bigger, or from one dose to two?";
-    case "twodose": return "Two doses give the strongest protection, but not total: a small chance always remains. The briefing gives the exact figure for a fully vaccinated child.";
-    case "whichdose": return "Both doses help. Look at the three figures in the briefing (no doses, one dose, two doses) and see which step brings the biggest single drop.";
-    case "howmany": return "The briefing gives the chance for an unvaccinated child who is exposed. Scale that up to work out roughly how many of a group would be infected.";
-    case "doses": return "The briefing gives the chance of catching Verrow fever if exposed, for no doses, one dose and two doses. From those, notice which dose helps most, and that two doses still leave a small chance.";
-    case "outbreak": return "If an outbreak started, the number infected would not stay flat: it would climb to a peak and then fall over roughly six months. The briefing explains how an area’s coverage affects how fast and how far it spreads.";
-    case "band": return "An outbreak projection gives a most likely path plus a range around it. That range shows how uncertain it is, not deaths or past cases, and it describes what could happen rather than a certainty.";
-    case "compare": return "Compare the two areas’ coverage and case numbers in the briefing. The one that is further below the 93% mark and has more cases is the higher-risk area, where an outbreak would spread faster and reach more people.";
-    default: return "I can explain herd immunity, the vaccine doses, how an area’s risk is judged, and how an outbreak unfolds, and help you read the figures in the briefing on the left. Which would you like?";
+
+    // ── area facts (A_/B_) ──
+    case "covval": return "The exact vaccination coverage figure for this area (second dose, and first dose) is stated in the briefing on the left. Read it off from there.";
+    case "herd": return "Herd immunity for Verrow fever takes about 93% of children having had both doses. The briefing gives this area’s coverage; compare that figure with 93% to see whether it is above or below.";
+    case "risk": return "An area’s community risk level comes from two things: how far its coverage sits below the 93% mark, and how many cases it has. The briefing gives both for this area; put them together to work out the level.";
+    case "cases": return "The briefing gives this area’s recent case count. To judge whether that is high or low, compare it with the other area and with the worst affected places.";
+
+    // ── doses / exposure (C1–C5, D1–D2) ──
+    case "c1": return "The briefing gives the if-exposed chance of catching Verrow fever for an unvaccinated child. See where that figure sits on a scale out of ten.";
+    case "cdose2": return "The briefing gives the if-exposed chance for a child who has had both doses. Read it as a figure out of a hundred.";
+    case "onedose": return "The briefing gives the if-exposed chance for a child with one dose. Compare it with the no-dose figure to see how big a difference one dose makes, and note whether a real chance still remains.";
+    case "twovsone": return "Compare the one-dose and two-dose if-exposed figures in the briefing to see which child is less likely to catch it.";
+    case "c3": return "In the briefing, compare the if-exposed chance for no doses with the one for two doses. The size of the gap shows how much less likely a fully vaccinated child is.";
+    case "least": return "Compare the three if-exposed figures in the briefing (no doses, one dose, two doses). The smallest one tells you which child is least likely to catch it.";
+    case "still": return "Look at the two-dose if-exposed figure in the briefing. Is it exactly zero, or a small number above zero?";
+    case "whichdose": return "In the briefing, look at the drop from no doses to one dose, then from one dose to two doses. The bigger drop shows which dose gives most of the protection.";
+    case "scale": return "Take the unvaccinated if-exposed chance from the briefing and scale it up to 200 children to get roughly how many would be infected.";
+    case "doses": return "The briefing gives the if-exposed chance of catching Verrow fever for no doses, one dose and two doses. From those, notice which dose helps most, and that two doses still leave a small chance.";
+
+    // ── which-area comparisons (XA–XD) ──
+    case "xb": return "Compare the two areas’ coverage figures in the briefing; the higher figure is the better-vaccinated area.";
+    case "xc": return "Compare the two areas’ recent case counts in the briefing to see which has more.";
+    case "xa": return "The area that is further below the 93% mark and has more cases is where an unvaccinated child is more likely to catch Verrow fever over a year. Compare the two areas in the briefing.";
+    case "xd": return "The area further below 93% coverage is where an outbreak would spread faster and reach a larger share of the population. Compare the two areas’ coverage in the briefing.";
+    case "compare": return "Compare the two areas in the briefing on coverage and on case numbers. The one further below the 93% mark, with more cases, is the higher-risk area.";
+
+    // ── trend / projection (F1–F3) ──
+    case "f1": return "The briefing describes how the number infected would change over six months. Does it stay flat, keep rising the whole time, or rise to a peak and then fall?";
+    case "f2": return "The briefing explains the range shown around a projection. It reflects how uncertain the projection is, not deaths and not past cases.";
+    case "f3": return "The briefing says whether an outbreak projection is a guaranteed prediction or a model of what could happen if an outbreak started. Check how it describes it.";
+
+    default: return "I can help with any of these: an area’s coverage, whether it is above or below herd immunity, its risk level, its cases, how the vaccine doses protect a child, how the two areas compare, and how an outbreak might unfold. The figures are in the briefing on the left. Which would you like?";
   }
 }
 const LOG=[]; const $=id=>document.getElementById(id); const scroll=$("scroll");
