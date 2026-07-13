@@ -118,7 +118,7 @@ function classify(t){
   if((tt.length<16 && /^(hi|hey|hello|help|start)\b/.test(tt)) || has("what can you","how does this work")) return "greeting";
   if(has("what is verrow","what's verrow","about verrow","this disease","measles")) return "what";
 
-  // Single-area "high or low cases" (A_cases/B_cases) — before area comparison,
+  // Single-area "high or low cases" (A_cases/B_cases), before area comparison,
   // since it is phrased "compared with other areas".
   if(has("high or low","low or high")) return "cases";
 
