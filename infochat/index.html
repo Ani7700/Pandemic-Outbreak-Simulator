@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Verrow fever — briefing & assistant</title>
+<title>Verrow fever: briefing & assistant</title>
 <style>
   :root{
     --ink:#1d1d1f; --muted:#6e6e73; --line:#d9d7d0; --paper:#faf9f6;
@@ -59,27 +59,24 @@
 
   <!-- ══ LEFT: prose briefing (contains every answer, woven into the text) ══ -->
   <div class="left">
-    <h1>Verrow fever — a short briefing</h1>
-    <p class="sub">Fictional disease and figures, for this study. Read this, and use the assistant on the right if you want to ask about anything.</p>
+    <h1>Verrow fever: a short briefing</h1>
 
-    <p>Verrow fever is a highly contagious childhood disease that is prevented by a two-dose vaccine; the fewer children an area has vaccinated, the more freely it spreads. The tipping point is herd immunity — the level at which the disease can no longer sustain itself — and for Verrow fever that takes roughly 93% of children having had both doses.</p>
+    <p>Verrow fever is a highly contagious childhood disease that a two-dose vaccine can prevent. The fewer children an area has vaccinated, the more freely it spreads. There is a tipping point called herd immunity, the level at which the disease can no longer sustain itself, and for Verrow fever that takes roughly 93% of children having had both doses.</p>
 
-    <p>Cambridgeshire’s picture is fairly reassuring, though not complete. Ninety-one per cent of its children have had the second dose and ninety-six per cent the first, which leaves it sitting just short of that 93% mark. Only around twenty cases have surfaced there in the past six months — few, set against the worst-hit places — and so the community is judged to be at no more than a medium level of risk.</p>
+    <p>Cambridgeshire’s picture is fairly reassuring, though not complete. Ninety-one per cent of its children have had the second dose and ninety-six per cent the first, which leaves it sitting just short of that 93% mark. Only around twenty cases have surfaced there in the past six months, few when set against the worst affected places, so the community is judged to be at no more than a medium level of risk.</p>
 
-    <p>Hackney reads very differently. Barely more than half of its children — fifty-six per cent — have completed the second dose, and sixty-four per cent the first, leaving the borough far beneath the herd-immunity threshold. It has already recorded about a hundred and eleven cases in six months, among the heaviest anywhere, and its community risk is rated very high. Of the two places, then, Cambridgeshire is the better vaccinated while Hackney carries both the greater case load and, for an unvaccinated child, the greater chance of catching Verrow fever over a year.</p>
+    <p>Hackney reads very differently. Barely more than half of its children, fifty-six per cent, have completed the second dose, and sixty-four per cent the first, which leaves the borough far beneath the herd-immunity threshold. It has already recorded about a hundred and eleven cases in six months, among the heaviest anywhere, and its community risk is rated very high. Of the two places, then, Cambridgeshire is the better vaccinated, while Hackney carries both the greater case load and, for an unvaccinated child, the greater chance of catching Verrow fever over a year.</p>
 
-    <p>Whether an exposed child actually falls ill turns largely on their own doses. A child with none who meets a case has something like a six-in-ten chance of catching it; a single dose pulls that down to roughly three in ten, and both doses bring it to only about seven in a hundred. The first dose does the heaviest lifting — the fall from six-in-ten to three-in-ten outweighs the further drop to seven-in-a-hundred — yet no amount of vaccination erases the danger completely: even after two doses a small chance always lingers. Put in round numbers, of two hundred unvaccinated children all exposed roughly a hundred and twenty would be infected, against about seven of every hundred who had had both doses.</p>
+    <p>Whether an exposed child actually falls ill turns largely on their own doses. A child with none who meets a case has something like a six in ten chance of catching it. A single dose pulls that down to roughly three in ten, and both doses bring it to only about seven in a hundred. The first dose does the heaviest lifting, since the fall from six in ten to three in ten outweighs the further drop to seven in a hundred. Even so, no amount of vaccination erases the danger completely, and after two doses a small chance always lingers. In round numbers, of two hundred unvaccinated children all exposed, roughly a hundred and twenty would be infected, against about seven of every hundred who had had both doses.</p>
 
-    <p>Were an outbreak to take hold, it would not hold steady. Modelling suggests the number infected would climb over the opening months to a peak and then subside as the outbreak burned itself out, the whole arc playing out across something like half a year. Any such projection carries a spread of possibilities around its most likely path — a measure of how uncertain it is rather than a single promised figure — and it describes what could happen, not what is bound to. And where coverage is thinner, as in Hackney, that wave would gather pace faster and wash over a larger share of the population than in a better-protected place such as Cambridgeshire.</p>
+    <p>Were an outbreak to take hold, it would not hold steady. Modelling suggests the number infected would climb over the opening months to a peak and then subside as the outbreak burned itself out, the whole arc playing out across something like half a year. Any such projection carries a spread of possibilities around its most likely path, which is a measure of how uncertain it is rather than a single promised figure, and it describes what could happen rather than what is bound to. Where coverage is thinner, as in Hackney, that wave would gather pace faster and wash over a larger share of the population than in a better protected place such as Cambridgeshire.</p>
   </div>
 
   <!-- ══ RIGHT: chatbot ══ -->
   <div class="right">
     <div class="rhead">
       <h2>Ask the assistant</h2>
-      <p>Ask about either area — it gives the actual figures. Tap a question to start.</p>
       <div class="area-row">
-        <span class="lbl">Area:</span>
         <span class="area-chip on" data-area="cambridge">Cambridge / Cambridgeshire</span>
         <span class="area-chip" data-area="hackney">Hackney</span>
       </div>
@@ -98,9 +95,9 @@
 // right pane. States real figures; refuses only survey/meta questions.
 const AREAS = {
   cambridge: { name:"Cambridge / Cambridgeshire", cov2:"91%", cov1:"96%",
-    herd:"below the ~93% herd-immunity level", cases:"relatively low — about 20 confirmed cases in the past 6 months", risk:"Medium" },
+    herd:"below the ~93% herd-immunity level", cases:"relatively low, about 20 confirmed cases in the past 6 months", risk:"Medium" },
   hackney: { name:"Hackney (London)", cov2:"56%", cov1:"64%",
-    herd:"far below the ~93% herd-immunity level", cases:"high — about 111 confirmed cases in the past 6 months", risk:"Very high" }
+    herd:"far below the ~93% herd-immunity level", cases:"high, about 111 confirmed cases in the past 6 months", risk:"Very high" }
 };
 let area = "cambridge";
 const EXPOSED_UNVACC="about 6 in 10 (≈60%)", EXPOSED_1DOSE="about 3 in 10 (≈27%)", EXPOSED_2DOSE="about 7 in 100 (≈7%)";
@@ -133,22 +130,22 @@ function classify(t){
 function reply(intent){
   const A=AREAS[area];
   switch(intent){
-    case "meta": return "I can’t tell you what to pick or whether an answer is right — but I’m happy to give you the facts. What would you like to know about "+A.name+"?";
+    case "meta": return "I can’t tell you what to pick or whether an answer is right, but I’m happy to give you the facts. What would you like to know about "+A.name+"?";
     case "greeting": return "Hi! For "+A.name+" I can give you the vaccination coverage, whether it’s above or below herd immunity, the community risk level, current cases, how likely a child is to catch Verrow fever by number of doses, and how an outbreak might unfold. Ask away, or tap a question.";
     case "what": return "Verrow fever is a highly contagious disease (fictional, for this study), prevented by a two-dose vaccine. The more children vaccinated, the harder it spreads. What would you like to know about "+A.name+"?";
     case "coverage": return "In "+A.name+", second-dose coverage is "+A.cov2+" (first-dose "+A.cov1+"). That is "+A.herd+".";
-    case "herd": return "Herd immunity needs about 93% two-dose coverage. "+A.name+" is at "+A.cov2+" — "+A.herd+".";
+    case "herd": return "Herd immunity needs about 93% two-dose coverage. "+A.name+" is at "+A.cov2+", which is "+A.herd+".";
     case "risk": return "The community Verrow fever risk level for "+A.name+" is "+A.risk+", reflecting its coverage ("+A.cov2+") and its current case numbers.";
     case "cases": return A.name+" currently has "+A.cases+".";
     case "exposed": return "If exposed to a case, the chance of catching it depends on doses:\n• No doses: "+EXPOSED_UNVACC+"\n• One dose: "+EXPOSED_1DOSE+"\n• Two doses: "+EXPOSED_2DOSE+"\nEach dose lowers it a lot, but even two doses leave a small chance.";
-    case "unvacc": return "An unvaccinated child has no protection: if exposed, the chance of catching Verrow fever is "+EXPOSED_UNVACC+" — much higher than a vaccinated child.";
-    case "onedose": return "One dose helps a lot: if exposed, the chance drops to "+EXPOSED_1DOSE+" (from "+EXPOSED_UNVACC+" with none). But there’s still a meaningful chance — the second dose matters.";
-    case "twodose": return "Two doses give the strongest protection: if exposed, the chance is only "+EXPOSED_2DOSE+" — the lowest of any group. It isn’t zero, though; a small chance always remains.";
+    case "unvacc": return "An unvaccinated child has no protection: if exposed, the chance of catching Verrow fever is "+EXPOSED_UNVACC+", much higher than a vaccinated child.";
+    case "onedose": return "One dose helps a lot: if exposed, the chance drops to "+EXPOSED_1DOSE+" (from "+EXPOSED_UNVACC+" with none). But there’s still a meaningful chance, so the second dose matters.";
+    case "twodose": return "Two doses give the strongest protection: if exposed, the chance is only "+EXPOSED_2DOSE+", the lowest of any group. It isn’t zero, though; a small chance always remains.";
     case "whichdose": return "The FIRST dose gives the biggest single improvement: from "+EXPOSED_UNVACC+" down to "+EXPOSED_1DOSE+". The second lowers it further, to "+EXPOSED_2DOSE+".";
     case "howmany": return "An unvaccinated exposed child’s chance is "+EXPOSED_UNVACC+". So of 200 unvaccinated children exposed, roughly 120 would catch it; of 100 with both doses, only about 7.";
     case "doses": return "How the doses protect a child, if exposed:\n• No doses: "+EXPOSED_UNVACC+"\n• One dose: "+EXPOSED_1DOSE+"\n• Two doses: "+EXPOSED_2DOSE+"\nThe first dose gives the biggest drop; the second lowers it further; a small chance always remains.";
-    case "outbreak": return "If Verrow fever started spreading in "+A.name+", a model projects the number infected over ~6 months: it climbs to a peak, then falls as the outbreak burns out — it doesn’t stay flat. Coverage here is "+(area==="hackney"?"very low, so the wave would be fast and large":"only a little below the line, so the wave would be smaller and slower")+". The projection also shows a range of possible outcomes, not one certain path.";
-    case "band": return "A projection gives a most-likely path plus a range around it — that range shows how uncertain it is (not deaths, not past cases). It’s a model of what could happen, not a guaranteed prediction.";
+    case "outbreak": return "If Verrow fever started spreading in "+A.name+", a model projects the number infected over ~6 months: it climbs to a peak, then falls as the outbreak burns out. It doesn’t stay flat. Coverage here is "+(area==="hackney"?"very low, so the wave would be fast and large":"only a little below the line, so the wave would be smaller and slower")+". The projection also shows a range of possible outcomes, not one certain path.";
+    case "band": return "A projection gives a most-likely path plus a range around it. That range shows how uncertain it is (not deaths, not past cases). It’s a model of what could happen, not a guaranteed prediction.";
     case "compare": return "Cambridge / Cambridgeshire: "+AREAS.cambridge.cov2+" coverage, "+AREAS.cambridge.risk.toLowerCase()+" risk, relatively few cases. Hackney: "+AREAS.hackney.cov2+" coverage, "+AREAS.hackney.risk.toLowerCase()+" risk, many more cases. Hackney is further below herd immunity, so an outbreak there would spread faster and reach a larger share of the population, and an unvaccinated child there is more likely to catch it over a year.";
     default: return "For "+A.name+" I can tell you coverage, herd-immunity status, community risk level, current cases, how likely a child is to catch it by doses, and how an outbreak might unfold. Which would you like?";
   }
@@ -168,11 +165,11 @@ function reportLog(){
 }
 function submit(text){ text=(text||"").trim(); if(!text) return; add("user",text); $("input").value=""; setTimeout(()=>add("bot",reply(classify(text))),240); }
 function renderChips(){ const box=$("chips"); box.innerHTML=""; SUGGESTIONS.forEach(q=>{const c=document.createElement("span");c.className="chip";c.textContent=q;c.onclick=()=>submit(q);box.appendChild(c);}); }
-document.querySelectorAll(".area-chip").forEach(el=>{ el.onclick=()=>{ document.querySelectorAll(".area-chip").forEach(x=>x.classList.remove("on")); el.classList.add("on"); area=el.dataset.area; add("bot","Okay — now showing information for "+AREAS[area].name+". Ask me anything about it."); }; });
+document.querySelectorAll(".area-chip").forEach(el=>{ el.onclick=()=>{ document.querySelectorAll(".area-chip").forEach(x=>x.classList.remove("on")); el.classList.add("on"); area=el.dataset.area; add("bot","Okay, now showing information for "+AREAS[area].name+". Ask me anything about it."); }; });
 $("send").onclick=()=>submit($("input").value);
 $("input").addEventListener("keydown",e=>{ if(e.key==="Enter") submit($("input").value); });
 renderChips();
-add("bot","Hi! Ask me for any figure about "+AREAS[area].name+" — coverage, risk level, cases, how the doses protect a child, or how an outbreak might unfold. Tap a question below to start.");
+add("bot","Hi! Ask me for any figure about "+AREAS[area].name+": coverage, risk level, cases, how the doses protect a child, or how an outbreak might unfold. Tap a question below to start.");
 </script>
 </body>
 </html>
