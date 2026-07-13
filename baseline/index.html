@@ -93,24 +93,19 @@ const P = new URLSearchParams(location.search);
 const participantId = P.get("PROLIFIC_PID") || P.get("pid") || ("anon-"+Math.random().toString(36).slice(2,10));
 const version = (parseInt(P.get("v"))>=1 && parseInt(P.get("v"))<=N_VERSIONS) ? parseInt(P.get("v"))
               : Math.floor(Math.random()*N_VERSIONS)+1;
-// Three conditions, chosen by URL (NOT random). One survey file served at 3 paths:
-//   /survey.html         -> visual  (the map/coverage tool, one of N_VERSIONS)
-//   /baseline-chatbot/   -> chatbot (conversational information assistant)
-//   /baseline-text/      -> text    (plain-language information page)
-// ?cond=visual|chatbot|text still overrides for piloting.
+// Two conditions, chosen by URL (NOT random). One survey file served at 2 paths:
+//   /survey.html   -> visual   (the map/coverage tool, one of N_VERSIONS)
+//   /baseline/     -> baseline (combined page: prose briefing + chatbot assistant)
+// ?cond=visual|baseline still overrides for piloting.
 const condRaw = (P.get("cond")||"").toLowerCase();
-const atTextPath = /\/baseline-text\/?($|index\.html)/.test(location.pathname);
-const atChatPath = /\/baseline-chatbot\/?($|index\.html)/.test(location.pathname);
-const inSub = atTextPath || atChatPath;
-const condition = ["text"].includes(condRaw)                   ? "text"
-                : ["chatbot","baseline","b"].includes(condRaw) ? "chatbot"
-                : ["visual","tool","v"].includes(condRaw)      ? "visual"
-                : atTextPath ? "text" : atChatPath ? "chatbot" : "visual";
-// Interface loaded in the iframe. Paths are relative to where this file is served,
-// so the /baseline*/ entry points step up one level to reach the shared folders.
-const basePath = inSub ? "../" : "./";
-const iface = condition==="chatbot" ? "chatbot/" : condition==="text" ? "textinfo/" : version+"/";
-const toolURL = basePath + iface;
+const atBaselinePath = /\/baseline\/?($|index\.html)/.test(location.pathname);
+const condition = ["baseline","chatbot","text","b"].includes(condRaw) ? "baseline"
+                : ["visual","tool","v"].includes(condRaw)             ? "visual"
+                : atBaselinePath ? "baseline" : "visual";
+// Interface loaded in the iframe. /baseline/ steps up one level to reach the shared
+// folders; the baseline interface is the combined prose+chatbot page (infochat).
+const basePath = atBaselinePath ? "../" : "./";
+const toolURL = condition==="baseline" ? basePath+"infochat/" : basePath+version+"/";
 const started = Date.now();
 let toolStart=0;
 const ANS = {};
@@ -134,8 +129,7 @@ const BLOCKS = [
  // ── PART 1: Cambridge (medium risk) — go through the WHOLE tool, then answer ──
  {tool:true,
   instr:"<strong>PART 1 of 2 — Cambridge.</strong> In the tool above, search <strong>CB3 9DF</strong>, then go through <strong>both</strong> the <strong>Map</strong> stage and the <strong>Risk &amp; coverage</strong> stage — try any buttons, slider, toggle or dice a few times. Once you've seen both, answer below (you can scroll the tool back up to check at any time):",
-  instrChatbot:"<strong>PART 1 of 2 — Cambridge.</strong> Using the assistant above, ask about <strong>Cambridge / Cambridgeshire</strong> — its vaccination coverage, community risk, current cases, how the vaccine doses protect a child, and what an outbreak might look like. Chat until you feel you understand this area, then answer below (you can keep chatting to check at any time):",
-  instrText:"<strong>PART 1 of 2 — Cambridge.</strong> Read the information above, starting with the <strong>Cambridge / Cambridgeshire</strong> section. Once you've read it, answer below (you can scroll the panel back up to check at any time):",
+  instrBaseline:"<strong>PART 1 of 2 — Cambridge.</strong> Use the briefing and the assistant above to learn about <strong>Cambridge / Cambridgeshire</strong> — read the text on the left and/or ask the assistant on the right. Once you feel you understand this area, answer below (you can scroll back or keep asking at any time):",
   items:[
    RADIO("A_cov","Is this area's vaccination coverage above or below the level needed for herd immunity (about 93%)?",
      ["Above","Below","Exactly at the level","Not sure"],1),
@@ -175,8 +169,7 @@ const BLOCKS = [
  // ── PART 2: a DIFFERENT area, Hackney (high risk) ──
  {tool:true,
   instr:"<strong>PART 2 of 2 — a different area (Hackney).</strong> In the tool, click the <strong>Location</strong> step, search <strong>Hackney</strong>, and go through the <strong>Map</strong> and <strong>Risk &amp; coverage</strong> stages again. Then answer:",
-  instrChatbot:"<strong>PART 2 of 2 — a different area (Hackney).</strong> In the assistant above, switch the area to <strong>Hackney</strong> and ask about it in the same way. Then answer:",
-  instrText:"<strong>PART 2 of 2 — a different area (Hackney).</strong> The information above also covers <strong>Hackney</strong> — read that section, then answer:",
+  instrBaseline:"<strong>PART 2 of 2 — a different area (Hackney).</strong> Now focus on <strong>Hackney</strong> — read the relevant part of the briefing on the left, and/or switch the assistant's area to Hackney and ask about it. Then answer:",
   items:[
    RADIO("B_cov","Is Hackney's vaccination coverage above or below the herd-immunity level (about 93%)?",
      ["Above","Below","Exactly at the level","Not sure"],1),
@@ -236,10 +229,7 @@ function renderBlock(){
   const b=BLOCKS[bi];
   $("progress").textContent=`Step ${bi+2} of ${BLOCKS.length+1}`;
   $("tool").style.display = b.tool ? "block" : "none";
-  $("block-instr").innerHTML =
-      (condition==="chatbot" && b.instrChatbot) ? b.instrChatbot
-    : (condition==="text"    && b.instrText)    ? b.instrText
-    : b.instr;
+  $("block-instr").innerHTML = (condition==="baseline" && b.instrBaseline) ? b.instrBaseline : b.instr;
   $("block-body").innerHTML=b.items.map(itemHTML).join("");
   $("block-err").style.display="none";
   $("block-btn").textContent = (bi===BLOCKS.length-1) ? "Submit" : "Next →";
@@ -294,7 +284,7 @@ function submit(rec){
 }
 function showDone(){
   $("s-survey").style.display="none"; $("s-done").style.display="block";
-  $("done-code").textContent="MRV-"+(condition==="chatbot"?"CB":condition==="text"?"TX":String(version).padStart(2,"0"))+"-"+participantId.slice(-4).toUpperCase();
+  $("done-code").textContent="MRV-"+(condition==="baseline"?"BL":String(version).padStart(2,"0"))+"-"+participantId.slice(-4).toUpperCase();
   $("done-note").textContent=ENDPOINT.startsWith("http")?"You can close this window.":"(Test mode: a data file was downloaded because no storage endpoint is set yet.)";
   window.scrollTo(0,0);
 }
