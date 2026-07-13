@@ -94,12 +94,19 @@ const participantId = P.get("PROLIFIC_PID") || P.get("pid") || ("anon-"+Math.ran
 const version = (parseInt(P.get("v"))>=1 && parseInt(P.get("v"))<=N_VERSIONS) ? parseInt(P.get("v"))
               : Math.floor(Math.random()*N_VERSIONS)+1;
 // Condition: "visual" (the map/coverage tool, one of N_VERSIONS) vs "baseline"
-// (the chatbot). Chosen by URL, NOT random: the baseline has its own entry point
-// (/baseline/, which adds ?cond=baseline). Default is the visual survey.
+// (the chatbot). Chosen by URL, NOT random. This is ONE file served at two paths:
+//   /survey.html   -> visual survey
+//   /baseline/     -> baseline survey (identical file; the path selects the condition)
+// ?cond=visual|baseline still overrides for piloting.
 const condRaw = (P.get("cond")||"").toLowerCase();
-const condition = ["baseline","chatbot","b"].includes(condRaw) ? "baseline" : "visual";
-// The information interface loaded in the iframe for this participant.
-const toolURL = condition==="baseline" ? "./chatbot/" : `./${version}/`;
+const atBaselinePath = /\/baseline\/?($|index\.html)/.test(location.pathname);
+const condition = ["baseline","chatbot","b"].includes(condRaw) ? "baseline"
+                : ["visual","tool","v"].includes(condRaw)      ? "visual"
+                : atBaselinePath ? "baseline" : "visual";
+// Interface loaded in the iframe. Paths are relative to wherever this file is
+// served, so /baseline/ needs to step up one level to reach ./chatbot/ and ./NN/.
+const basePath = atBaselinePath ? "../" : "./";
+const toolURL = condition==="baseline" ? basePath+"chatbot/" : basePath+version+"/";
 const started = Date.now();
 let toolStart=0;
 const ANS = {};
