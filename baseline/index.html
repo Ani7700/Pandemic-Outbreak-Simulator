@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Loading study…</title>
+<style>
+  body{font-family:-apple-system,"Segoe UI",Arial,sans-serif;color:#1d1d1f;
+       background:#efeee9;display:flex;min-height:100vh;margin:0;
+       align-items:center;justify-content:center;text-align:center;padding:24px;}
+  a{color:#0b4f6c;}
+</style>
+</head>
+<body>
+<div>
+  <p>Loading the study…</p>
+  <p><noscript>JavaScript is required. </noscript>
+     If you are not redirected, <a id="go" href="../survey.html?cond=baseline">tap here to continue</a>.</p>
+</div>
+<script>
+// Baseline (chatbot) entry point. Single source of truth is ../survey.html —
+// we just pin the condition and forward any recruitment params (PROLIFIC_PID, pid…).
+(function(){
+  var q = new URLSearchParams(location.search);
+  q.set("cond", "baseline");
+  var url = "../survey.html?" + q.toString();
+  document.getElementById("go").setAttribute("href", url);
+  location.replace(url);
+})();
+</script>
+</body>
+</html>

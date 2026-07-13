@@ -94,11 +94,10 @@ const participantId = P.get("PROLIFIC_PID") || P.get("pid") || ("anon-"+Math.ran
 const version = (parseInt(P.get("v"))>=1 && parseInt(P.get("v"))<=N_VERSIONS) ? parseInt(P.get("v"))
               : Math.floor(Math.random()*N_VERSIONS)+1;
 // Condition: "visual" (the map/coverage tool, one of N_VERSIONS) vs "baseline"
-// (the chatbot). Force with ?cond=visual / ?cond=baseline; otherwise 50/50 random.
+// (the chatbot). Chosen by URL, NOT random: the baseline has its own entry point
+// (/baseline/, which adds ?cond=baseline). Default is the visual survey.
 const condRaw = (P.get("cond")||"").toLowerCase();
-const condition = ["baseline","chatbot","b"].includes(condRaw) ? "baseline"
-                : ["visual","tool","v"].includes(condRaw)      ? "visual"
-                : (Math.random()<0.5 ? "visual" : "baseline");
+const condition = ["baseline","chatbot","b"].includes(condRaw) ? "baseline" : "visual";
 // The information interface loaded in the iframe for this participant.
 const toolURL = condition==="baseline" ? "./chatbot/" : `./${version}/`;
 const started = Date.now();
