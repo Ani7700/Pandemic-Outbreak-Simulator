@@ -11,7 +11,7 @@ for n in $(seq 1 25); do
 done
 # The baseline surveys are the SAME file as survey.html (it detects the URL path
 # to pick the condition), so keep the copies in step after editing survey.html.
-for d in baseline baseline-text; do
+for d in baseline-chatbot baseline-text; do
   if [ -d "$d" ]; then
     cp survey.html "$d/index.html"
     echo "synced -> $d/index.html"

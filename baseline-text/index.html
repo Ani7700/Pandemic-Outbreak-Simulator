@@ -94,13 +94,13 @@ const participantId = P.get("PROLIFIC_PID") || P.get("pid") || ("anon-"+Math.ran
 const version = (parseInt(P.get("v"))>=1 && parseInt(P.get("v"))<=N_VERSIONS) ? parseInt(P.get("v"))
               : Math.floor(Math.random()*N_VERSIONS)+1;
 // Three conditions, chosen by URL (NOT random). One survey file served at 3 paths:
-//   /survey.html      -> visual  (the map/coverage tool, one of N_VERSIONS)
-//   /baseline/        -> chatbot (conversational information assistant)
-//   /baseline-text/   -> text    (plain-language information page)
+//   /survey.html         -> visual  (the map/coverage tool, one of N_VERSIONS)
+//   /baseline-chatbot/   -> chatbot (conversational information assistant)
+//   /baseline-text/      -> text    (plain-language information page)
 // ?cond=visual|chatbot|text still overrides for piloting.
 const condRaw = (P.get("cond")||"").toLowerCase();
 const atTextPath = /\/baseline-text\/?($|index\.html)/.test(location.pathname);
-const atChatPath = /\/baseline\/?($|index\.html)/.test(location.pathname); // /baseline/ but not baseline-text
+const atChatPath = /\/baseline-chatbot\/?($|index\.html)/.test(location.pathname);
 const inSub = atTextPath || atChatPath;
 const condition = ["text"].includes(condRaw)                   ? "text"
                 : ["chatbot","baseline","b"].includes(condRaw) ? "chatbot"
