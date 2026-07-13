@@ -105,6 +105,13 @@ const started = Date.now();
 let toolStart=0;
 const ANS = {};
 
+// Latest chatbot transcript, received from the chatbot iframe (baseline condition).
+let CHAT = null;
+window.addEventListener("message", e=>{
+  const d = e.data;
+  if(d && d.type === "chatbot_transcript") CHAT = d;
+});
+
 const RADIO=(id,prompt,opts,correct)=>({id,type:"radio",prompt,opts,correct});
 const LIK  =(id,prompt,lo,hi)=>({id,type:"likert",prompt,lo,hi});
 const SEL  =(id,prompt,opts)=>({id,type:"select",prompt,opts});
@@ -250,6 +257,13 @@ function buildRecord(){
     }
   }));
   rec.comprehension_score=correct; rec.comprehension_max=graded;
+  // Attach the chatbot transcript for baseline participants (for analysis of
+  // what they asked, how many turns, and how long they spent chatting).
+  if(CHAT){
+    rec.chat_turns = CHAT.turns;
+    rec.chat_seconds = CHAT.seconds;
+    rec.chat_transcript = JSON.stringify(CHAT.transcript);
+  }
   return rec;
 }
 

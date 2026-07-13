@@ -209,6 +209,20 @@ function add(role, text){
   m.appendChild(b);
   scroll.appendChild(m);
   scroll.scrollTop = scroll.scrollHeight;
+  reportLog();
+}
+
+// Send the running transcript to the parent survey page (if embedded), so it can
+// be stored with the participant's response. Same-origin; harmless if standalone.
+function reportLog(){
+  try{
+    window.parent.postMessage({
+      type: "chatbot_transcript",
+      transcript: LOG.map(m=>({t:m.t, role:m.role, area:m.area, text:m.text})),
+      turns: LOG.filter(m=>m.role==="user").length,
+      seconds: LOG.length ? Math.round((Date.now()-LOG[0].t)/1000) : 0
+    }, "*");
+  }catch(e){/* not embedded / cross-origin blocked — ignore */}
 }
 
 function botRespond(userText){
