@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Verrow fever — vaccination study</title>
+<title>Tarnpox — vaccination study</title>
 <style>
   :root{--ink:#1d1d1f;--muted:#6e6e73;--line:#d2d2d7;--accent:#0071e3;--good:#00703c;--bad:#d4351c;}
   *{box-sizing:border-box;}
@@ -44,7 +44,7 @@
     <div class="card">
       <p class="muted">Participant Information Sheet</p>
       <p>Thank you for your interest in this study. Please read the following carefully before you decide whether to take part. The study evaluates a public-facing, interactive tool that visualises how childhood vaccination coverage in local areas affects the population-level spread of a childhood disease. The aim is to investigate how well different ways of presenting this information help people <strong>correctly and accurately understand</strong> what is shown. It is completed entirely online and takes about <strong>20–30 minutes</strong>.</p>
-      <p><strong>The data shown is fictional.</strong> The disease (called “Verrow fever”), the vaccine, and all statistics shown — coverage, cases and risks — are entirely hypothetical. They are used only so the study measures how you <em>read</em> the information presented, not your knowledge of any real disease, and so that you cannot look up answers online. The areas and map are real UK locations, used only so the tool works. Nothing in this tool is a prediction about any real disease, vaccine or area, and nothing in it should be used to make real health decisions. For accurate information about childhood vaccination, please consult the NHS (<span style="white-space:nowrap">www.nhs.uk</span>) or your GP.</p>
+      <p><strong>The data shown is fictional.</strong> The disease (called “Tarnpox”), the vaccine, and all statistics shown — coverage, cases and risks — are entirely hypothetical. They are used only so the study measures how you <em>read</em> the information presented, not your knowledge of any real disease, and so that you cannot look up answers online. The areas and map are real UK locations, used only so the tool works. Nothing in this tool is a prediction about any real disease, vaccine or area, and nothing in it should be used to make real health decisions. For accurate information about childhood vaccination, please consult the NHS (<span style="white-space:nowrap">www.nhs.uk</span>) or your GP.</p>
       <p>Its only focus is how accurately you understand the information displayed. <strong>No questions are asked about your views, feelings, intentions, decisions or trust regarding vaccination</strong>, and no personally identifying information is collected. The study records only your answers to comprehension questions, usability ratings, and the time taken; these are stored anonymously and cannot be linked back to you. Participants who finish with a higher level of accuracy receive a bonus in addition to compensation.</p>
       <p><strong>Taking part is voluntary.</strong> You do not have to take part, and if you do you may withdraw at any time without giving a reason. You may also request deletion of your data up to <strong>two weeks</strong> after your session.</p>
       <p><strong>Who is organising the study.</strong> Ninghan Qi and Dr Miri Zilka, Department of Engineering, University of Cambridge (Principal Investigator: Dr Miri Zilka). The results will be written up as part of an MPhil dissertation and may be presented at conferences or published; results are reported for groups of participants and you will not be identified. Anonymised data may be used in future related research. This study has been reviewed by the Department of Engineering Research Ethics Committee. If you have any questions or concerns, contact Ninghan Qi at <span style="white-space:nowrap">nq221@cam.ac.uk</span>.</p>
@@ -91,8 +91,7 @@ const $ = id => document.getElementById(id);
 const P = new URLSearchParams(location.search);
 
 const participantId = P.get("PROLIFIC_PID") || P.get("pid") || ("anon-"+Math.random().toString(36).slice(2,10));
-const version = (parseInt(P.get("v"))>=1 && parseInt(P.get("v"))<=N_VERSIONS) ? parseInt(P.get("v"))
-              : Math.floor(Math.random()*N_VERSIONS)+1;
+const version = "";
 // Two conditions, chosen by URL (NOT random). One survey file served at 2 paths:
 //   /survey.html   -> visual   (the map/coverage tool, one of N_VERSIONS)
 //   /baseline/     -> baseline (combined page: prose briefing + chatbot assistant)
@@ -105,7 +104,7 @@ const condition = ["baseline","chatbot","text","b"].includes(condRaw) ? "baselin
 // Interface loaded in the iframe. /baseline/ steps up one level to reach the shared
 // folders; the baseline interface is the combined prose+chatbot page (infochat).
 const basePath = atBaselinePath ? "../" : "./";
-const toolURL = condition==="baseline" ? basePath+"infochat/" : basePath+version+"/";
+const toolURL = condition==="baseline" ? basePath+"infochat/" : basePath+"index.html";
 const started = Date.now();
 let toolStart=0;
 const ANS = {};
@@ -131,29 +130,29 @@ const BLOCKS = [
   instr:"<strong>PART 1 of 2 — Cambridge.</strong> In the tool above, search <strong>CB3 9DF</strong>, then go through <strong>both</strong> the <strong>Map</strong> stage and the <strong>Risk &amp; coverage</strong> stage — try any buttons, slider, toggle or dice a few times. Once you've seen both, answer below (you can scroll the tool back up to check at any time):",
   instrBaseline:"<strong>PART 1 of 2 — Cambridge.</strong> Use the briefing and the assistant above to learn about <strong>Cambridge / Cambridgeshire</strong> — read the text on the left and/or ask the assistant on the right. Once you feel you understand this area, answer below (you can scroll back or keep asking at any time):",
   items:[
-   RADIO("A_cov","Is this area's vaccination coverage above or below the level needed for herd immunity (about 93%)?",
+   RADIO("A_cov","Is this area's vaccination coverage above or below the level needed for herd immunity (about 85%)?",
      ["Above","Below","Exactly at the level","Not sure"],1),
    RADIO("A_cov_val","Roughly what was this area's 2nd-dose vaccination coverage?",
-     ["About 70%","About 80%","About 90%","About 98%","Not sure"],2),
-   RADIO("A_cases","Does this area currently have a high or low number of Verrow fever cases compared with other areas?",
-     ["High","Low","About average","Not sure"],1),
-   RADIO("A_level","What is the community Verrow fever risk level for this area?",RL,1),
-   RADIO("C1","If an unvaccinated child is exposed to a case of Verrow fever, how likely are they to catch it?",
-     ["About 1 in 10","About 3 in 10","About half","About 6 in 10","Not sure"],3),
-   RADIO("C_dose2","About how many out of 100 children who have had BOTH doses would catch Verrow fever if exposed to a case?",
-     ["About 7","About 25","About 50","About 85","Not sure"],0),
-   RADIO("C2","Which child is LEAST likely to catch Verrow fever?",
+     ["About 70%","About 80%","About 90%","About 98%","Not sure"],0),
+   RADIO("A_cases","Does this area currently have a high or low number of Tarnpox cases compared with other areas?",
+     ["High","Low","About average","Not sure"],0),
+   RADIO("A_level","What is the community Tarnpox risk level for this area?",RL,3),
+   RADIO("C1","If an unvaccinated child is exposed to a case of Tarnpox, how likely are they to catch it?",
+     ["About 1 in 10","About 2 in 10","About 4 in 10","About 7 in 10","Not sure"],2),
+   RADIO("C_dose2","About how many out of 100 children who have had BOTH doses would catch Tarnpox if exposed to a case?",
+     ["About 8","About 25","About 50","About 80","Not sure"],0),
+   RADIO("C2","Which child is LEAST likely to catch Tarnpox?",
      ["A child with no doses","A child with 1 dose","A child with 2 doses","They are all equally likely","Not sure"],2),
    RADIO("C3","Compared with an unvaccinated child, a child who has had both doses is…",
-     ["About equally likely to catch Verrow fever","A little less likely","Much less likely","More likely","Not sure"],2),
-   RADIO("C_still","A child who has had both doses — do they have NO chance at all of catching Verrow fever, or still a small chance?",
+     ["About equally likely to catch Tarnpox","A little less likely","Much less likely","More likely","Not sure"],2),
+   RADIO("C_still","A child who has had both doses — do they have NO chance at all of catching Tarnpox, or still a small chance?",
      ["No chance at all","Still a small chance","Not sure"],1),
-   RADIO("C_onedose","Compared with no doses, does having just ONE dose make a big difference to the chance of catching Verrow fever?",
+   RADIO("C_onedose","Compared with no doses, does having just ONE dose make a big difference to the chance of catching Tarnpox?",
      ["Yes, a big difference","Only a small difference","No difference","Not sure"],0),
-   RADIO("C4","Most of the protection against Verrow fever comes from…",
+   RADIO("C4","Most of the protection against Tarnpox comes from…",
      ["The first dose","The second dose","Both equally","Not sure"],0),
-   RADIO("C5","If 200 unvaccinated children were all exposed to Verrow fever, about how many would catch it?",
-     ["About 20","About 60","About 120","About 190","Not sure"],2),
+   RADIO("C5","If 200 unvaccinated children were all exposed to Tarnpox, about how many would catch it?",
+     ["About 20","About 80","About 140","About 190","Not sure"],1),
    RADIO("D1","If a child has had only the 1st dose and is exposed, are they fully protected, or do they still have a meaningful chance of catching it?",
      ["Fully protected","Still a meaningful chance","Not sure"],1),
    RADIO("D2","Compared with a child who has had 1 dose, a child who has had 2 doses is…",
@@ -171,22 +170,22 @@ const BLOCKS = [
   instr:"<strong>PART 2 of 2 — a different area (Hackney).</strong> In the tool, click the <strong>Location</strong> step, search <strong>Hackney</strong>, and go through the <strong>Map</strong> and <strong>Risk &amp; coverage</strong> stages again. Then answer:",
   instrBaseline:"<strong>PART 2 of 2 — a different area (Hackney).</strong> Now focus on <strong>Hackney</strong> — read the relevant part of the briefing on the left, and/or switch the assistant's area to Hackney and ask about it. Then answer:",
   items:[
-   RADIO("B_cov","Is Hackney's vaccination coverage above or below the herd-immunity level (about 93%)?",
-     ["Above","Below","Exactly at the level","Not sure"],1),
+   RADIO("B_cov","Is Hackney's vaccination coverage above or below the herd-immunity level (about 85%)?",
+     ["Above","Below","Exactly at the level","Not sure"],0),
    RADIO("B_cov_val","Roughly what was Hackney's 2nd-dose vaccination coverage?",
-     ["About 55%","About 70%","About 85%","About 95%","Not sure"],0),
-   RADIO("B_cases","Does Hackney currently have a high or low number of Verrow fever cases compared with other areas?",
-     ["High","Low","About average","Not sure"],0),
-   RADIO("B_level","What is the community Verrow fever risk level for Hackney?",RL,3),
-   RADIO("XA","Thinking about the two areas, in which is an UNVACCINATED child more likely to catch Verrow fever over a year?",
-     ["Cambridge / Cambridgeshire","Hackney (London)","About the same","Not sure"],1),
-   RADIO("XB","Which of the two areas had the HIGHER vaccination coverage?",
+     ["About 55%","About 70%","About 85%","About 95%","Not sure"],3),
+   RADIO("B_cases","Does Hackney currently have a high or low number of Tarnpox cases compared with other areas?",
+     ["High","Low","About average","Not sure"],1),
+   RADIO("B_level","What is the community Tarnpox risk level for Hackney?",RL,0),
+   RADIO("XA","Thinking about the two areas, in which is an UNVACCINATED child more likely to catch Tarnpox over a year?",
      ["Cambridge / Cambridgeshire","Hackney (London)","About the same","Not sure"],0),
-   RADIO("XC","Which of the two areas currently has MORE Verrow fever cases?",
+   RADIO("XB","Which of the two areas had the HIGHER vaccination coverage?",
      ["Cambridge / Cambridgeshire","Hackney (London)","About the same","Not sure"],1),
+   RADIO("XC","Which of the two areas currently has MORE Tarnpox cases?",
+     ["Cambridge / Cambridgeshire","Hackney (London)","About the same","Not sure"],0),
    // ── Hardest: link coverage to how an outbreak would unfold across the two areas ──
-   RADIO("XD","If Verrow fever started spreading, in which area would an outbreak grow more quickly and reach a larger share of the population?",
-     ["Cambridge / Cambridgeshire","Hackney (London)","About the same","Not sure"],1),
+   RADIO("XD","If Tarnpox started spreading, in which area would an outbreak grow more quickly and reach a larger share of the population?",
+     ["Cambridge / Cambridgeshire","Hackney (London)","About the same","Not sure"],0),
  ]},
  // ── Impression, load, views, background ──
  {tool:true,
@@ -284,7 +283,7 @@ function submit(rec){
 }
 function showDone(){
   $("s-survey").style.display="none"; $("s-done").style.display="block";
-  $("done-code").textContent="MRV-"+(condition==="baseline"?"BL":String(version).padStart(2,"0"))+"-"+participantId.slice(-4).toUpperCase();
+  $("done-code").textContent="TRN-"+(condition==="baseline"?"BL":String(version).padStart(2,"0"))+"-"+participantId.slice(-4).toUpperCase();
   $("done-note").textContent=ENDPOINT.startsWith("http")?"You can close this window.":"(Test mode: a data file was downloaded because no storage endpoint is set yet.)";
   window.scrollTo(0,0);
 }

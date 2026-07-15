@@ -17,4 +17,9 @@ for d in baseline; do
     echo "synced -> $d/index.html"
   fi
 done
+# Tarnpox study: its baseline is the same file as tarnpox/survey.html.
+if [ -d tarnpox/baseline ]; then
+  cp tarnpox/survey.html tarnpox/baseline/index.html
+  echo "synced -> tarnpox/baseline/index.html"
+fi
 echo "done. (create a new version folder with: mkdir N)"
