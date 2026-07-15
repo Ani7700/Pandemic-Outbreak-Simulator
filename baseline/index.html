@@ -249,7 +249,7 @@ function saveBlock(){
 }
 
 function buildRecord(){
-  const rec={participantId,condition,version:condition==="visual"?version:"",assignedUrl:toolURL,timestamp:new Date().toISOString(),
+  const rec={participantId,study:"verrow",condition,version:condition==="visual"?version:"",assignedUrl:toolURL,timestamp:new Date().toISOString(),
     seconds_total:Math.round((Date.now()-started)/1000),
     seconds_on_tool:toolStart?Math.round((Date.now()-toolStart)/1000):"",
     user_agent:navigator.userAgent};
