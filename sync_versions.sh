@@ -17,7 +17,14 @@ for d in baseline; do
     echo "synced -> $d/index.html"
   fi
 done
-# Tarnpox study: its baseline is the same file as tarnpox/survey.html.
+# Tarnpox study: 22 interface versions are copies of tarnpox/index.html.
+for n in $(seq 1 25); do
+  if [ -d "tarnpox/$n" ]; then
+    cp tarnpox/index.html "tarnpox/$n/index.html"
+    echo "synced -> tarnpox/$n/index.html"
+  fi
+done
+# Tarnpox baseline survey is the same file as tarnpox/survey.html.
 if [ -d tarnpox/baseline ]; then
   cp tarnpox/survey.html tarnpox/baseline/index.html
   echo "synced -> tarnpox/baseline/index.html"

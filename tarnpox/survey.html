@@ -91,7 +91,8 @@ const $ = id => document.getElementById(id);
 const P = new URLSearchParams(location.search);
 
 const participantId = P.get("PROLIFIC_PID") || P.get("pid") || ("anon-"+Math.random().toString(36).slice(2,10));
-const version = "";
+const version = (parseInt(P.get("v"))>=1 && parseInt(P.get("v"))<=N_VERSIONS) ? parseInt(P.get("v"))
+              : Math.floor(Math.random()*N_VERSIONS)+1;
 // Two conditions, chosen by URL (NOT random). One survey file served at 2 paths:
 //   /survey.html   -> visual   (the map/coverage tool, one of N_VERSIONS)
 //   /baseline/     -> baseline (combined page: prose briefing + chatbot assistant)
@@ -104,7 +105,7 @@ const condition = ["baseline","chatbot","text","b"].includes(condRaw) ? "baselin
 // Interface loaded in the iframe. /baseline/ steps up one level to reach the shared
 // folders; the baseline interface is the combined prose+chatbot page (infochat).
 const basePath = atBaselinePath ? "../" : "./";
-const toolURL = condition==="baseline" ? basePath+"infochat/" : basePath+"index.html";
+const toolURL = condition==="baseline" ? basePath+"infochat/" : basePath+version+"/";
 const started = Date.now();
 let toolStart=0;
 const ANS = {};
