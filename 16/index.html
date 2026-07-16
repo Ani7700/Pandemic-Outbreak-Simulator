@@ -1017,6 +1017,123 @@ function wireFlow(dyn){
 
 const WIRE = { 12: wireSlider, 13: wireDice, 15: wireCrowd, 22: wireFlow };
 
+
+// ════════════════════════════════════════════════
+// NEW RISK DISPLAYS — versions 23–30 (all show the same per-100 quantity
+// so the comprehension questions stay answerable across every condition).
+// Disease-name-neutral wording, so this block is identical in every study.
+// ════════════════════════════════════════════════
+
+// V24 — single 100-unit stacked bar per dose: infected vs stay-well in one track
+function stackedHTML(dyn){
+  return '<div class="rd-bars">'+TIERS.map(t=>{
+    const n=Math.round(dyn[t.key].exp*100), col=tierColor(t.cls);
+    return `<div class="rd-bar-row">
+      <div class="rd-bar-head ${t.cls}">${t.head}</div>
+      <div class="rd-bar-track" style="display:flex;height:18px">
+        <div style="width:${n}%;background:${col}"></div>
+        <div style="width:${100-n}%;background:#dcd9d0"></div>
+      </div>
+      <div class="rd-bar-val">${n} / ${100-n}</div>
+    </div>`;
+  }).join('')+'<p class="comp-desc" style="margin-top:8px">Each bar = 100 exposed children: coloured = infected, grey = stay well.</p></div>';
+}
+
+// V25 — person pictograph: 100 people per dose, filled to the number infected
+function pictoHTML(dyn){
+  return '<div class="comp-grid3">'+TIERS.map(t=>{
+    const n=Math.max(0,Math.min(100,Math.round(dyn[t.key].exp*100))), col=tierColor(t.cls);
+    let ppl='';
+    for(let i=0;i<100;i++) ppl+=`<span style="color:${i<n?col:'#d8d5cc'};line-height:0">${personSVG()}</span>`;
+    return `<div class="comp-card ${t.cls}" style="text-align:center">
+      <div class="comp-head ${t.cls}">${t.head}</div>
+      <div style="display:grid;grid-template-columns:repeat(10,1fr);gap:2px;max-width:120px;margin:8px auto">${ppl}</div>
+      <div class="comp-big ${t.cls}" style="font-size:18px">${n} in 100</div>
+      <div class="comp-desc">infected if exposed</div></div>`;
+  }).join('')+'</div>';
+}
+
+// V26 — lollipop / dot-plot chart of the three dose levels
+function lollipopHTML(dyn){
+  const W=380,H=200,padL=96,padR=44,padT=18,padB=24,rowH=(H-padT-padB)/3;
+  const X=v=>padL+(W-padL-padR)*(v/100);
+  let s=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:460px">`;
+  [0,25,50,75,100].forEach(g=>{const x=X(g).toFixed(1);
+    s+=`<line x1="${x}" y1="${padT}" x2="${x}" y2="${H-padB}" stroke="#eee"/>`;
+    s+=`<text x="${x}" y="${H-8}" text-anchor="middle" font-size="10" fill="#9a9a9a">${g}</text>`;});
+  TIERS.forEach((t,i)=>{const n=Math.round(dyn[t.key].exp*100),col=tierColor(t.cls),y=(padT+rowH*i+rowH/2);
+    s+=`<text x="${padL-8}" y="${(y+4).toFixed(1)}" text-anchor="end" font-size="12" font-weight="700" fill="${col}">${t.head}</text>`;
+    s+=`<line x1="${padL}" y1="${y.toFixed(1)}" x2="${X(n).toFixed(1)}" y2="${y.toFixed(1)}" stroke="${col}" stroke-width="3"/>`;
+    s+=`<circle cx="${X(n).toFixed(1)}" cy="${y.toFixed(1)}" r="9" fill="${col}"/>`;
+    s+=`<text x="${(X(n)+15).toFixed(1)}" y="${(y+4).toFixed(1)}" font-size="13" font-weight="800" fill="${col}">${n}</text>`;});
+  s+='</svg>';
+  return `<div class="rd-tree">${s}<p class="comp-desc">Infected out of 100 exposed children, by number of doses.</p></div>`;
+}
+
+// V27 — filled pie / wedge charts (share of 100 exposed who get infected)
+function pieHTML(dyn){
+  return '<div class="comp-grid3">'+TIERS.map(t=>{
+    const p=Math.max(0,Math.min(1,dyn[t.key].exp)), col=tierColor(t.cls), n=Math.round(p*100), r=34,cx=40,cy=40;
+    const ang=2*Math.PI*p, lx=cx+r*Math.sin(ang), ly=cy-r*Math.cos(ang), large=p>0.5?1:0;
+    let wedge = p<=0 ? '' : p>=1 ? `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${col}"/>`
+      : `<path d="M ${cx} ${cy} L ${cx} ${cy-r} A ${r} ${r} 0 ${large} 1 ${lx.toFixed(2)} ${ly.toFixed(2)} Z" fill="${col}"/>`;
+    let s=`<svg viewBox="0 0 80 80" width="80" height="80" style="margin:6px auto;display:block">`
+      +`<circle cx="${cx}" cy="${cy}" r="${r}" fill="#e3e0d7"/>${wedge}`
+      +`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#fff" stroke-width="1"/></svg>`;
+    return `<div class="comp-card ${t.cls}" style="text-align:center"><div class="comp-head ${t.cls}">${t.head}</div>${s}`
+      +`<div class="comp-big ${t.cls}" style="font-size:18px">${n} in 100</div><div class="comp-desc">infected if exposed</div></div>`;
+  }).join('')+'</div>';
+}
+
+// V28 — gradient risk meter: one low→high bar with the three doses marked on it
+function meterHTML(dyn){
+  const W=380,H=150,padL=22,padR=22,barY=64,barH=26,x0=padL,x1=W-padR;
+  const X=v=>x0+(x1-x0)*(v/100);
+  let s=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:460px">`
+    +`<defs><linearGradient id="rg" x1="0" x2="1"><stop offset="0" stop-color="#00703c"/><stop offset="0.5" stop-color="#c8923a"/><stop offset="1" stop-color="#8C3A2B"/></linearGradient></defs>`
+    +`<rect x="${x0}" y="${barY}" width="${x1-x0}" height="${barH}" rx="13" fill="url(#rg)"/>`
+    +`<text x="${x0}" y="${barY+barH+16}" font-size="11" fill="#00703c">low risk (0)</text>`
+    +`<text x="${x1}" y="${barY+barH+16}" text-anchor="end" font-size="11" fill="#8C3A2B">high risk (100)</text>`;
+  TIERS.forEach((t,i)=>{const n=Math.round(dyn[t.key].exp*100),x=X(n),col=tierColor(t.cls),ly=barY-16-i*15;
+    s+=`<line x1="${x.toFixed(1)}" y1="${barY-4}" x2="${x.toFixed(1)}" y2="${barY+barH+4}" stroke="#333" stroke-width="1.5"/>`
+      +`<polygon points="${x.toFixed(1)},${barY-4} ${(x-5).toFixed(1)},${barY-13} ${(x+5).toFixed(1)},${barY-13}" fill="#333"/>`
+      +`<text x="${Math.min(x1-2,Math.max(x0,x)).toFixed(1)}" y="${ly}" text-anchor="middle" font-size="11.5" font-weight="800" fill="${col}">${t.head}: ${n}</text>`;});
+  s+='</svg>';
+  return `<div class="rd-tree">${s}<p class="comp-desc">Chance of infection if exposed (out of 100), placed on a low→high scale.</p></div>`;
+}
+
+// V29 — nested squares: coloured area is proportional to the number infected
+function nestedHTML(dyn){
+  return '<div class="comp-grid3">'+TIERS.map(t=>{
+    const p=Math.max(0,Math.min(1,dyn[t.key].exp)), col=tierColor(t.cls), n=Math.round(p*100);
+    const S=76, inner=S*Math.sqrt(p), off=(S-inner)/2;
+    let s=`<svg viewBox="0 0 ${S} ${S}" width="${S}" height="${S}" style="margin:8px auto;display:block">`
+      +`<rect x="0.5" y="0.5" width="${S-1}" height="${S-1}" fill="#e3e0d7" stroke="#cfccc3"/>`
+      +`<rect x="${off.toFixed(1)}" y="${off.toFixed(1)}" width="${inner.toFixed(1)}" height="${inner.toFixed(1)}" fill="${col}"/></svg>`;
+    return `<div class="comp-card ${t.cls}" style="text-align:center"><div class="comp-head ${t.cls}">${t.head}</div>${s}`
+      +`<div class="comp-big ${t.cls}" style="font-size:18px">${n} in 100</div><div class="comp-desc">coloured area = infected share</div></div>`;
+  }).join('')+'</div>';
+}
+
+// V30 — tally-mark frequency count: one mark per infected child, in bundles of 5
+function tallyHTML(dyn){
+  return '<div class="rd-bars">'+TIERS.map(t=>{
+    const n=Math.round(dyn[t.key].exp*100), col=tierColor(t.cls);
+    const bundles=Math.floor(n/5), rem=n%5, groups=bundles+(rem>0?1:0);
+    const gw=22, gh=26, perRow=10, rows=Math.max(1,Math.ceil(groups/perRow));
+    const W=perRow*gw+8, H=rows*gh+8;
+    let s=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:${W}px">`;
+    for(let g=0;g<groups;g++){
+      const cnt=(g<bundles)?5:rem, gx=8+(g%perRow)*gw, gy=6+Math.floor(g/perRow)*gh;
+      for(let k=0;k<Math.min(cnt,4);k++) s+=`<line x1="${gx+k*4}" y1="${gy}" x2="${gx+k*4}" y2="${gy+18}" stroke="${col}" stroke-width="2"/>`;
+      if(cnt===5) s+=`<line x1="${gx-2}" y1="${gy+18}" x2="${gx+14}" y2="${gy}" stroke="${col}" stroke-width="2"/>`;
+    }
+    s+='</svg>';
+    return `<div style="margin:10px 0"><div class="rd-bar-head ${t.cls}" style="margin-bottom:2px">${t.head} — <span style="color:${col}">${n} in 100</span></div>${s}</div>`;
+  }).join('')+'<p class="comp-desc">Each mark = one of 100 exposed children who gets infected.</p></div>';
+}
+
+
 const RISK_VERSIONS = {
   1:  (dyn)    => cardsHTML(dyn, fmt1inN, fmtChance),    // natural frequencies (baseline)
   2:  (dyn)    => iconArrayHTML(dyn),                    // icon array (100 people)
@@ -1035,6 +1152,14 @@ const RISK_VERSIONS = {
   15: (dyn)    => crowdHTML(),                           // crowd scene of 100, dose toggle
   21: (dyn)    => thermoHTML(dyn),                       // thermometer
   22: (dyn)    => flowHTML(),                            // flow / sankey (dose toggle)
+  23: (dyn)    => ladderHTML(dyn),                      // risk ladder (vertical low→high scale)
+  24: (dyn)    => stackedHTML(dyn),                     // single 100-unit stacked bar per dose
+  25: (dyn)    => pictoHTML(dyn),                       // person pictograph (100 people)
+  26: (dyn)    => lollipopHTML(dyn),                    // lollipop / dot-plot chart
+  27: (dyn)    => pieHTML(dyn),                         // filled pie charts
+  28: (dyn)    => meterHTML(dyn),                       // gradient risk meter with markers
+  29: (dyn)    => nestedHTML(dyn),                      // nested-square area proportion
+  30: (dyn)    => tallyHTML(dyn),                       // tally-mark frequency count
 };
 
 function renderRiskDisplay(dyn, d){
@@ -1071,7 +1196,7 @@ let GEO = null, UTLA = null, CASES = null;
 const APP_VERSION = (function(){
   const m = location.pathname.match(/\/(\d{1,2})\/?$/);
   const n = m ? parseInt(m[1],10) : 0;
-  return (n>=1 && n<=25) ? n : 0;      // 0 = root (baseline)
+  return (n>=1 && n<=30) ? n : 0;      // 0 = root (baseline)
 })();
 const DATA_BASE = APP_VERSION ? "../" : "";   // data files live at the repo root
 let STATE = { code: null, disease: "mmr2", districtName: null, placeName: null, placeType: null };

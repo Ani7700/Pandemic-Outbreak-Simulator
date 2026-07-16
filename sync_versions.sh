@@ -3,7 +3,7 @@
 # Each copy auto-detects its version from its URL path, so the files are identical.
 # Run this after editing index.html (specifically the RISK_VERSIONS block).
 cd "$(dirname "$0")" || exit 1
-for n in $(seq 1 25); do
+for n in $(seq 1 30); do
   if [ -d "$n" ]; then
     cp index.html "$n/index.html"
     echo "synced -> $n/index.html"
@@ -18,7 +18,7 @@ for d in baseline; do
   fi
 done
 # Tarnpox study: 22 interface versions are copies of tarnpox/index.html.
-for n in $(seq 1 25); do
+for n in $(seq 1 30); do
   if [ -d "tarnpox/$n" ]; then
     cp tarnpox/index.html "tarnpox/$n/index.html"
     echo "synced -> tarnpox/$n/index.html"
@@ -30,7 +30,7 @@ if [ -d tarnpox/baseline ]; then
   echo "synced -> tarnpox/baseline/index.html"
 fi
 # Solvik study: 22 interface versions are copies of solvik/index.html.
-for n in $(seq 1 25); do
+for n in $(seq 1 30); do
   if [ -d "solvik/$n" ]; then
     cp solvik/index.html "solvik/$n/index.html"
     echo "synced -> solvik/$n/index.html"

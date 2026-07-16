@@ -86,7 +86,7 @@
 
 <script>
 const ENDPOINT = "https://script.google.com/macros/s/AKfycbxKZUDuws3kNB6snxzE-lUPqllb4P1paQPXWQ0JbCoLmnS1qT6Eya4JFOsnmvfTrl-g/exec"; // <- your Google Apps Script URL
-const N_VERSIONS = 22;
+const N_VERSIONS = 30;
 const $ = id => document.getElementById(id);
 const P = new URLSearchParams(location.search);
 
@@ -158,11 +158,12 @@ const BLOCKS = [
      ["Fully protected","Still a meaningful chance","Not sure"],1),
    RADIO("D2","Compared with a child who has had 1 dose, a child who has had 2 doses is…",
      ["More likely to catch it","About the same","Less likely to catch it","Not sure"],2),
-   // ── Future trend / outbreak projection (ordered easy → harder) ──
-   RADIO("F1","Over the next 6 months, if an outbreak started here, how would the number of people infected change over time?",
-     ["It keeps rising for the whole 6 months","It rises to a peak and then falls again","It stays completely flat","Not sure"],1),
-   RADIO("F2","An outbreak projection gives a most-likely path plus a range around it. What does that range represent?",
-     ["How uncertain the projection is — the range of possible outcomes","The number of deaths","The area's vaccination coverage","Not sure"],0),
+   // ── Reading Cambridge's outbreak projection: peak timing, then peak size ──
+   RADIO("Fpeaktime","Look at Cambridge's 6-month outbreak projection (the curve, and the summary line just beneath it). About WHEN does the number of people infected reach its highest point?",
+     ["Around month 1","Around month 2","Around month 3 or 4","Around month 5 or 6","Not sure"],0),
+   RADIO("Fpeakht","In Cambridge's 6-month projection, about how many people are infected at the PEAK (the highest point of the curve)?",
+     ["About 1,000","About 11,000","About 110,000","About 400,000","Not sure"],2),
+   // ── Outbreak projection: what kind of thing it is (conceptual) ──
    RADIO("F3","The outbreak projection is best described as…",
      ["A record of cases that already happened","A guaranteed prediction of exactly what will happen","A model of what could happen if an outbreak started here","Not sure"],2),
  ]},
