@@ -29,4 +29,16 @@ if [ -d tarnpox/baseline ]; then
   cp tarnpox/survey.html tarnpox/baseline/index.html
   echo "synced -> tarnpox/baseline/index.html"
 fi
+# Miral study: 22 interface versions are copies of miral/index.html.
+for n in $(seq 1 25); do
+  if [ -d "miral/$n" ]; then
+    cp miral/index.html "miral/$n/index.html"
+    echo "synced -> miral/$n/index.html"
+  fi
+done
+# Miral baseline survey is the same file as miral/survey.html.
+if [ -d miral/baseline ]; then
+  cp miral/survey.html miral/baseline/index.html
+  echo "synced -> miral/baseline/index.html"
+fi
 echo "done. (create a new version folder with: mkdir N)"
