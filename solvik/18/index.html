@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Miral fever — vaccination study</title>
+<title>Solvik — vaccination study</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#fbfbfd">
 <meta name="mobile-web-app-capable" content="yes">
@@ -322,7 +322,7 @@ body{
 .wiz-btn.primary{background:var(--accent);color:#fff;border-color:var(--accent);}
 .wiz-btn:disabled{opacity:.45;cursor:not-allowed;}
 
-/* On-map label pinned to the selected area (shows Miral fever cases there) */
+/* On-map label pinned to the selected area (shows Solvik cases there) */
 .map-label{background:none;border:none;}
 .map-label .ml-inner{transform:translate(-50%,-50%);background:rgba(255,255,255,.96);
   border:1px solid var(--line);border-radius:12px;padding:7px 13px;text-align:center;white-space:nowrap;
@@ -511,8 +511,8 @@ body{
 <div class="topbar">
   <div class="topbar-inner">
     <div class="brand">
-      Miral fever Vaccination Risk
-      <span>UK Miral fever Coverage Checker</span>
+      Solvik Vaccination Risk
+      <span>UK Solvik Coverage Checker</span>
     </div>
   </div>
 </div>
@@ -535,7 +535,7 @@ body{
       <!-- Stage 1: one combined search (postcode OR place name) -->
       <div class="pc-section">
         <p class="panel-title">How protected is your area?</p>
-        <p class="panel-sub">Enter a postcode, town or council to see local Miral fever vaccination coverage and outbreak risk.</p>
+        <p class="panel-sub">Enter a postcode, town or council to see local Solvik vaccination coverage and outbreak risk.</p>
 
         <div class="search-wrap">
           <div class="pc-row">
@@ -563,22 +563,22 @@ body{
           <div class="district-note" id="district-note" style="display:none"></div>
         </div>
 
-        <!-- Miral fever only (map shows 2nd-dose / 2nd-dose coverage) -->
+        <!-- Solvik only (map shows 2nd-dose / 2nd-dose coverage) -->
         <div class="disease-row" id="disease-row">
-          <span class="disease-tag">Miral fever</span>
+          <span class="disease-tag">Solvik</span>
         </div>
 
         <!-- Risk badge -->
         <div class="risk-badge" id="risk-badge">
           <div class="risk-dot" id="risk-dot"></div>
           <div class="risk-label-wrap">
-            <div class="risk-label">Community Miral fever risk</div>
+            <div class="risk-label">Community Solvik risk</div>
             <div class="risk-level" id="risk-level">—</div>
           </div>
         </div>
 
         <!-- Risk for your child — rendered per interface VERSION (uncertainty display) -->
-        <div class="comparison-label">Your child's chance of catching Miral fever</div>
+        <div class="comparison-label">Your child's chance of catching Solvik</div>
         <div id="risk-display"></div>
 
         <!-- Local outbreak projection (simulator) — legend + note are baked into the chart -->
@@ -618,7 +618,7 @@ body{
         <span>98%</span>
       </div>
       <div class="legend-tick" id="legend-tick">
-        <span>low coverage — higher Miral fever risk</span>
+        <span>low coverage — higher Solvik risk</span>
         <span id="thresh-label">herd immunity threshold ≈ 89%</span>
       </div>
       <!-- Selected-area coverage bar (moved here from the risk page) -->
@@ -648,19 +648,19 @@ body{
 // ════════════════════════════════════════════════
 // Data & constants
 // ════════════════════════════════════════════════
-// Only Miral fever now. 2nd dose = 2nd dose, 1st dose = 1st dose of the SAME vaccine
-// against Miral fever. The two entries differ only in which coverage field/label
-// the map shows; the disease is Miral fever in both cases.
+// Only Solvik now. 2nd dose = 2nd dose, 1st dose = 1st dose of the SAME vaccine
+// against Solvik. The two entries differ only in which coverage field/label
+// the map shows; the disease is Solvik in both cases.
 const DISEASES = {
   mmr2:{
     label:"2nd dose", field:"mmr2", herd:0.89, herdLabel:"herd immunity ≈ 89%",
     unvaccComplications:["1 in 15 develop pneumonia","1 in 1,000 get brain inflammation"],
-    unprotectedLabel:"Miral fever",
+    unprotectedLabel:"Solvik",
   },
   mmr1:{
     label:"1st dose", field:"mmr1", herd:0.89, herdLabel:"herd immunity ≈ 89%",
     unvaccComplications:["1 in 15 develop pneumonia","1 in 1,000 get brain inflammation"],
-    unprotectedLabel:"Miral fever",
+    unprotectedLabel:"Solvik",
   },
 };
 
@@ -668,15 +668,15 @@ const DISEASES = {
 // FICTIONAL parameters for a hypothetical disease — not calibrated to any real data
 // base5yr = estimated 5-year cumulative risk for an UNVACCINATED child
 //           at the national-average coverage level
-// Single Miral fever parameter set (no more per-vaccine "diseases").
-//   ve1 / ve2 = vaccine efficacy after the 1st / 2nd Miral vaccine dose
+// Single Solvik parameter set (no more per-vaccine "diseases").
+//   ve1 / ve2 = vaccine efficacy after the 1st / 2nd Solvik vaccine dose
 //   sar       = secondary attack rate among susceptibles (per-exposure)
-//   base5yr   = 5-year cumulative Miral fever risk for an UNVACCINATED child at
+//   base5yr   = 5-year cumulative Solvik risk for an UNVACCINATED child at
 //               national-average coverage; natCov = national 2nd-dose coverage
-// FICTIONAL parameters for a hypothetical disease ("Miral fever") — not real.
+// FICTIONAL parameters for a hypothetical disease ("Solvik") — not real.
 const MEASLES = { R0: 8, natCov: 0.83, base5yr: 0.0012, sar: 0.50, ve1: 0.60, ve2: 0.90 };
 
-// Annual Miral fever risk for an UNVACCINATED child at a given 2-dose coverage.
+// Annual Solvik risk for an UNVACCINATED child at a given 2-dose coverage.
 function annualUnvaccAt(cov){
   const M = MEASLES, c = Math.min(cov, 0.999);
   const s_local = (1 - c) + c * (1 - M.ve2);
@@ -810,7 +810,7 @@ function treeHTML(dyn){
 function tableHTML(dyn){
   const rows=TIERS.map(t=>{const d=dyn[t.key],inf=Math.round(d.exp*100);
     return `<tr><td class="rd-th">${t.head}</td><td style="color:${tierColor(t.cls)};font-weight:800">${inf}</td><td>${100-inf}</td></tr>`;}).join('');
-  return `<table class="rd-table"><caption>Out of 100 children exposed to a Miral fever case:</caption>
+  return `<table class="rd-table"><caption>Out of 100 children exposed to a Solvik case:</caption>
     <thead><tr><th></th><th>infected</th><th>stay well</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 
@@ -865,7 +865,7 @@ function colorScaleHTML(dyn){
 function controlHTML(dyn){
   return '<div class="rd-plain">'+TIERS.map(t=>{
     const n=Math.round(dyn[t.key].exp*100);
-    return `<div class="rd-plain-row"><span class="rd-plain-head">${t.head}:</span> about ${n} out of 100 children catch Miral fever if exposed to a case</div>`;
+    return `<div class="rd-plain-row"><span class="rd-plain-head">${t.head}:</span> about ${n} out of 100 children catch Solvik if exposed to a case</div>`;
   }).join('')+'</div>';
 }
 
@@ -911,26 +911,26 @@ function diceHTML(){
     <div class="dc-controls">
       <label>Vaccination: <select id="dice-dose"><option value="0">No doses</option><option value="1">1 dose</option><option value="2">2 doses</option></select></label>
       <button id="dice-roll">See one exposed child →</button></div>
-    <div class="dc-result" id="dice-result">Press the button to simulate one child exposed to Miral fever.</div>
+    <div class="dc-result" id="dice-result">Press the button to simulate one child exposed to Solvik.</div>
     <div class="dc-tally" id="dice-tally"></div></div>`;
 }
 function wireDice(dyn){
   const sel=$("dice-dose"), btn=$("dice-roll"), res=$("dice-result"), tal=$("dice-tally");
   if(!btn) return;
   const keys=["unvacc","dose1","dose2"]; let inf=0,tot=0;
-  const reset=()=>{inf=0;tot=0;tal.textContent="";res.textContent="Press the button to simulate one child exposed to Miral fever.";};
+  const reset=()=>{inf=0;tot=0;tal.textContent="";res.textContent="Press the button to simulate one child exposed to Solvik.";};
   sel.addEventListener("change",reset);
   btn.addEventListener("click",()=>{const p=dyn[keys[+sel.value]].exp,hit=Math.random()<p; tot++; if(hit)inf++;
-    res.innerHTML=hit?'<span style="color:#8C3A2B;font-weight:800">● This child caught Miral fever</span>'
+    res.innerHTML=hit?'<span style="color:#8C3A2B;font-weight:800">● This child caught Solvik</span>'
                      :'<span style="color:#00703c;font-weight:800">● This child stayed well</span>';
-    tal.textContent=`So far: ${inf} caught Miral fever out of ${tot} children`;});
+    tal.textContent=`So far: ${inf} caught Solvik out of ${tot} children`;});
 }
 
 // V14 — everyday analogy: a class of 30 children
 function analogyHTML(dyn){
   return '<div class="rd-analogy">'+TIERS.map(t=>{const n=Math.round(dyn[t.key].exp*30);
     return `<div class="an-row"><div class="an-head ${t.cls}">${t.head}</div>
-      <div class="an-txt">In a class of 30 exposed children, about <strong style="color:${tierColor(t.cls)}">${n}</strong> would catch Miral fever.</div></div>`;}).join('')
+      <div class="an-txt">In a class of 30 exposed children, about <strong style="color:${tierColor(t.cls)}">${n}</strong> would catch Solvik.</div></div>`;}).join('')
     +'</div>';
 }
 
@@ -947,7 +947,7 @@ function wireCrowd(dyn){
   const keys=["unvacc","dose1","dose2"];
   const draw=i=>{const n=Math.round(dyn[keys[i]].exp*100),col=tierColor(TIERS[i].cls);
     let h=''; for(let k=0;k<100;k++) h+=`<span class="cr-p${k<n?' inf':''}" style="${k<n?'color:'+col:''}">${personSVG()}</span>`;
-    scene.innerHTML=h; cap.innerHTML=`Out of 100 children exposed to a case, <strong style="color:${col}">${n}</strong> catch Miral fever.`;};
+    scene.innerHTML=h; cap.innerHTML=`Out of 100 children exposed to a case, <strong style="color:${col}">${n}</strong> catch Solvik.`;};
   tog.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{
     tog.querySelectorAll("button").forEach(x=>x.classList.remove("active")); b.classList.add("active"); draw(+b.dataset.i);}));
   draw(0);
@@ -1007,7 +1007,7 @@ function wireFlow(dyn){
     s+=`<text x="${dx+8}" y="${((iD0+iD1)/2+4).toFixed(1)}" font-size="14" font-weight="800" fill="${col}">${n} infected</text>`;
     s+=`<text x="${dx+8}" y="${((sD0+sD1)/2+4).toFixed(1)}" font-size="14" fill="#6e6e73">${m} stay well</text>`;
     s+='</svg>';
-    scene.innerHTML=s; cap.textContent="Of 100 children exposed to a Miral fever case";
+    scene.innerHTML=s; cap.textContent="Of 100 children exposed to a Solvik case";
   };
   tog.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{
     tog.querySelectorAll("button").forEach(x=>x.classList.remove("active")); b.classList.add("active"); draw(+b.dataset.i);}));
@@ -1060,7 +1060,7 @@ function exposureNote(c, areaName) {
   if (c >= 0.93) return `Community protection is strong in ${areaName}. Even unvaccinated children have some herd protection — but remain personally at risk.`;
   if (c >= 0.88) return `${areaName} is approaching the herd immunity threshold. Unvaccinated children face meaningful exposure risk during any local outbreak.`;
   if (c >= 0.83) return `Coverage in ${areaName} is below the threshold. Unvaccinated children are at elevated risk — community protection has significant gaps.`;
-  return `Coverage in ${areaName} is well below safe levels. Unvaccinated children face a HIGH probability of exposure if Miral fever enters the community.`;
+  return `Coverage in ${areaName} is well below safe levels. Unvaccinated children face a HIGH probability of exposure if Solvik enters the community.`;
 }
 
 let GEO = null, UTLA = null, CASES = null;
@@ -1080,7 +1080,7 @@ const $ = id => document.getElementById(id);
 // ════════════════════════════════════════════════
 // Bootstrap
 // ════════════════════════════════════════════════
-// Current Miral fever case counts (non-blocking — page works without it)
+// Current Solvik case counts (non-blocking — page works without it)
 fetch(DATA_BASE+"measles_cases.json").then(r=>r.json()).then(j=>{
   CASES=j;
   if(STATE.code) renderRisk();
@@ -1282,7 +1282,7 @@ function buildCaseTable(){
   const box=$("map-table"); if(!box||!CASES) return;
   const name2code={}; Object.entries(UTLA).forEach(([code,d])=>name2code[d.name]=code);
   const rows=Object.entries(CASES.byUTLA).sort((a,b)=>b[1]-a[1]);
-  box.innerHTML='<table class="rank-table"><caption>Confirmed Miral fever cases by area (past ~6 months)</caption>'
+  box.innerHTML='<table class="rank-table"><caption>Confirmed Solvik cases by area (past ~6 months)</caption>'
     +'<thead><tr><th>#</th><th>Area</th><th>Region</th><th>Cases</th></tr></thead><tbody>'
     + rows.map(([nm,n],i)=>{const code=name2code[nm], reg=code&&UTLA[code]?UTLA[code].region:"";
         return `<tr data-code="${code||''}"><td>${i+1}</td><td class="rk-name">${nm}</td><td>${reg}</td><td class="rk-n">${n}</td></tr>`;}).join('')
@@ -1301,7 +1301,7 @@ function updateLegend(){
   if(MAP_MODE==="cases"){
     if(bar) bar.style.background="linear-gradient(to right,#f4ead9,#f0b07a,#7a1f12)";
     if(spans[0])spans[0].textContent="few"; if(spans[1])spans[1].textContent="many";
-    setTick("colour = confirmed Miral fever cases (past ~6 months)");
+    setTick("colour = confirmed Solvik cases (past ~6 months)");
   } else if(MAP_MODE==="threshold"){
     if(bar) bar.style.background="linear-gradient(to right,#d4351c 50%,#00703c 50%)";
     if(spans[0])spans[0].textContent="below 89%"; if(spans[1])spans[1].textContent="89%+";
@@ -1312,7 +1312,7 @@ function updateLegend(){
     setTick("red = below the national average coverage · green = above");
   } else if(MAP_MODE==="dots"){
     if(legend) legend.style.display="none";
-    setTick("each dot = an area with confirmed Miral fever cases (bigger = more)");
+    setTick("each dot = an area with confirmed Solvik cases (bigger = more)");
   }
 }
 
@@ -1325,7 +1325,7 @@ function showTT(e,code,d){
   if(CASES){
     const uc=CASES.byUTLA[d.name];
     const txt = uc!=null ? `${uc.toLocaleString()}` : "no data";
-    casesLine = `<br>Miral fever cases: <span class="num">${txt}</span>`;
+    casesLine = `<br>Solvik cases: <span class="num">${txt}</span>`;
   }
   tt.innerHTML=`<b>${d.name}</b><br>${dis.label} coverage: <span class="num">${vs}</span>${approx}${casesLine}`;
   tt.style.opacity=1; moveTT(e);
@@ -1372,16 +1372,16 @@ function selectUTLA(code, keepDistrict){
   renderRisk();
 }
 
-// Pin a Miral fever-case label onto the selected area, at its centre on the map.
+// Pin a Solvik-case label onto the selected area, at its centre on the map.
 function placeMapLabel(center, d){
   if(LABEL && LMAP){ LMAP.removeLayer(LABEL); LABEL=null; }
   if(MAP_MODE==="cases" || MAP_MODE==="table") return;   // colour/table conveys cases instead
   if(!center || !d || !LMAP) return;
-  let big="—", sub="Miral fever cases", range="";
+  let big="—", sub="Solvik cases", range="";
   if(CASES){
     const uc=CASES.byUTLA[d.name];
     if(uc!=null){                       // this area's own exact count
-      big=uc.toLocaleString(); sub="Miral fever cases here";
+      big=uc.toLocaleString(); sub="Solvik cases here";
     } else {
       big="—"; sub="no case data";
     }

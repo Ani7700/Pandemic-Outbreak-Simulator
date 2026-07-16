@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Miral fever: briefing & assistant</title>
+<title>Solvik: briefing & assistant</title>
 <style>
   :root{
     --ink:#1d1d1f; --muted:#6e6e73; --line:#d9d7d0; --paper:#faf9f6;
@@ -59,13 +59,13 @@
 
   <!-- ══ LEFT: prose briefing (contains every answer, woven into the text) ══ -->
   <div class="left">
-    <h1>Miral fever: a short briefing</h1>
+    <h1>Solvik: a short briefing</h1>
 
-    <p>Miral fever is a contagious childhood disease that a two-dose vaccine can prevent. The fewer children an area has vaccinated, the more freely it spreads. There is a tipping point called herd immunity, the level at which the disease can no longer sustain itself, and for Miral fever that takes roughly 89% of children having had both doses.</p>
+    <p>Solvik is a contagious childhood disease that a two-dose vaccine can prevent. The fewer children an area has vaccinated, the more freely it spreads. There is a tipping point called herd immunity, the level at which the disease can no longer sustain itself, and for Solvik that takes roughly 89% of children having had both doses.</p>
 
     <p>Cambridgeshire is in a fairly comfortable position. Ninety per cent of its children have had the second dose and ninety-three per cent the first, which puts it just above that 89% mark. Only around twenty-eight cases have surfaced there in the past six months, few when set against the worst affected places, so its community risk is judged to be no more than medium.</p>
 
-    <p>Hackney reads very differently. Only seventy-one per cent of its children have completed the second dose, and eighty per cent the first, which leaves the borough well below the herd-immunity threshold. It has already recorded about eighty-five cases in six months, among the higher counts anywhere, and its community risk is rated very high. Of the two places, then, Cambridgeshire is the better vaccinated, while Hackney carries both the greater case load and, for an unvaccinated child, the greater chance of catching Miral fever over a year.</p>
+    <p>Hackney reads very differently. Only seventy-one per cent of its children have completed the second dose, and eighty per cent the first, which leaves the borough well below the herd-immunity threshold. It has already recorded about eighty-five cases in six months, among the higher counts anywhere, and its community risk is rated very high. Of the two places, then, Cambridgeshire is the better vaccinated, while Hackney carries both the greater case load and, for an unvaccinated child, the greater chance of catching Solvik over a year.</p>
 
     <p>Whether an exposed child actually falls ill turns largely on their own doses. A child with none who meets a case has something like a five in ten chance of catching it. A single dose pulls that down to about two in ten, and both doses bring it to only around five in a hundred. The first dose does the heaviest lifting, since the fall from five in ten to two in ten outweighs the further drop to five in a hundred. Even so, no amount of vaccination erases the danger completely, and after two doses a small chance always lingers. In round numbers, of two hundred unvaccinated children all exposed, roughly one hundred would be infected, against about five of every hundred who had had both doses.</p>
 
@@ -167,16 +167,16 @@ function reply(intent){
   switch(intent){
     case "meta": return "I can’t tell you what to pick or whether an answer is right. But I can explain the ideas so you can work it out from the briefing on the left. What would you like to understand?";
     case "greeting": return "Happy to help you make sense of the briefing on the left. I can explain how herd immunity works, how the vaccine doses protect a child, how an area’s risk is judged, and how an outbreak unfolds. The figures for each area are in the briefing; ask and I’ll help you read and reason about them.";
-    case "what": return "Miral fever is a highly contagious disease, fictional for this study, prevented by a two-dose vaccine. The more children are vaccinated, the harder it spreads. The exact figures for each area are in the briefing on the left.";
+    case "what": return "Solvik is a highly contagious disease, fictional for this study, prevented by a two-dose vaccine. The more children are vaccinated, the harder it spreads. The exact figures for each area are in the briefing on the left.";
 
     // ── area facts (A_/B_) ──
     case "covval": return "The exact vaccination coverage figure for this area (second dose, and first dose) is stated in the briefing on the left. Read it off from there.";
-    case "herd": return "Herd immunity for Miral fever takes about 89% of children having had both doses. The briefing gives this area’s coverage; compare that figure with 89% to see whether it is above or below.";
+    case "herd": return "Herd immunity for Solvik takes about 89% of children having had both doses. The briefing gives this area’s coverage; compare that figure with 89% to see whether it is above or below.";
     case "risk": return "An area’s community risk level comes from two things: how far its coverage sits below the 89% mark, and how many cases it has. The briefing gives both for this area; put them together to work out the level.";
     case "cases": return "The briefing gives this area’s recent case count. To judge whether that is high or low, compare it with the other area and with the worst affected places.";
 
     // ── doses / exposure (C1–C5, D1–D2) ──
-    case "c1": return "The briefing gives the if-exposed chance of catching Miral fever for an unvaccinated child. See where that figure sits on a scale out of ten.";
+    case "c1": return "The briefing gives the if-exposed chance of catching Solvik for an unvaccinated child. See where that figure sits on a scale out of ten.";
     case "cdose2": return "The briefing gives the if-exposed chance for a child who has had both doses. Read it as a figure out of a hundred.";
     case "onedose": return "The briefing gives the if-exposed chance for a child with one dose. Compare it with the no-dose figure to see how big a difference one dose makes, and note whether a real chance still remains.";
     case "twovsone": return "Compare the one-dose and two-dose if-exposed figures in the briefing to see which child is less likely to catch it.";
@@ -185,12 +185,12 @@ function reply(intent){
     case "still": return "Look at the two-dose if-exposed figure in the briefing. Is it exactly zero, or a small number above zero?";
     case "whichdose": return "In the briefing, look at the drop from no doses to one dose, then from one dose to two doses. The bigger drop shows which dose gives most of the protection.";
     case "scale": return "Take the unvaccinated if-exposed chance from the briefing and scale it up to 200 children to get roughly how many would be infected.";
-    case "doses": return "The briefing gives the if-exposed chance of catching Miral fever for no doses, one dose and two doses. From those, notice which dose helps most, and that two doses still leave a small chance.";
+    case "doses": return "The briefing gives the if-exposed chance of catching Solvik for no doses, one dose and two doses. From those, notice which dose helps most, and that two doses still leave a small chance.";
 
     // ── which-area comparisons (XA–XD) ──
     case "xb": return "Compare the two areas’ coverage figures in the briefing; the higher figure is the better-vaccinated area.";
     case "xc": return "Compare the two areas’ recent case counts in the briefing to see which has more.";
-    case "xa": return "The area that is further below the 89% mark and has more cases is where an unvaccinated child is more likely to catch Miral fever over a year. Compare the two areas in the briefing.";
+    case "xa": return "The area that is further below the 89% mark and has more cases is where an unvaccinated child is more likely to catch Solvik over a year. Compare the two areas in the briefing.";
     case "xd": return "The area further below 89% coverage is where an outbreak would spread faster and reach a larger share of the population. Compare the two areas’ coverage in the briefing.";
     case "compare": return "Compare the two areas in the briefing on coverage and on case numbers. The one further below the 89% mark, with more cases, is the higher-risk area.";
 

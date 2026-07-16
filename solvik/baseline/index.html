@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Miral fever — vaccination study</title>
+<title>Solvik — vaccination study</title>
 <style>
   :root{--ink:#1d1d1f;--muted:#6e6e73;--line:#d2d2d7;--accent:#0071e3;--good:#00703c;--bad:#d4351c;}
   *{box-sizing:border-box;}
@@ -44,7 +44,7 @@
     <div class="card">
       <p class="muted">Participant Information Sheet</p>
       <p>Thank you for your interest in this study. Please read the following carefully before you decide whether to take part. The study evaluates a public-facing, interactive tool that visualises how childhood vaccination coverage in local areas affects the population-level spread of a childhood disease. The aim is to investigate how well different ways of presenting this information help people <strong>correctly and accurately understand</strong> what is shown. It is completed entirely online and takes about <strong>20–30 minutes</strong>.</p>
-      <p><strong>The data shown is fictional.</strong> The disease (called “Miral fever”), the vaccine, and all statistics shown — coverage, cases and risks — are entirely hypothetical. They are used only so the study measures how you <em>read</em> the information presented, not your knowledge of any real disease, and so that you cannot look up answers online. The areas and map are real UK locations, used only so the tool works. Nothing in this tool is a prediction about any real disease, vaccine or area, and nothing in it should be used to make real health decisions. For accurate information about childhood vaccination, please consult the NHS (<span style="white-space:nowrap">www.nhs.uk</span>) or your GP.</p>
+      <p><strong>The data shown is fictional.</strong> The disease (called “Solvik”), the vaccine, and all statistics shown — coverage, cases and risks — are entirely hypothetical. They are used only so the study measures how you <em>read</em> the information presented, not your knowledge of any real disease, and so that you cannot look up answers online. The areas and map are real UK locations, used only so the tool works. Nothing in this tool is a prediction about any real disease, vaccine or area, and nothing in it should be used to make real health decisions. For accurate information about childhood vaccination, please consult the NHS (<span style="white-space:nowrap">www.nhs.uk</span>) or your GP.</p>
       <p>Its only focus is how accurately you understand the information displayed. <strong>No questions are asked about your views, feelings, intentions, decisions or trust regarding vaccination</strong>, and no personally identifying information is collected. The study records only your answers to comprehension questions, usability ratings, and the time taken; these are stored anonymously and cannot be linked back to you. Participants who finish with a higher level of accuracy receive a bonus in addition to compensation.</p>
       <p><strong>Taking part is voluntary.</strong> You do not have to take part, and if you do you may withdraw at any time without giving a reason. You may also request deletion of your data up to <strong>two weeks</strong> after your session.</p>
       <p><strong>Who is organising the study.</strong> Ninghan Qi and Dr Miri Zilka, Department of Engineering, University of Cambridge (Principal Investigator: Dr Miri Zilka). The results will be written up as part of an MPhil dissertation and may be presented at conferences or published; results are reported for groups of participants and you will not be identified. Anonymised data may be used in future related research. This study has been reviewed by the Department of Engineering Research Ethics Committee. If you have any questions or concerns, contact Ninghan Qi at <span style="white-space:nowrap">nq221@cam.ac.uk</span>.</p>
@@ -135,24 +135,24 @@ const BLOCKS = [
      ["Above","Below","Exactly at the level","Not sure"],0),
    RADIO("A_cov_val","Roughly what was this area's 2nd-dose vaccination coverage?",
      ["About 70%","About 80%","About 90%","About 98%","Not sure"],2),
-   RADIO("A_cases","Does this area currently have a high or low number of Miral fever cases compared with other areas?",
+   RADIO("A_cases","Does this area currently have a high or low number of Solvik cases compared with other areas?",
      ["High","Low","About average","Not sure"],1),
-   RADIO("A_level","What is the community Miral fever risk level for this area?",RL,1),
-   RADIO("C1","If an unvaccinated child is exposed to a case of Miral fever, how likely are they to catch it?",
+   RADIO("A_level","What is the community Solvik risk level for this area?",RL,1),
+   RADIO("C1","If an unvaccinated child is exposed to a case of Solvik, how likely are they to catch it?",
      ["About 1 in 10","About 3 in 10","About half","About 8 in 10","Not sure"],2),
-   RADIO("C_dose2","About how many out of 100 children who have had BOTH doses would catch Miral fever if exposed to a case?",
+   RADIO("C_dose2","About how many out of 100 children who have had BOTH doses would catch Solvik if exposed to a case?",
      ["About 5","About 25","About 50","About 90","Not sure"],0),
-   RADIO("C2","Which child is LEAST likely to catch Miral fever?",
+   RADIO("C2","Which child is LEAST likely to catch Solvik?",
      ["A child with no doses","A child with 1 dose","A child with 2 doses","They are all equally likely","Not sure"],2),
    RADIO("C3","Compared with an unvaccinated child, a child who has had both doses is…",
-     ["About equally likely to catch Miral fever","A little less likely","Much less likely","More likely","Not sure"],2),
-   RADIO("C_still","A child who has had both doses — do they have NO chance at all of catching Miral fever, or still a small chance?",
+     ["About equally likely to catch Solvik","A little less likely","Much less likely","More likely","Not sure"],2),
+   RADIO("C_still","A child who has had both doses — do they have NO chance at all of catching Solvik, or still a small chance?",
      ["No chance at all","Still a small chance","Not sure"],1),
-   RADIO("C_onedose","Compared with no doses, does having just ONE dose make a big difference to the chance of catching Miral fever?",
+   RADIO("C_onedose","Compared with no doses, does having just ONE dose make a big difference to the chance of catching Solvik?",
      ["Yes, a big difference","Only a small difference","No difference","Not sure"],0),
-   RADIO("C4","Most of the protection against Miral fever comes from…",
+   RADIO("C4","Most of the protection against Solvik comes from…",
      ["The first dose","The second dose","Both equally","Not sure"],0),
-   RADIO("C5","If 200 unvaccinated children were all exposed to Miral fever, about how many would catch it?",
+   RADIO("C5","If 200 unvaccinated children were all exposed to Solvik, about how many would catch it?",
      ["About 20","About 100","About 160","About 195","Not sure"],1),
    RADIO("D1","If a child has had only the 1st dose and is exposed, are they fully protected, or do they still have a meaningful chance of catching it?",
      ["Fully protected","Still a meaningful chance","Not sure"],1),
@@ -175,17 +175,17 @@ const BLOCKS = [
      ["Above","Below","Exactly at the level","Not sure"],1),
    RADIO("B_cov_val","Roughly what was Hackney's 2nd-dose vaccination coverage?",
      ["About 55%","About 70%","About 85%","About 95%","Not sure"],1),
-   RADIO("B_cases","Does Hackney currently have a high or low number of Miral fever cases compared with other areas?",
+   RADIO("B_cases","Does Hackney currently have a high or low number of Solvik cases compared with other areas?",
      ["High","Low","About average","Not sure"],0),
-   RADIO("B_level","What is the community Miral fever risk level for Hackney?",RL,3),
-   RADIO("XA","Thinking about the two areas, in which is an UNVACCINATED child more likely to catch Miral fever over a year?",
+   RADIO("B_level","What is the community Solvik risk level for Hackney?",RL,3),
+   RADIO("XA","Thinking about the two areas, in which is an UNVACCINATED child more likely to catch Solvik over a year?",
      ["Cambridge / Cambridgeshire","Hackney (London)","About the same","Not sure"],1),
    RADIO("XB","Which of the two areas had the HIGHER vaccination coverage?",
      ["Cambridge / Cambridgeshire","Hackney (London)","About the same","Not sure"],0),
-   RADIO("XC","Which of the two areas currently has MORE Miral fever cases?",
+   RADIO("XC","Which of the two areas currently has MORE Solvik cases?",
      ["Cambridge / Cambridgeshire","Hackney (London)","About the same","Not sure"],1),
    // ── Hardest: link coverage to how an outbreak would unfold across the two areas ──
-   RADIO("XD","If Miral fever started spreading, in which area would an outbreak grow more quickly and reach a larger share of the population?",
+   RADIO("XD","If Solvik started spreading, in which area would an outbreak grow more quickly and reach a larger share of the population?",
      ["Cambridge / Cambridgeshire","Hackney (London)","About the same","Not sure"],1),
  ]},
  // ── Impression, load, views, background ──
@@ -249,7 +249,7 @@ function saveBlock(){
 }
 
 function buildRecord(){
-  const rec={participantId,study:"miral",condition,version:condition==="visual"?version:"",assignedUrl:toolURL,timestamp:new Date().toISOString(),
+  const rec={participantId,study:"solvik",condition,version:condition==="visual"?version:"",assignedUrl:toolURL,timestamp:new Date().toISOString(),
     seconds_total:Math.round((Date.now()-started)/1000),
     seconds_on_tool:toolStart?Math.round((Date.now()-toolStart)/1000):"",
     user_agent:navigator.userAgent};
@@ -284,7 +284,7 @@ function submit(rec){
 }
 function showDone(){
   $("s-survey").style.display="none"; $("s-done").style.display="block";
-  $("done-code").textContent="MIR-"+(condition==="baseline"?"BL":String(version).padStart(2,"0"))+"-"+participantId.slice(-4).toUpperCase();
+  $("done-code").textContent="SOL-"+(condition==="baseline"?"BL":String(version).padStart(2,"0"))+"-"+participantId.slice(-4).toUpperCase();
   $("done-note").textContent=ENDPOINT.startsWith("http")?"You can close this window.":"(Test mode: a data file was downloaded because no storage endpoint is set yet.)";
   window.scrollTo(0,0);
 }
