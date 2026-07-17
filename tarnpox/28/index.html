@@ -1253,6 +1253,12 @@ fetch(DATA_BASE+"measles_cases.json").then(r=>r.json()).then(j=>{
   s.onload=()=>{ CASEDOTS=window.__CASEDOTS__||CASEDOTS; initCaseDots(); };
   document.head.appendChild(s);
 })();
+// Precomputed outbreak projections (static; replaces the live simulator API).
+(function(){
+  const s=document.createElement("script"); s.src=DATA_BASE+"sim_projections.js";
+  s.onload=()=>{ const c=STATE.code; if(c && UTLA && UTLA[c]) runAreaSim(UTLA[c], UTLA[c].mmr2); };
+  document.head.appendChild(s);
+})();
 
 Promise.all([
   fetch(DATA_BASE+"utla.geojson").then(r=>r.json()),
@@ -1760,7 +1766,7 @@ const API_BASE = new URLSearchParams(location.search).get("api")
                  || "https://morl-simulator-api.onrender.com";
 
 // Warm the (free-tier) API on load so it isn't cold when the user reaches step 3.
-fetch(`${API_BASE}/health`).catch(()=>{});
+/* static build — no live API warmup */
 
 async function simulate({disease, region, population, coverage, days = 120, n_runs = 20}){
   const res = await fetch(`${API_BASE}/simulate`, {
@@ -1775,37 +1781,22 @@ async function simulate({disease, region, population, coverage, days = 120, n_ru
 }
 
 let SIM_SEQ = 0;  // guard against out-of-order responses when clicking fast
-async function runAreaSim(d, cov){
+function runAreaSim(d, cov){
   const sec = $("sim-section");
-  // Need a coverage AND a local population to run a local projection.
-  if(cov == null || !d || !d.pop){ sec.style.display = "none"; return; }
+  const proj = (window.__SIMPROJ__ && d) ? window.__SIMPROJ__[STATE.code] : null;
+  // Static, precomputed projection — deterministic and fixed per area (no live API).
+  if(cov == null || !d || !d.pop || !proj){ sec.style.display = "none"; return; }
   sec.style.display = "block";
-  $("sim-chart").style.display = "none";
-  // Status line is used ONLY for the loading and error states.
+  const sim = { I: proj };
+  drawSimChart(sim);
+  const peak = Math.max(...sim.I.med);
+  const peakDay = sim.I.med.indexOf(peak);
+  const peakMonth = Math.max(1, Math.round(peakDay/30));
   $("sim-status").style.display = "";
-  $("sim-status").textContent = "Modelling a possible local outbreak…";
-  const seq = ++SIM_SEQ;
-  try{
-    // Local projection: use THIS area's own population so the scale reflects
-    // the locality; 180 days ≈ the next 6 months.
-    const sim = await simulate({ disease: "mumps", population: d.pop, coverage: cov, days: 180 });
-    if(seq !== SIM_SEQ) return;  // a newer click superseded this one
-    drawSimChart(sim);
-    const peak = Math.max(...sim.I.med);
-    const peakDay = sim.I.med.indexOf(peak);
-    const peakMonth = Math.max(1, Math.round(peakDay/30));
-    $("sim-status").style.display = "";
-    $("sim-status").innerHTML =
-      `${d.name} · projected to peak at about `
-      + `<strong>${Math.round(peak).toLocaleString()}</strong> people infected around month <strong>${peakMonth}</strong>`;
-    $("sim-chart").style.display = "block";
-  }catch(e){
-    if(seq !== SIM_SEQ) return;
-    // Graceful fallback: the static page still works without the API.
-    $("sim-status").style.display = "";
-    $("sim-status").textContent =
-      "The outbreak projection is temporarily unavailable. The coverage and risk figures above are unaffected.";
-  }
+  $("sim-status").innerHTML =
+    `${d.name} · projected to peak at about `
+    + `<strong>${Math.round(peak).toLocaleString()}</strong> people infected around month <strong>${peakMonth}</strong>`;
+  $("sim-chart").style.display = "block";
 }
 
 function drawSimChart(sim){
