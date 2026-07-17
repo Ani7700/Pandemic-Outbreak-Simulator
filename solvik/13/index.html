@@ -1369,7 +1369,7 @@ function renderMap(){
       layer.on({
         mouseover: e => { showTT(e.originalEvent, code, d); layer.setStyle({weight:4,color:"#003078"}); },
         mousemove: e => moveTT(e.originalEvent),
-        mouseout:  ()=> { hideTT(); if(STATE.code!==code) layer.setStyle({weight:2.5,color:"#111"}); },
+        mouseout:  ()=> { hideTT(); if(STATE.code!==code) layer.setStyle(styleFeature(layer.feature,false)); },
         click:     ()=> selectUTLA(code),
       });
     }
@@ -1389,11 +1389,12 @@ function renderMap(){
 
 function styleFeature(feature, selected){
   const code = feature.properties.code, d = UTLA[code];
+  const covMode = (MAP_MODE==="coverage");
   return {
     fillColor:   fillFor(d),
-    fillOpacity: d&&d.approx ? 0.40 : 0.60,
-    color:       selected ? "#003078" : "#111",
-    weight:      selected ? 4 : 2.5,
+    fillOpacity: covMode ? 0 : (d&&d.approx ? 0.40 : 0.60),
+    color:       selected ? "#003078" : (covMode ? "rgba(0,0,0,.32)" : "#111"),
+    weight:      selected ? 4 : (covMode ? 0.8 : 2.5),
     opacity:     1,
   };
 }
@@ -1503,6 +1504,12 @@ function updateLegend(){
         spans=document.querySelectorAll(".legend span"), tick=$("legend-tick");
   if(!tick) return;
   const setTick=t=>tick.innerHTML=`<span>${t}</span>`;
+  if(MAP_MODE==="coverage"){
+    if(bar) bar.style.display="none";
+    spans.forEach(s=>{ s.style.display="none"; });
+    setTick("each red dot = 1 confirmed case · use the switch to see the effect of higher coverage");
+    return;
+  }
   if(MAP_MODE==="cases"){
     if(bar) bar.style.background="linear-gradient(to right,#f4ead9,#f0b07a,#7a1f12)";
     if(spans[0])spans[0].textContent="few"; if(spans[1])spans[1].textContent="many";
