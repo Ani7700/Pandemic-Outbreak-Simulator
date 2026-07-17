@@ -509,6 +509,16 @@ body{
 #case-toggle button{border:0;background:transparent;font:inherit;font-size:13px;font-weight:600;color:#6e6e73;
   padding:6px 13px;border-radius:999px;cursor:pointer;white-space:nowrap;}
 #case-toggle button.on{background:#c0271a;color:#fff;}
+#case-panel{position:absolute;top:14px;left:14px;z-index:600;width:250px;max-width:calc(100% - 28px);
+  background:#111214;color:#f4f4f5;border:1px solid #2a2c30;border-radius:14px;padding:12px 13px;
+  box-shadow:0 8px 26px rgba(0,0,0,.35);display:none;font-family:inherit;}
+#case-panel .cp-search{border:1px solid #2a2c30;border-radius:9px;padding:7px 9px;margin-bottom:10px;}
+#case-panel .cp-search input{width:100%;border:0;background:transparent;color:#f4f4f5;font:inherit;font-size:14px;outline:none;}
+#case-panel .cp-search input::placeholder{color:#9a9ca1;}
+#case-panel .cp-name{font-size:22px;font-weight:800;line-height:1.1;color:#fff;}
+#case-panel .cp-deselect{display:inline-block;font-size:12.5px;color:#9a9ca1;text-decoration:underline;cursor:pointer;margin:3px 0 6px;}
+#case-panel .cp-lab{font-size:12.5px;color:#9a9ca1;margin-top:8px;}
+#case-panel .cp-num{font-size:30px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.05;color:#fff;}
 </style>
 </head>
 <body>
@@ -617,12 +627,21 @@ body{
     <div class="map-wrap" id="map-wrap">
       <div id="map" aria-label="Map of English local authorities. Click to view risk for any area."></div>
       <canvas id="case-canvas"></canvas>
+      <div id="case-panel">
+        <div class="cp-search"><input id="cp-search-input" type="text" placeholder="Type a name/postcode" autocomplete="off"></div>
+        <div id="cp-default">
+          <div class="cp-lab">Confirmed cases, England</div>
+          <div class="cp-num" id="cp-nat">0</div>
+        </div>
+        <div id="cp-area" style="display:none">
+          <div class="cp-name" id="cp-name">—</div>
+          <span class="cp-deselect" id="cp-deselect">Deselect</span>
+          <div class="cp-lab">Confirmed cases</div>
+          <div class="cp-num" id="cp-caseval">0</div>
+        </div>
+      </div>
       <div class="map-tt" id="map-tt"></div>
       <div class="map-hint" id="map-hint">Click any area to check vaccination coverage</div>
-      <div id="case-toggle">
-        <button data-a="0" class="on">Cases now</button>
-        <button data-a="1">If coverage reached <span id="ct-herd">93%</span></button>
-      </div>
     </div>
     <!-- Version 18: ranked table instead of a map -->
     <div id="map-table" style="display:none"></div>
@@ -1203,7 +1222,7 @@ function exposureNote(c, areaName) {
   return `Coverage in ${areaName} is well below safe levels. Unvaccinated children face a HIGH probability of exposure if Tarnpox enters the community.`;
 }
 
-let GEO = null, UTLA = null, CASES = null;
+let GEO = null, UTLA = null, CASES = null, CASEDOTS = null;
 
 // ── Interface VERSION (read from the URL folder, e.g. .../2/ → version 2) ──
 // Only the risk-display changes between versions; everything else is shared.
@@ -1225,9 +1244,15 @@ fetch(DATA_BASE+"measles_cases.json").then(r=>r.json()).then(j=>{
   CASES=j;
   if(STATE.code) renderRisk();
   if(GJSON){ repaintMap(); updateLegend(); if(MAP_MODE==="dots") addCaseDots(); if(MAP_MODE==="table") buildCaseTable(); }
+  updateCasePanel();
 }).catch(()=>{});
-// Case dot-density data for the coverage map (1 dot = 1 case). Non-blocking.
-fetch(DATA_BASE+"case_dots.json").then(r=>r.json()).then(j=>{ CASEDOTS=j; initCaseDots(); }).catch(()=>{});
+// Case dot-density data (1 dot = 1 case) loaded via <script> so it also works from file://.
+(function(){
+  if(window.__CASEDOTS__){ CASEDOTS=window.__CASEDOTS__; initCaseDots(); return; }
+  const s=document.createElement("script"); s.src=DATA_BASE+"case_dots.js";
+  s.onload=()=>{ CASEDOTS=window.__CASEDOTS__||CASEDOTS; initCaseDots(); };
+  document.head.appendChild(s);
+})();
 
 Promise.all([
   fetch(DATA_BASE+"utla.geojson").then(r=>r.json()),
@@ -1379,6 +1404,7 @@ function renderMap(){
   updateLegend();
   if(MAP_MODE==="dots") addCaseDots();
   initCaseDots();
+  initCasePanel();
   if(MAP_MODE==="table"){
     $("map-wrap").style.display="none";
     document.querySelector(".legend").style.display="none";
@@ -1426,61 +1452,98 @@ function addCaseDots(){
 }
 
 // ── Case dot-density overlay (coverage map only) — 1 dot = 1 confirmed case ──
-let CASEDOTS=null, CASE_CANVAS=null, CASE_CTX=null, caseA=0, caseReveal=0, caseWired=false;
+let CASE_CANVAS=null, CASE_CTX=null, caseWired=false, caseReveal=0;
 function sizeCaseCanvas(){
-  if(!CASE_CANVAS||!LMAP) return;
+  if(!CASE_CANVAS||!LMAP) return false;
   const s=LMAP.getSize(), dpr=Math.max(1,window.devicePixelRatio||1);
-  CASE_CANVAS.width=s.x*dpr; CASE_CANVAS.height=s.y*dpr;
-  CASE_CANVAS.style.width=s.x+"px"; CASE_CANVAS.style.height=s.y+"px";
+  if(s.x===0||s.y===0) return false;
+  if(CASE_CANVAS.width!==Math.round(s.x*dpr) || CASE_CANVAS.height!==Math.round(s.y*dpr)){
+    CASE_CANVAS.width=s.x*dpr; CASE_CANVAS.height=s.y*dpr;
+    CASE_CANVAS.style.width=s.x+"px"; CASE_CANVAS.style.height=s.y+"px";
+  }
+  return true;
 }
 function drawCaseDots(){
-  if(!CASE_CTX||!CASEDOTS||!LMAP) return;
+  if(!CASEDOTS||!LMAP) return;
+  if(!CASE_CANVAS){ CASE_CANVAS=document.getElementById("case-canvas"); if(!CASE_CANVAS) return; CASE_CTX=CASE_CANVAS.getContext("2d"); }
+  if(!sizeCaseCanvas()) return;
   const dpr=Math.max(1,window.devicePixelRatio||1);
   CASE_CTX.setTransform(dpr,0,0,dpr,0,0);
   CASE_CTX.clearRect(0,0,CASE_CANVAS.width,CASE_CANVAS.height);
   const b=LMAP.getBounds(), sw=b.getSouthWest(), ne=b.getNorthEast();
-  CASE_CTX.fillStyle="#c0271a";
+  CASE_CTX.fillStyle="#c0271a"; CASE_CTX.globalAlpha=caseReveal;
   const A=CASEDOTS.areas;
   for(const name in A){
-    const d=A[name].d, keep=A[name].tgtN;
+    const d=A[name].d;
     for(let i=0;i<d.length;i++){
-      const fade=i<keep?1:(1-caseA);
-      const alpha=fade*caseReveal;
-      if(alpha<=0.02) continue;
       const ll=d[i];
       if(ll[0]<sw.lat||ll[0]>ne.lat||ll[1]<sw.lng||ll[1]>ne.lng) continue;
       const p=LMAP.latLngToContainerPoint(ll);
-      const r=1.7*(i<keep?1:(0.35+0.65*(1-caseA)));
-      CASE_CTX.globalAlpha=alpha; CASE_CTX.beginPath(); CASE_CTX.arc(p.x,p.y,r,0,6.2832); CASE_CTX.fill();
+      CASE_CTX.beginPath(); CASE_CTX.arc(p.x,p.y,1.7,0,6.2832); CASE_CTX.fill();
     }
   }
   CASE_CTX.globalAlpha=1;
-}
-function animateCaseDots(t){
-  const s=caseA, t0=performance.now(), dur=1000;
-  (function step(now){ const k=Math.min(1,(now-t0)/dur), e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
-    caseA=s+(t-s)*e; drawCaseDots(); if(k<1) requestAnimationFrame(step); })(t0);
 }
 function initCaseDots(){
   if(MAP_MODE!=="coverage" || !CASEDOTS || !LMAP) return;
   CASE_CANVAS=document.getElementById("case-canvas"); if(!CASE_CANVAS) return;
   CASE_CTX=CASE_CANVAS.getContext("2d");
-  const tog=document.getElementById("case-toggle");
-  if(tog){ tog.style.display="flex";
-    const lab=document.getElementById("ct-herd"); if(lab) lab.textContent=CASEDOTS.herdPct+"%"; }
   if(!caseWired){
-    LMAP.on("move zoom viewreset moveend zoomend",drawCaseDots);
-    window.addEventListener("resize",()=>{sizeCaseCanvas();drawCaseDots();});
-    if(tog) tog.querySelectorAll("button").forEach(bt=>bt.addEventListener("click",()=>{
-      tog.querySelectorAll("button").forEach(x=>x.classList.remove("on")); bt.classList.add("on");
-      animateCaseDots(+bt.dataset.a);
-    }));
+    LMAP.on("move zoom viewreset moveend zoomend resize",drawCaseDots);
+    window.addEventListener("resize",drawCaseDots);
     caseWired=true;
   }
-  sizeCaseCanvas();
   caseReveal=0;
   const t0=performance.now();
-  (function rev(now){ caseReveal=Math.min(1,(now-t0)/700); drawCaseDots(); if(caseReveal<1) requestAnimationFrame(rev); })(t0);
+  (function rev(now){ caseReveal=Math.min(1,(now-t0)/600); drawCaseDots(); if(caseReveal<1) requestAnimationFrame(rev); })(t0);
+  [120,400,800,1300].forEach(ms=>setTimeout(drawCaseDots,ms));
+}
+
+// ── Case panel (coverage map): area name + confirmed cases ──
+let CP_N2C=null, cpWired=false;
+function cpNatTotal(){ let s=0; if(CASES&&CASES.byUTLA) for(const n in CASES.byUTLA) s+=CASES.byUTLA[n]; return s; }
+function updateCasePanel(){
+  if(MAP_MODE!=="coverage") return;
+  const panel=$("case-panel"); if(!panel) return;
+  panel.style.display="block";
+  const code=STATE.code, d=code?(UTLA&&UTLA[code]):null;
+  if(d){
+    $("cp-default").style.display="none"; $("cp-area").style.display="block";
+    $("cp-name").textContent=d.name;
+    const n=(CASES&&CASES.byUTLA&&CASES.byUTLA[d.name]!=null)?CASES.byUTLA[d.name]:0;
+    $("cp-caseval").textContent=n.toLocaleString();
+  } else {
+    $("cp-area").style.display="none"; $("cp-default").style.display="block";
+    $("cp-nat").textContent=cpNatTotal().toLocaleString();
+  }
+}
+function caseDeselect(){
+  STATE.code=null;
+  if(GJSON) GJSON.eachLayer(l=>l.setStyle(styleFeature(l.feature,false)));
+  if(LABEL&&LMAP){ LMAP.removeLayer(LABEL); LABEL=null; }
+  const nx=$("nav2-next"); if(nx) nx.disabled=true;
+  const hn=$("nav2-hint"); if(hn) hn.textContent="Click an area on the map";
+  const mh=$("map-hint"); if(mh) mh.style.opacity="1";
+  if(GJSON&&LMAP) LMAP.fitBounds(GJSON.getBounds(),{padding:[10,10]});
+  updateCasePanel(); drawCaseDots();
+}
+function initCasePanel(){
+  if(MAP_MODE!=="coverage") return;
+  if(UTLA && !CP_N2C){ CP_N2C={}; for(const c in UTLA) CP_N2C[UTLA[c].name]=c; }
+  if(LMAP && LMAP.zoomControl){ LMAP.zoomControl.setPosition("bottomright"); }
+  if(!cpWired){
+    const ds=$("cp-deselect"); if(ds) ds.addEventListener("click",caseDeselect);
+    const si=$("cp-search-input");
+    if(si) si.addEventListener("keydown",e=>{
+      if(e.key!=="Enter") return;
+      const q=e.target.value.trim().toLowerCase(); if(!q||!CP_N2C) return;
+      const names=Object.keys(CP_N2C);
+      const hit=names.find(n=>n.toLowerCase()===q)||names.find(n=>n.toLowerCase().startsWith(q))||names.find(n=>n.toLowerCase().includes(q));
+      if(hit){ selectUTLA(CP_N2C[hit]); e.target.value=""; e.target.blur(); }
+    });
+    cpWired=true;
+  }
+  updateCasePanel();
 }
 
 // Ranked table instead of a map (version 18)
@@ -1507,7 +1570,7 @@ function updateLegend(){
   if(MAP_MODE==="coverage"){
     if(bar) bar.style.display="none";
     spans.forEach(s=>{ s.style.display="none"; });
-    setTick("each red dot = 1 confirmed case · use the switch to see the effect of higher coverage");
+    setTick("each red dot = 1 confirmed case");
     return;
   }
   if(MAP_MODE==="cases"){
@@ -1561,10 +1624,11 @@ function selectUTLA(code, keepDistrict){
     let selBounds = null;
     GJSON.eachLayer(layer => {
       const sel = layer.feature.properties.code === code;
+      const _cov = (MAP_MODE==="coverage");
       layer.setStyle({
-        color:  sel ? "#003078" : "#555",
-        weight: sel ? 3         : 1,
-        fillOpacity: sel ? 0.80 : (UTLA[layer.feature.properties.code]&&UTLA[layer.feature.properties.code].approx ? 0.40 : 0.60),
+        color:  sel ? "#003078" : (_cov ? "rgba(0,0,0,.32)" : "#555"),
+        weight: sel ? 3         : (_cov ? 0.8 : 1),
+        fillOpacity: _cov ? 0 : (sel ? 0.80 : (UTLA[layer.feature.properties.code]&&UTLA[layer.feature.properties.code].approx ? 0.40 : 0.60)),
       });
       if(sel){ layer.bringToFront(); selBounds = layer.getBounds(); }
     });
@@ -1582,12 +1646,13 @@ function selectUTLA(code, keepDistrict){
   const next=$("nav2-next"); if(next) next.disabled=false;
   const hint=$("nav2-hint"); if(hint && UTLA[code]) hint.textContent=UTLA[code].name;
   renderRisk();
+  updateCasePanel();
 }
 
 // Pin a Tarnpox-case label onto the selected area, at its centre on the map.
 function placeMapLabel(center, d){
   if(LABEL && LMAP){ LMAP.removeLayer(LABEL); LABEL=null; }
-  if(MAP_MODE==="cases" || MAP_MODE==="table") return;   // colour/table conveys cases instead
+  if(MAP_MODE==="cases" || MAP_MODE==="table" || MAP_MODE==="coverage") return;   // colour/table/panel conveys cases instead
   if(!center || !d || !LMAP) return;
   let big="—", sub="Tarnpox cases", range="";
   if(CASES){
