@@ -510,15 +510,15 @@ body{
   padding:6px 13px;border-radius:999px;cursor:pointer;white-space:nowrap;}
 #case-toggle button.on{background:#c0271a;color:#fff;}
 #case-panel{position:absolute;top:14px;left:14px;z-index:600;width:250px;max-width:calc(100% - 28px);
-  background:#111214;color:#f4f4f5;border:1px solid #2a2c30;border-radius:14px;padding:12px 13px;
-  box-shadow:0 8px 26px rgba(0,0,0,.35);display:none;font-family:inherit;}
-#case-panel .cp-search{border:1px solid #2a2c30;border-radius:9px;padding:7px 9px;margin-bottom:10px;}
-#case-panel .cp-search input{width:100%;border:0;background:transparent;color:#f4f4f5;font:inherit;font-size:14px;outline:none;}
-#case-panel .cp-search input::placeholder{color:#9a9ca1;}
-#case-panel .cp-name{font-size:22px;font-weight:800;line-height:1.1;color:#fff;}
-#case-panel .cp-deselect{display:inline-block;font-size:12.5px;color:#9a9ca1;text-decoration:underline;cursor:pointer;margin:3px 0 6px;}
-#case-panel .cp-lab{font-size:12.5px;color:#9a9ca1;margin-top:8px;}
-#case-panel .cp-num{font-size:30px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.05;color:#fff;}
+  background:#fff;color:#0b0c0c;border:1px solid #d5d7db;border-radius:14px;padding:12px 13px;
+  box-shadow:0 6px 20px rgba(0,0,0,.18);display:none;font-family:inherit;}
+#case-panel .cp-search{border:1px solid #c8ccd0;border-radius:9px;padding:7px 9px;margin-bottom:10px;}
+#case-panel .cp-search input{width:100%;border:0;background:transparent;color:#0b0c0c;font:inherit;font-size:14px;outline:none;}
+#case-panel .cp-search input::placeholder{color:#767a80;}
+#case-panel .cp-name{font-size:22px;font-weight:800;line-height:1.1;color:#0b0c0c;}
+#case-panel .cp-deselect{display:inline-block;font-size:12.5px;color:#505a5f;text-decoration:underline;cursor:pointer;margin:3px 0 6px;}
+#case-panel .cp-lab{font-size:12.5px;color:#6a6d72;margin-top:8px;}
+#case-panel .cp-num{font-size:30px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.05;color:#0b0c0c;}
 </style>
 </head>
 <body>
@@ -1398,9 +1398,9 @@ function renderMap(){
       const code = feature.properties.code, d = UTLA[code];
       if(!d) return;
       layer.on({
-        mouseover: e => { showTT(e.originalEvent, code, d); layer.setStyle({weight:4,color:"#003078"}); },
+        mouseover: e => { showTT(e.originalEvent, code, d); layer.setStyle({weight:4,color:"#003078"}); updateCasePanel(code); },
         mousemove: e => moveTT(e.originalEvent),
-        mouseout:  ()=> { hideTT(); if(STATE.code!==code) layer.setStyle(styleFeature(layer.feature,false)); },
+        mouseout:  ()=> { hideTT(); if(STATE.code!==code) layer.setStyle(styleFeature(layer.feature,false)); updateCasePanel(); },
         click:     ()=> selectUTLA(code),
       });
     }
@@ -1508,11 +1508,11 @@ function initCaseDots(){
 // ── Case panel (coverage map): area name + confirmed cases ──
 let CP_N2C=null, cpWired=false;
 function cpNatTotal(){ let s=0; if(CASES&&CASES.byUTLA) for(const n in CASES.byUTLA) s+=CASES.byUTLA[n]; return s; }
-function updateCasePanel(){
+function updateCasePanel(overrideCode){
   if(MAP_MODE!=="coverage") return;
   const panel=$("case-panel"); if(!panel) return;
   panel.style.display="block";
-  const code=STATE.code, d=code?(UTLA&&UTLA[code]):null;
+  const code=overrideCode||STATE.code, d=code?(UTLA&&UTLA[code]):null;
   if(d){
     $("cp-default").style.display="none"; $("cp-area").style.display="block";
     $("cp-name").textContent=d.name;
