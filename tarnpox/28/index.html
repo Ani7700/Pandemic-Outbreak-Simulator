@@ -500,6 +500,15 @@ body{
 }
 @keyframes spin{to{transform:rotate(360deg);}}
 .loading p{font-size:13px;color:#adc4e3;}
+#case-canvas{position:absolute;inset:0;pointer-events:none;z-index:450;}
+#map-wrap .map-tt{z-index:650;}
+#map-wrap .map-hint{z-index:650;}
+#case-toggle{position:absolute;left:50%;transform:translateX(-50%);bottom:12px;z-index:600;display:none;
+  gap:2px;padding:3px;background:rgba(255,255,255,.95);border:1px solid #d2d2d7;border-radius:999px;
+  box-shadow:0 3px 12px rgba(0,0,0,.12);}
+#case-toggle button{border:0;background:transparent;font:inherit;font-size:13px;font-weight:600;color:#6e6e73;
+  padding:6px 13px;border-radius:999px;cursor:pointer;white-space:nowrap;}
+#case-toggle button.on{background:#c0271a;color:#fff;}
 </style>
 </head>
 <body>
@@ -607,8 +616,13 @@ body{
   <div class="map-panel">
     <div class="map-wrap" id="map-wrap">
       <div id="map" aria-label="Map of English local authorities. Click to view risk for any area."></div>
+      <canvas id="case-canvas"></canvas>
       <div class="map-tt" id="map-tt"></div>
       <div class="map-hint" id="map-hint">Click any area to check vaccination coverage</div>
+      <div id="case-toggle">
+        <button data-a="0" class="on">Cases now</button>
+        <button data-a="1">If coverage reached <span id="ct-herd">93%</span></button>
+      </div>
     </div>
     <!-- Version 18: ranked table instead of a map -->
     <div id="map-table" style="display:none"></div>
@@ -1212,6 +1226,8 @@ fetch(DATA_BASE+"measles_cases.json").then(r=>r.json()).then(j=>{
   if(STATE.code) renderRisk();
   if(GJSON){ repaintMap(); updateLegend(); if(MAP_MODE==="dots") addCaseDots(); if(MAP_MODE==="table") buildCaseTable(); }
 }).catch(()=>{});
+// Case dot-density data for the coverage map (1 dot = 1 case). Non-blocking.
+fetch(DATA_BASE+"case_dots.json").then(r=>r.json()).then(j=>{ CASEDOTS=j; initCaseDots(); }).catch(()=>{});
 
 Promise.all([
   fetch(DATA_BASE+"utla.geojson").then(r=>r.json()),
@@ -1332,9 +1348,13 @@ function renderMap(){
       scrollWheelZoom: true,
     });
     // OpenStreetMap standard — colourful tiles with blue sea, like UKHSA
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
-      attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      subdomains:"abc", maxZoom:19
+    const _covMap = (MAP_MODE==="coverage");
+    L.tileLayer(_covMap
+        ? "https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png"
+        : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
+      attribution: _covMap ? '&copy; OpenStreetMap contributors &copy; CARTO'
+                           : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      subdomains: _covMap ? "abcd" : "abc", maxZoom:19
     }).addTo(LMAP);
   }
 
@@ -1358,6 +1378,7 @@ function renderMap(){
   LMAP.fitBounds(GJSON.getBounds(), {padding:[4,4]});
   updateLegend();
   if(MAP_MODE==="dots") addCaseDots();
+  initCaseDots();
   if(MAP_MODE==="table"){
     $("map-wrap").style.display="none";
     document.querySelector(".legend").style.display="none";
@@ -1401,6 +1422,64 @@ function addCaseDots(){
     }
   });
   DOTLAYER.addTo(LMAP);
+}
+
+// ── Case dot-density overlay (coverage map only) — 1 dot = 1 confirmed case ──
+let CASEDOTS=null, CASE_CANVAS=null, CASE_CTX=null, caseA=0, caseReveal=0, caseWired=false;
+function sizeCaseCanvas(){
+  if(!CASE_CANVAS||!LMAP) return;
+  const s=LMAP.getSize(), dpr=Math.max(1,window.devicePixelRatio||1);
+  CASE_CANVAS.width=s.x*dpr; CASE_CANVAS.height=s.y*dpr;
+  CASE_CANVAS.style.width=s.x+"px"; CASE_CANVAS.style.height=s.y+"px";
+}
+function drawCaseDots(){
+  if(!CASE_CTX||!CASEDOTS||!LMAP) return;
+  const dpr=Math.max(1,window.devicePixelRatio||1);
+  CASE_CTX.setTransform(dpr,0,0,dpr,0,0);
+  CASE_CTX.clearRect(0,0,CASE_CANVAS.width,CASE_CANVAS.height);
+  const b=LMAP.getBounds(), sw=b.getSouthWest(), ne=b.getNorthEast();
+  CASE_CTX.fillStyle="#c0271a";
+  const A=CASEDOTS.areas;
+  for(const name in A){
+    const d=A[name].d, keep=A[name].tgtN;
+    for(let i=0;i<d.length;i++){
+      const fade=i<keep?1:(1-caseA);
+      const alpha=fade*caseReveal;
+      if(alpha<=0.02) continue;
+      const ll=d[i];
+      if(ll[0]<sw.lat||ll[0]>ne.lat||ll[1]<sw.lng||ll[1]>ne.lng) continue;
+      const p=LMAP.latLngToContainerPoint(ll);
+      const r=1.7*(i<keep?1:(0.35+0.65*(1-caseA)));
+      CASE_CTX.globalAlpha=alpha; CASE_CTX.beginPath(); CASE_CTX.arc(p.x,p.y,r,0,6.2832); CASE_CTX.fill();
+    }
+  }
+  CASE_CTX.globalAlpha=1;
+}
+function animateCaseDots(t){
+  const s=caseA, t0=performance.now(), dur=1000;
+  (function step(now){ const k=Math.min(1,(now-t0)/dur), e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
+    caseA=s+(t-s)*e; drawCaseDots(); if(k<1) requestAnimationFrame(step); })(t0);
+}
+function initCaseDots(){
+  if(MAP_MODE!=="coverage" || !CASEDOTS || !LMAP) return;
+  CASE_CANVAS=document.getElementById("case-canvas"); if(!CASE_CANVAS) return;
+  CASE_CTX=CASE_CANVAS.getContext("2d");
+  const tog=document.getElementById("case-toggle");
+  if(tog){ tog.style.display="flex";
+    const lab=document.getElementById("ct-herd"); if(lab) lab.textContent=CASEDOTS.herdPct+"%"; }
+  if(!caseWired){
+    LMAP.on("move zoom viewreset moveend zoomend",drawCaseDots);
+    window.addEventListener("resize",()=>{sizeCaseCanvas();drawCaseDots();});
+    if(tog) tog.querySelectorAll("button").forEach(bt=>bt.addEventListener("click",()=>{
+      tog.querySelectorAll("button").forEach(x=>x.classList.remove("on")); bt.classList.add("on");
+      animateCaseDots(+bt.dataset.a);
+    }));
+    caseWired=true;
+  }
+  sizeCaseCanvas();
+  caseReveal=0;
+  const t0=performance.now();
+  (function rev(now){ caseReveal=Math.min(1,(now-t0)/700); drawCaseDots(); if(caseReveal<1) requestAnimationFrame(rev); })(t0);
 }
 
 // Ranked table instead of a map (version 18)
