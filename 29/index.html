@@ -1318,6 +1318,17 @@ function wireWizard(){
   $("nav2-back").addEventListener("click",()=>goStep(1));
   $("nav2-next").addEventListener("click",()=>{ if(STATE.code) goStep(3); });
   $("nav3-back").addEventListener("click",()=>goStep(2));
+  // Keyboard shortcut: Enter advances to the next step (ignored while typing in a field,
+  // so the search boxes keep their own Enter behaviour).
+  document.addEventListener("keydown", e=>{
+    if(e.key!=="Enter" || e.isComposing) return;
+    const t=e.target;
+    if(t && (t.tagName==="INPUT" || t.tagName==="TEXTAREA" || t.isContentEditable)) return;
+    const L=document.querySelector(".layout"); if(!L) return;
+    const step=+L.dataset.step;
+    if(step===1){ e.preventDefault(); submitSearch(); }
+    else if(step===2 && STATE.code){ e.preventDefault(); goStep(3); }
+  });
 }
 
 // ════════════════════════════════════════════════
