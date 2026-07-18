@@ -69,7 +69,7 @@
 
     <p>Whether an exposed child actually falls ill turns largely on their own doses. A child with none who meets a case has something like a five in ten chance of catching it. A single dose pulls that down to about two in ten, and both doses bring it to only around five in a hundred. The first dose does the heaviest lifting, since the fall from five in ten to two in ten outweighs the further drop to five in a hundred. Even so, no amount of vaccination erases the danger completely, and after two doses a small chance always lingers. In round numbers, of two hundred unvaccinated children all exposed, roughly one hundred would be infected, against about five of every hundred who had had both doses.</p>
 
-    <p>Were an outbreak to take hold, it would not hold steady. Modelling suggests the number infected would climb over the opening months to a peak and then subside as the outbreak burned itself out, the whole arc playing out across something like half a year. Any such projection carries a spread of possibilities around its most likely path, which is a measure of how uncertain it is rather than a single promised figure, and it describes what could happen rather than what is bound to. Where coverage is thinner, as in Hackney, that wave would gather pace faster and wash over a larger share of the population than in a better protected place such as Cambridgeshire.</p>
+    <p>Were an outbreak to take hold, it would not hold steady. Modelling suggests the number infected would climb over the opening months to a peak and then subside as the outbreak burned itself out, the whole arc playing out across something like half a year. Any such projection carries a spread of possibilities around its most likely path, which is a measure of how uncertain it is rather than a single promised figure, and it describes what could happen rather than what is bound to. Where coverage is thinner, as in Hackney, that wave would gather pace faster and wash over a larger share of the population than in a better protected place such as Cambridgeshire. In concrete terms, the modelling puts Hackney’s wave at a high point of about thirteen and a half thousand people infected at once, reached around the second month, whereas Cambridgeshire’s high point is tiny by comparison, barely a hundred.</p>
   </div>
 
   <!-- ══ RIGHT: chatbot ══ -->
@@ -195,7 +195,7 @@ function reply(intent){
     case "compare": return "Compare the two areas in the briefing on coverage and on case numbers. The one further below the 89% mark, with more cases, is the higher-risk area.";
 
     // ── trend / projection (F1–F3) ──
-    case "f1": return "The briefing describes how the number infected would change over six months. Does it stay flat, keep rising the whole time, or rise to a peak and then fall?";
+    case "f1": return "The briefing describes how the number infected would change over six months — whether it stays flat, keeps rising, or climbs to a high point and then falls — and, for each area, it also gives roughly how many people would be infected at that high point and when it is reached. Read those figures off the briefing.";
     case "f2": return "The briefing explains the range shown around a projection. It reflects how uncertain the projection is, not deaths and not past cases.";
     case "f3": return "The briefing says whether an outbreak projection is a guaranteed prediction or a model of what could happen if an outbreak started. Check how it describes it.";
 
