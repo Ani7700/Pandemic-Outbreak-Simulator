@@ -1380,6 +1380,8 @@ function renderMap(){
       zoomControl: true,
       attributionControl: true,
       scrollWheelZoom: true,
+      zoomAnimation: false,       // instant zoom: the case-dot canvas redraws at the new zoom immediately (no lag)
+      markerZoomAnimation: false,
     });
     // OpenStreetMap standard — colourful tiles with blue sea, like UKHSA
     const _covMap = (MAP_MODE==="coverage");
