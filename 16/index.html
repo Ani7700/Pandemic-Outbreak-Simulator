@@ -389,10 +389,10 @@ body{
 .layout[data-step="3"] .unprotected-row{font-size:14px;border-radius:12px;padding:10px 14px;}
 .layout[data-step="3"] .unprotected-row strong{font-size:20px;}
 .layout[data-step="3"] .sim-title{font-size:16px;}
-.layout[data-step="3"] .sim-status,.layout[data-step="3"] .sim-legend{font-size:13px;}
+.layout[data-step="3"] .sim-legend{font-size:13px;}
 .sim-section{margin-top:12px;padding-top:10px;border-top:1px solid var(--line);}
 .sim-title{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:4px;}
-.sim-status{font-size:11px;color:var(--ink-soft);margin-bottom:6px;}
+.sim-status{font-size:19px;font-weight:800;color:var(--ink);letter-spacing:-.01em;margin-bottom:8px;}
 .sim-legend{font-size:11px;color:var(--ink-soft);margin-top:5px;}
 .comp-card{padding:6px 8px;border:2px solid;}
 .comp-card.vacc{border-color:#00703c;background:#f3faf6;}
@@ -1787,15 +1787,9 @@ function runAreaSim(d, cov){
   // Static, precomputed projection — deterministic and fixed per area (no live API).
   if(cov == null || !d || !d.pop || !proj){ sec.style.display = "none"; return; }
   sec.style.display = "block";
-  const sim = { I: proj };
-  drawSimChart(sim);
-  const peak = Math.max(...sim.I.med);
-  const peakDay = sim.I.med.indexOf(peak);
-  const peakMonth = Math.max(1, Math.round(peakDay/30));
+  drawSimChart({ I: proj });
   $("sim-status").style.display = "";
-  $("sim-status").innerHTML =
-    `${d.name} · projected to peak at about `
-    + `<strong>${Math.round(peak).toLocaleString()}</strong> people infected around month <strong>${peakMonth}</strong>`;
+  $("sim-status").textContent = "Modelled outbreak";
   $("sim-chart").style.display = "block";
 }
 
@@ -1835,18 +1829,24 @@ function drawSimChart(sim){
   // Y-axis title + disclaimer baked in.
   const midY=(padT+(H-padB))/2;
   const yTitle=`<text x="11" y="${midY}" font-size="8" fill="#999" text-anchor="middle" transform="rotate(-90 11 ${midY})">people infected</text>`;
-  // Start marker: dot + label at the local initial case count, so the curve's
-  // starting value is visible even when tiny next to the peak.
+  // Start marker: dot + number at the local initial case count.
   const _s0v = I.med[0];
   const _sx = x(0), _sy = y(_s0v);
-  const _lly = Math.min(H-padB-2, Math.max(padT+9, _sy-6));
+  const _sly = Math.min(H-padB-2, Math.max(padT+9, _sy-6));
   const startMark =
       `<circle cx="${_sx.toFixed(1)}" cy="${_sy.toFixed(1)}" r="3.4" fill="#8C3A2B" stroke="#fff" stroke-width="1"/>`
-    + `<text x="${(_sx+6).toFixed(1)}" y="${_lly.toFixed(1)}" font-size="9" font-weight="700" fill="#8C3A2B">${Math.round(_s0v).toLocaleString()} cases now</text>`;
+    + `<text x="${(_sx+6).toFixed(1)}" y="${_sly.toFixed(1)}" font-size="10" font-weight="700" fill="#8C3A2B">${Math.round(_s0v).toLocaleString()}</text>`;
+  // Peak marker: dot + number at the highest point of the median curve.
+  const _pk = Math.max.apply(null, I.med), _pi = I.med.indexOf(_pk);
+  const _px = x(_pi), _py = y(_pk);
+  const _plx = Math.max(padL+16, Math.min(W-padR-16, _px)), _ply = Math.max(padT+10, _py-9);
+  const peakMark = (_pi===0) ? "" :
+      `<circle cx="${_px.toFixed(1)}" cy="${_py.toFixed(1)}" r="3.4" fill="#8C3A2B" stroke="#fff" stroke-width="1"/>`
+    + `<text x="${_plx.toFixed(1)}" y="${_ply.toFixed(1)}" font-size="11" font-weight="800" fill="#8C3A2B" text-anchor="middle">${Math.round(_pk).toLocaleString()}</text>`;
   $("sim-chart").innerHTML = ticks
     + `<path d="${band}" fill="#8C3A2B22" stroke="none"/>`
     + `<path d="${line(I.med)}" fill="none" stroke="#8C3A2B" stroke-width="1.8"/>`
-    + xlabels + legend + yTitle + startMark;
+    + xlabels + legend + yTitle + startMark + peakMark;
 }
 function shortNum(v){
   if(v>=1e6) return (v/1e6).toFixed(1)+"M";
