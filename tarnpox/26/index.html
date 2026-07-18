@@ -1835,10 +1835,18 @@ function drawSimChart(sim){
   // Y-axis title + disclaimer baked in.
   const midY=(padT+(H-padB))/2;
   const yTitle=`<text x="11" y="${midY}" font-size="8" fill="#999" text-anchor="middle" transform="rotate(-90 11 ${midY})">people infected</text>`;
+  // Start marker: dot + label at the local initial case count, so the curve's
+  // starting value is visible even when tiny next to the peak.
+  const _s0v = I.med[0];
+  const _sx = x(0), _sy = y(_s0v);
+  const _lly = Math.min(H-padB-2, Math.max(padT+9, _sy-6));
+  const startMark =
+      `<circle cx="${_sx.toFixed(1)}" cy="${_sy.toFixed(1)}" r="3.4" fill="#8C3A2B" stroke="#fff" stroke-width="1"/>`
+    + `<text x="${(_sx+6).toFixed(1)}" y="${_lly.toFixed(1)}" font-size="9" font-weight="700" fill="#8C3A2B">${Math.round(_s0v).toLocaleString()} cases now</text>`;
   $("sim-chart").innerHTML = ticks
     + `<path d="${band}" fill="#8C3A2B22" stroke="none"/>`
     + `<path d="${line(I.med)}" fill="none" stroke="#8C3A2B" stroke-width="1.8"/>`
-    + xlabels + legend + yTitle;
+    + xlabels + legend + yTitle + startMark;
 }
 function shortNum(v){
   if(v>=1e6) return (v/1e6).toFixed(1)+"M";
