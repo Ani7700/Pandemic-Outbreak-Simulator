@@ -1545,10 +1545,18 @@ function initCasePanel(){
     const si=$("cp-search-input");
     if(si) si.addEventListener("keydown",e=>{
       if(e.key!=="Enter") return;
-      const q=e.target.value.trim().toLowerCase(); if(!q||!CP_N2C) return;
-      const names=Object.keys(CP_N2C);
-      const hit=names.find(n=>n.toLowerCase()===q)||names.find(n=>n.toLowerCase().startsWith(q))||names.find(n=>n.toLowerCase().includes(q));
-      if(hit){ selectUTLA(CP_N2C[hit]); e.target.value=""; e.target.blur(); }
+      e.preventDefault();
+      const q=e.target.value.trim(); if(!q) return;
+      const ql=q.toLowerCase();
+      const done=()=>{ e.target.value=""; e.target.blur(); };
+      // 1) postcode -> same lookup the main search uses
+      if(typeof isPostcode==="function" && isPostcode(q)){ done(); lookupPC(q); return; }
+      // 2) local-authority name match
+      const names=CP_N2C?Object.keys(CP_N2C):[];
+      const hit=names.find(n=>n.toLowerCase()===ql)||names.find(n=>n.toLowerCase().startsWith(ql))||names.find(n=>n.toLowerCase().includes(ql));
+      if(hit){ done(); selectUTLA(CP_N2C[hit]); return; }
+      // 3) free-text town/place -> geocode
+      done(); geocodeAndSelect(q);
     });
     cpWired=true;
   }
