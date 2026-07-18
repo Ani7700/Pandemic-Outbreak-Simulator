@@ -1824,10 +1824,10 @@ function drawSimChart(sim){
   // Legend baked into the chart (top-left, where the early curve is low).
   const lx=padL+6, ly=padT+2;
   const legend =
-      `<rect x="${lx}" y="${ly}" width="16" height="7" fill="#8C3A2B33"/>`
-    + `<text x="${lx+21}" y="${ly+7}" font-size="8" fill="#777">range of outcomes</text>`
-    + `<line x1="${lx}" y1="${ly+16}" x2="${lx+16}" y2="${ly+16}" stroke="#8C3A2B" stroke-width="2.4"/>`
-    + `<text x="${lx+21}" y="${ly+19}" font-size="8" fill="#777">most likely infected</text>`;
+      `<rect x="${lx}" y="${ly}" width="20" height="10" fill="#8C3A2B33"/>`
+    + `<text x="${lx+27}" y="${ly+9}" font-size="11" fill="#777">range of outcomes</text>`
+    + `<line x1="${lx}" y1="${ly+23}" x2="${lx+20}" y2="${ly+23}" stroke="#8C3A2B" stroke-width="2.8"/>`
+    + `<text x="${lx+27}" y="${ly+27}" font-size="11" fill="#777">most likely infected</text>`;
   // Y-axis title + disclaimer baked in.
   const midY=(padT+(H-padB))/2;
   const yTitle=`<text x="11" y="${midY}" font-size="8" fill="#999" text-anchor="middle" transform="rotate(-90 11 ${midY})">people infected</text>`;
