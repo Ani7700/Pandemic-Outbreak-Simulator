@@ -191,8 +191,10 @@ body{
 /* Risk badge */
 .risk-badge{
   display:flex;align-items:center;gap:8px;
-  border:2px solid var(--line);padding:5px 10px;margin-bottom:6px;
+  margin-bottom:6px;
 }
+#disease-row{display:none;}
+#area-meta{display:none;}
 .risk-dot{width:18px;height:18px;border-radius:50%;flex-shrink:0;}
 .risk-dot.low{background:#00703c;}
 .risk-dot.medium{background:#f47738;}
@@ -373,7 +375,7 @@ body{
 .layout[data-step="3"] .panel-scroll{max-width:none;margin:0;padding:20px clamp(20px,4vw,64px) 48px;}
 .layout[data-step="3"] .area-hdr h2{font-size:30px;letter-spacing:-.02em;line-height:1.1;}
 .layout[data-step="3"] .meta{font-size:14px;color:#6e6e73;}
-.layout[data-step="3"] .risk-badge{border-radius:16px;padding:16px 18px;box-shadow:0 2px 12px rgba(0,0,0,.04);}
+.layout[data-step="3"] .risk-badge{padding:0;}
 .layout[data-step="3"] .risk-label{font-size:14px;}
 .layout[data-step="3"] .risk-level{font-size:24px;letter-spacing:-.01em;}
 .layout[data-step="3"] .cov-bar-label{font-size:14px;}
