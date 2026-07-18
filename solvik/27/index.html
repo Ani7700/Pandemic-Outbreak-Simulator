@@ -1812,14 +1812,14 @@ function drawSimChart(sim){
   for(let k=0;k<=3;k++){
     const v=yMax*k/3, yy=y(v);
     ticks += `<line x1="${padL}" y1="${yy}" x2="${W-padR}" y2="${yy}" stroke="#eee"/>`
-      + `<text x="${padL-4}" y="${yy+3}" text-anchor="end" font-size="8" fill="#999">${shortNum(v)}</text>`;
+      + `<text x="${padL-4}" y="${yy+3}" text-anchor="end" font-size="11" fill="#999">${shortNum(v)}</text>`;
   }
   // Month labels along the x-axis (≈30 days each) for a 6-month view.
   let xlabels="";
   const months=Math.round((n-1)/30);
   for(let m=0;m<=months;m++){
     const idx=Math.min(n-1, m*30), xx=x(idx);
-    xlabels += `<text x="${xx.toFixed(1)}" y="${H-padB+14}" text-anchor="middle" font-size="8" fill="#999">${m===0?"now":m+"mo"}</text>`;
+    xlabels += `<text x="${xx.toFixed(1)}" y="${H-padB+14}" text-anchor="middle" font-size="11" fill="#999">${m===0?"now":m+"mo"}</text>`;
   }
   // Legend baked into the chart (top-left, where the early curve is low).
   const lx=padL+6, ly=padT+2;
@@ -1830,7 +1830,7 @@ function drawSimChart(sim){
     + `<text x="${lx+27}" y="${ly+27}" font-size="11" fill="#777">most likely infected</text>`;
   // Y-axis title + disclaimer baked in.
   const midY=(padT+(H-padB))/2;
-  const yTitle=`<text x="11" y="${midY}" font-size="8" fill="#999" text-anchor="middle" transform="rotate(-90 11 ${midY})">people infected</text>`;
+  const yTitle=`<text x="11" y="${midY}" font-size="10" fill="#999" text-anchor="middle" transform="rotate(-90 11 ${midY})">people infected</text>`;
   // Start marker: dot + number at the local initial case count.
   const _s0v = I.med[0];
   const _sx = x(0), _sy = y(_s0v);
