@@ -131,12 +131,12 @@ const BLOCKS = [
   instr:"<strong>PART 1 of 2 — Cambridge.</strong> In the tool above, search <strong>CB3 9DF</strong>, then go through <strong>both</strong> the <strong>Map</strong> stage and the <strong>Risk &amp; coverage</strong> stage — try any buttons, slider, toggle or dice a few times. Once you've seen both, answer below (you can scroll the tool back up to check at any time):",
   instrBaseline:"<strong>PART 1 of 2 — Cambridge.</strong> Use the briefing and the assistant above to learn about <strong>Cambridge / Cambridgeshire</strong> — read the text on the left and/or ask the assistant on the right. Once you feel you understand this area, answer below (you can scroll back or keep asking at any time):",
   items:[
-   RADIO("A_cov_val","Roughly what was this area's 2nd-dose vaccination coverage?",
+   RADIO("A_cov_val","In this area, out of every 100 children, roughly how many have completed all of their scheduled vaccine doses?",
      ["About 70%","About 80%","About 90%","About 98%","Not sure"],2),
-   RADIO("A_level","What is the community Verrow fever risk level for this area?",RL,1),
-   RADIO("C1","If an unvaccinated child is exposed to a case of Verrow fever, how likely are they to catch it?",
+   RADIO("A_level","Taking everything together, how serious is the overall situation for this area's population?",RL,1),
+   RADIO("C1","Suppose a child who has never had the vaccine comes into contact with someone carrying Verrow fever. How likely is that child to become ill?",
      ["About 1 in 10","About 3 in 10","About half","About 6 in 10","Not sure"],3),
-   RADIO("C_dose2","About how many out of 100 children who have had BOTH doses would catch Verrow fever if exposed to a case?",
+   RADIO("C_dose2","Out of 100 children who have completed the full course of the vaccine, roughly how many would still become infected if they came into contact with Verrow fever?",
      ["About 7","About 25","About 50","About 85","Not sure"],0),
    // ── Outbreak projection: what kind of thing it is (conceptual) ──
  ]},
@@ -145,15 +145,15 @@ const BLOCKS = [
   instr:"<strong>PART 2 of 2 — a different area (Hackney).</strong> In the tool, click the <strong>Location</strong> step, search <strong>Hackney</strong>, and go through the <strong>Map</strong> and <strong>Risk &amp; coverage</strong> stages again. Then answer:",
   instrBaseline:"<strong>PART 2 of 2 — a different area (Hackney).</strong> Now focus on <strong>Hackney</strong> — read the relevant part of the briefing on the left, and/or switch the assistant's area to Hackney and ask about it. Then answer:",
   items:[
-   RADIO("B_cov_val","Roughly what was Hackney's 2nd-dose vaccination coverage?",
+   RADIO("B_cov_val","In Hackney, out of every 100 children, roughly how many have completed all of their scheduled vaccine doses?",
      ["About 55%","About 70%","About 85%","About 95%","Not sure"],0),
-   RADIO("B_cases","Does Hackney currently have a high or low number of Verrow fever cases compared with other areas?",
+   RADIO("B_cases","Compared with most other areas, how much Verrow fever illness is Hackney seeing at the moment?",
      ["High","Low","About average","Not sure"],0),
    // ── Reading Hackney's outbreak projection: peak timing, then peak size ──
-   RADIO("Fpeakht","In Hackney's 6-month projection, about how many people are infected at the PEAK (the highest point of the curve)?",
+   RADIO("Fpeakht","If an outbreak ran its course in Hackney, at its very worst moment roughly how many people would be ill at the same time?",
      ["About 700","About 7,000","About 68,000","About 250,000","Not sure"],2),
    // ── Hardest: link coverage to how an outbreak would unfold across the two areas ──
-   RADIO("XD","If Verrow fever started spreading, in which area would an outbreak grow more quickly and reach a larger share of the population?",
+   RADIO("XD","If Verrow fever began to take hold in both places, in which one would it build up more rapidly and ultimately affect a greater number of residents?",
      ["Cambridge / Cambridgeshire","Hackney (London)","About the same","Not sure"],1),
  ]},
  // ── Impression, load, views, background ──
