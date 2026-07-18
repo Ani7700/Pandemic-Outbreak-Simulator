@@ -1234,6 +1234,7 @@ const APP_VERSION = (function(){
   return (n>=1 && n<=30) ? n : 0;      // 0 = root (baseline)
 })();
 const DATA_BASE = APP_VERSION ? "../" : "";   // data files live at the repo root
+const DATA_V = "?v=3";   // bump this whenever a data file changes, to bust browser caches
 let STATE = { code: null, disease: "mmr2", districtName: null, placeName: null, placeType: null };
 let LMAP = null, GJSON = null, LABEL = null;
 const $ = id => document.getElementById(id);
@@ -1242,7 +1243,7 @@ const $ = id => document.getElementById(id);
 // Bootstrap
 // ════════════════════════════════════════════════
 // Current Tarnpox case counts (non-blocking — page works without it)
-fetch(DATA_BASE+"measles_cases.json").then(r=>r.json()).then(j=>{
+fetch(DATA_BASE+"measles_cases.json"+DATA_V).then(r=>r.json()).then(j=>{
   CASES=j;
   if(STATE.code) renderRisk();
   if(GJSON){ repaintMap(); updateLegend(); if(MAP_MODE==="dots") addCaseDots(); if(MAP_MODE==="table") buildCaseTable(); }
@@ -1251,20 +1252,20 @@ fetch(DATA_BASE+"measles_cases.json").then(r=>r.json()).then(j=>{
 // Case dot-density data (1 dot = 1 case) loaded via <script> so it also works from file://.
 (function(){
   if(window.__CASEDOTS__){ CASEDOTS=window.__CASEDOTS__; initCaseDots(); return; }
-  const s=document.createElement("script"); s.src=DATA_BASE+"case_dots.js";
+  const s=document.createElement("script"); s.src=DATA_BASE+"case_dots.js"+DATA_V;
   s.onload=()=>{ CASEDOTS=window.__CASEDOTS__||CASEDOTS; initCaseDots(); };
   document.head.appendChild(s);
 })();
 // Precomputed outbreak projections (static; replaces the live simulator API).
 (function(){
-  const s=document.createElement("script"); s.src=DATA_BASE+"sim_projections.js";
+  const s=document.createElement("script"); s.src=DATA_BASE+"sim_projections.js"+DATA_V;
   s.onload=()=>{ const c=STATE.code; if(c && UTLA && UTLA[c]) runAreaSim(UTLA[c], UTLA[c].mmr2); };
   document.head.appendChild(s);
 })();
 
 Promise.all([
-  fetch(DATA_BASE+"utla.geojson").then(r=>r.json()),
-  fetch(DATA_BASE+"utla_data.json").then(r=>r.json()),
+  fetch(DATA_BASE+"utla.geojson"+DATA_V).then(r=>r.json()),
+  fetch(DATA_BASE+"utla_data.json"+DATA_V).then(r=>r.json()),
 ]).then(([geo, utla]) => {
   GEO = geo; UTLA = utla;
   $("loading").style.display = "none";
