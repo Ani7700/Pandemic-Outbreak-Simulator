@@ -400,7 +400,9 @@ $("block-btn").addEventListener("click",()=>{
   }
   function maybeStart(){
     if(typeof condition!=="undefined" && condition!=="visual") return;   // tour only for the map/tool condition
-    if(sessionStorage.getItem("mrvTourDone")) return;
+    const _tp=new URLSearchParams(location.search).get("tour");
+    if(_tp==="0") return;                                            // ?tour=0 disables the tour
+    if(_tp!=="1" && sessionStorage.getItem("mrvTourDone")) return;   // default: once per session; ?tour=1 forces it
     let tries=0;
     const iv=setInterval(()=>{
       if(ready()){ clearInterval(iv); sessionStorage.setItem("mrvTourDone","1"); idx=0; build(); show(); }
