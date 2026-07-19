@@ -402,16 +402,19 @@ $("block-btn").addEventListener("click",()=>{
     window.addEventListener("resize",repos); window.addEventListener("scroll",repos,true);
   }
   function maybeStart(){
+    if(root) return;                                                     // already showing
     if(typeof condition!=="undefined" && condition!=="visual") return;   // tour only for the map/tool condition
-    if(new URLSearchParams(location.search).get("tour")==="0") return;   // ?tour=0 disables it; otherwise the tour shows on every page load
-    let tries=0;
-    const iv=setInterval(()=>{
-      if(ready()){ clearInterval(iv); idx=0; build(); show(); }
-      else if(++tries>50){ clearInterval(iv); }
-    },200);
+    if(new URLSearchParams(location.search).get("tour")==="0") return;   // ?tour=0 disables it
+    const survey=document.getElementById("s-survey"), inst=document.getElementById("block-instr");
+    if(!survey || survey.style.display==="none" || !inst || !inst.textContent.trim()) return;  // survey not on screen yet
+    idx=0; build(); show();   // show step 1 (instructions) at once; later steps gate on the tool being ready
   }
-  const frame=document.getElementById("tool-frame");
-  if(frame) frame.addEventListener("load", ()=>{ setTimeout(maybeStart,400); });
+  // Start the moment the survey + its instruction box appear (right after Start is pressed),
+  // instead of waiting for the whole tool iframe to finish loading.
+  const cbtn=document.getElementById("consent-btn");
+  if(cbtn) cbtn.addEventListener("click", ()=>{
+    let n=0; const iv=setInterval(()=>{ maybeStart(); if(root || ++n>60) clearInterval(iv); }, 100);
+  });
 })();
 </script>
 </body>
