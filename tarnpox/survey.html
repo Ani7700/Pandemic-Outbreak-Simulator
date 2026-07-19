@@ -155,8 +155,6 @@ const BLOCKS = [
   items:[
    RADIO("A_cov_val","In this area, out of every 100 children, roughly how many have completed all of their scheduled vaccine doses?",
      ["About 70%","About 80%","About 90%","About 98%","Not sure"],0),
-   RADIO("A_cov","Every disease has a vaccination level past which it can no longer keep spreading. Is this area sitting above or below that critical point?",
-     ["Above","Below","Exactly at the level","Not sure"],1),
    RADIO("A_level","Taking everything together, how serious is the overall situation for this area's population?",RL,3),
    RADIO("C1","Suppose a child who has never had the vaccine comes into contact with someone carrying Tarnpox. How likely is that child to become ill?",
      ["About 1 in 10","About 2 in 10","About 4 in 10","About 7 in 10","Not sure"],2),
@@ -186,6 +184,7 @@ const BLOCKS = [
      ["High","Low","About average","Not sure"],1),
    RADIO("XB","Of the two areas, which has the greater share of its children fully vaccinated?",
      ["Cambridge / Cambridgeshire","Hackney (London)","About the same","Not sure"],1),
+   RADIO("XC","Comparing the two areas, which one is currently seeing the larger number of Tarnpox infections?",["Cambridge / Cambridgeshire","Hackney (London)","About the same","Not sure"],0),
    // ── Hardest: link coverage to how an outbreak would unfold across the two areas ──
    RADIO("XD","If Tarnpox began to take hold in both places, in which one would it build up more rapidly and ultimately affect a greater number of residents?",
      ["Cambridge / Cambridgeshire","Hackney (London)","About the same","Not sure"],0),

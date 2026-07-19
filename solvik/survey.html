@@ -155,8 +155,6 @@ const BLOCKS = [
   items:[
    RADIO("A_cov_val","In this area, out of every 100 children, roughly how many have completed all of their scheduled vaccine doses?",
      ["About 70%","About 80%","About 90%","About 98%","Not sure"],2),
-   RADIO("A_cov","Every disease has a vaccination level past which it can no longer keep spreading. Is this area sitting above or below that critical point?",
-     ["Above","Below","Exactly at the level","Not sure"],0),
    RADIO("A_level","Taking everything together, how serious is the overall situation for this area's population?",RL,1),
    RADIO("C1","Suppose a child who has never had the vaccine comes into contact with someone carrying Solvik. How likely is that child to become ill?",
      ["About 1 in 10","About 3 in 10","About half","About 8 in 10","Not sure"],2),
@@ -181,6 +179,7 @@ const BLOCKS = [
      ["High","Low","About average","Not sure"],0),
    RADIO("XB","Of the two areas, which has the greater share of its children fully vaccinated?",
      ["Cambridge / Cambridgeshire","Hackney (London)","About the same","Not sure"],0),
+   RADIO("XC","Comparing the two areas, which one is currently seeing the larger number of Solvik infections?",["Cambridge / Cambridgeshire","Hackney (London)","About the same","Not sure"],1),
    // ── Reading Hackney's outbreak projection: peak timing, then peak size ──
    RADIO("Fpeakht","If an outbreak ran its course in Hackney, at its very worst moment roughly how many people would be ill at the same time?",
      ["About 130","About 1,400","About 13,500","About 130,000","Not sure"],2),
