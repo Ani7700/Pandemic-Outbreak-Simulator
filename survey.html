@@ -33,6 +33,26 @@
   .instr{background:#fff8e6;border:1px solid #f0d488;border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:15px;}
   .err{color:var(--bad);font-size:14px;margin-top:8px;}
   .code{font-size:22px;font-weight:800;letter-spacing:2px;background:#f5f5f7;border-radius:8px;padding:8px 14px;display:inline-block;}
+
+/* ── Guided onboarding tour ── */
+#tour-root{position:fixed;inset:0;z-index:100000;font-family:-apple-system,"Helvetica Neue",Arial,sans-serif;}
+#tour-root .tour-backdrop{position:fixed;inset:0;background:transparent;}
+#tour-root .tour-hole{position:fixed;border-radius:12px;box-shadow:0 0 0 9999px rgba(15,18,25,.55);
+  pointer-events:none;transition:left .25s ease,top .25s ease,width .25s ease,height .25s ease;
+  border:2px solid rgba(255,255,255,.92);}
+#tour-root .tour-bubble{position:fixed;max-width:360px;background:#fff;border-radius:14px;
+  padding:16px 18px;box-shadow:0 12px 44px rgba(0,0,0,.32);z-index:100002;}
+#tour-root .tour-title{font-size:12.5px;font-weight:700;color:#0071e3;letter-spacing:.03em;
+  text-transform:uppercase;margin-bottom:6px;}
+#tour-root .tour-body{font-size:15px;line-height:1.5;color:#1d1d1f;margin-bottom:14px;}
+#tour-root .tour-nav{display:flex;align-items:center;gap:8px;}
+#tour-root .tour-spacer{flex:1;}
+#tour-root .tour-nav button{font-size:14px;font-weight:600;border-radius:9px;padding:8px 15px;
+  cursor:pointer;border:0;font-family:inherit;}
+#tour-root .tour-next{background:#0071e3;color:#fff;}
+#tour-root .tour-back{background:#eaf1fb;color:#0071e3;}
+#tour-root .tour-skip{background:none;color:#8a8d93;padding:8px 4px;font-weight:500;}
+#tour-root .tour-progress{font-size:12px;color:#a1a1a6;margin-top:10px;}
 </style>
 </head>
 <body>
@@ -281,6 +301,95 @@ $("block-btn").addEventListener("click",()=>{
   if(bi<BLOCKS.length-1){ bi++; renderBlock(); }
   else { $("block-btn").disabled=true; submit(buildRecord()); }
 });
+
+/* ===================== Guided onboarding tour (visual/tool condition) ===================== */
+(function(){
+  const STEPS=[
+    {host:"survey", sel:"#block-instr", title:"Step 1 of 4 · Instructions",
+     body:"Start by reading the highlighted box. It tells you what this part of the study is asking you to do."},
+    {host:"tool", title:"Step 2 of 4 · Search a location",
+     body:"Use the tool above. Type the location from the instructions (a postcode or a place name) into the search box, then press Enter.",
+     before(w){ try{ w.goStep(1); }catch(e){} }},
+    {host:"tool", title:"Step 3 of 4 · Explore the map",
+     body:"This is the map. Hover over or tap any area to see its vaccination coverage and number of cases — the panel on the top-left shows the details.",
+     before(w){ try{ w.goStep(2); }catch(e){} }},
+    {host:"tool", title:"Step 4 of 4 · Risk & outbreak",
+     body:"Once you choose an area you reach this page. It shows the area's community risk level and a modelled outbreak curve. When you have looked, answer the questions shown below the tool.",
+     before(w){ try{ if(w.UTLA && w.UTLA["E10000003"]) w.selectUTLA("E10000003"); w.goStep(3); }catch(e){} }}
+  ];
+  let idx=0, root=null, repos=null;
+  function toolWin(){ const f=document.getElementById("tool-frame"); return f?f.contentWindow:null; }
+  function ready(){ const w=toolWin(); return !!(w && w.goStep && w.UTLA && w.STATE); }
+  function rectFor(step){
+    if(step.host==="survey"){ const el=document.querySelector(step.sel); return el?el.getBoundingClientRect():null; }
+    const f=document.getElementById("tool-frame"); return f?f.getBoundingClientRect():null;
+  }
+  function position(){
+    if(!root) return;
+    const step=STEPS[idx], r=rectFor(step);
+    const hole=root.querySelector(".tour-hole"), bub=root.querySelector(".tour-bubble");
+    if(r){
+      const pad=6;
+      hole.style.display="block";
+      hole.style.left=Math.max(-pad,r.left-pad)+"px"; hole.style.top=Math.max(-pad,r.top-pad)+"px";
+      hole.style.width=(r.width+pad*2)+"px"; hole.style.height=(r.height+pad*2)+"px";
+    } else { hole.style.display="none"; }
+    const bw=Math.min(360, window.innerWidth-24), bh=bub.offsetHeight||170;
+    bub.style.width=bw+"px";
+    let bx,by;
+    if(r){
+      bx=Math.min(Math.max(12,r.left), window.innerWidth-bw-12);
+      if(r.bottom+bh+14 < window.innerHeight) by=r.bottom+12;
+      else if(r.top-bh-14 > 0) by=r.top-bh-12;
+      else by=Math.max(12, window.innerHeight-bh-12);
+    } else { bx=(window.innerWidth-bw)/2; by=(window.innerHeight-bh)/2; }
+    bub.style.left=bx+"px"; bub.style.top=by+"px";
+  }
+  function show(){
+    const step=STEPS[idx];
+    root.querySelector(".tour-title").textContent=step.title;
+    root.querySelector(".tour-body").textContent=step.body;
+    root.querySelector(".tour-back").style.visibility = idx===0?"hidden":"visible";
+    root.querySelector(".tour-next").textContent = idx===STEPS.length-1?"Got it":"Next";
+    if(step.before) step.before(toolWin());
+    setTimeout(()=>{
+      const el = step.host==="survey" ? document.querySelector(step.sel) : document.getElementById("tool-frame");
+      if(el && el.scrollIntoView) el.scrollIntoView({block:"center",behavior:"smooth"});
+      setTimeout(position, 320);
+    }, step.before?380:20);
+  }
+  function finish(){
+    if(repos){ window.removeEventListener("resize",repos); window.removeEventListener("scroll",repos,true); repos=null; }
+    if(root){ root.remove(); root=null; }
+    const w=toolWin();
+    try{ if(w){ if(w.caseDeselect) w.caseDeselect(); if(w.STATE) w.STATE.code=null; w.goStep(1); } }catch(e){}
+  }
+  function build(){
+    root=document.createElement("div"); root.id="tour-root";
+    root.innerHTML='<div class="tour-backdrop"></div><div class="tour-hole"></div>'
+      +'<div class="tour-bubble"><div class="tour-title"></div><div class="tour-body"></div>'
+      +'<div class="tour-nav"><button type="button" class="tour-skip">Skip tour</button>'
+      +'<span class="tour-spacer"></span><button type="button" class="tour-back">Back</button>'
+      +'<button type="button" class="tour-next">Next</button></div></div>';
+    document.body.appendChild(root);
+    root.querySelector(".tour-skip").addEventListener("click",finish);
+    root.querySelector(".tour-back").addEventListener("click",()=>{ if(idx>0){ idx--; show(); } });
+    root.querySelector(".tour-next").addEventListener("click",()=>{ if(idx<STEPS.length-1){ idx++; show(); } else finish(); });
+    repos=()=>position();
+    window.addEventListener("resize",repos); window.addEventListener("scroll",repos,true);
+  }
+  function maybeStart(){
+    if(typeof condition!=="undefined" && condition!=="visual") return;   // tour only for the map/tool condition
+    if(sessionStorage.getItem("mrvTourDone")) return;
+    let tries=0;
+    const iv=setInterval(()=>{
+      if(ready()){ clearInterval(iv); sessionStorage.setItem("mrvTourDone","1"); idx=0; build(); show(); }
+      else if(++tries>50){ clearInterval(iv); }
+    },200);
+  }
+  const frame=document.getElementById("tool-frame");
+  if(frame) frame.addEventListener("load", ()=>{ setTimeout(maybeStart,400); });
+})();
 </script>
 </body>
 </html>
