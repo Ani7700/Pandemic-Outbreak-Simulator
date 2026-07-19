@@ -50,6 +50,7 @@
 #tour-root .tour-nav button{font-size:14px;font-weight:600;border-radius:9px;padding:8px 15px;
   cursor:pointer;border:0;font-family:inherit;}
 #tour-root .tour-next{background:#0071e3;color:#fff;}
+#tour-root .tour-next:disabled{opacity:.4;cursor:default;}
 #tour-root .tour-back{background:#eaf1fb;color:#0071e3;}
 #tour-root .tour-skip{background:none;color:#8a8d93;padding:8px 4px;font-weight:500;}
 #tour-root .tour-progress{font-size:12px;color:#a1a1a6;margin-top:10px;}
@@ -317,7 +318,7 @@ $("block-btn").addEventListener("click",()=>{
      body:"Once you choose an area you reach this page. It shows the area's community risk level and a modelled outbreak curve. When you have looked, answer the questions shown below the tool.",
      before(w){ try{ w.selectUTLA("E10000003"); }catch(e){} try{ w.goStep(3); }catch(e){} }}
   ];
-  let idx=0, root=null, repos=null;
+  let idx=0, root=null, repos=null, gateTimer=null;
   function toolWin(){ const f=document.getElementById("tool-frame"); return f?f.contentWindow:null; }
   function ready(){
     try{ const w=toolWin(); return !!(w && typeof w.goStep==="function" && w.document && w.document.querySelector(".layout")); }
@@ -326,6 +327,20 @@ $("block-btn").addEventListener("click",()=>{
   function rectFor(step){
     if(step.host==="survey"){ const el=document.querySelector(step.sel); return el?el.getBoundingClientRect():null; }
     const f=document.getElementById("tool-frame"); return f?f.getBoundingClientRect():null;
+  }
+  function dataLoaded(w){ try{ const el=w.document.getElementById("loading"); return !!el && el.style.display==="none"; }catch(e){ return false; } }
+  function toolStepIs(w,n){ try{ const L=w.document.querySelector(".layout"); return !!L && String(L.dataset.step)===String(n); }catch(e){ return false; } }
+  function riskShown(w){ try{ const el=w.document.getElementById("risk-level"); const v=el?(el.textContent||"").trim():""; return !!v && v!=="\u2014"; }catch(e){ return false; } }
+  function stepReady(){ const w=toolWin();
+    if(idx===0) return true;
+    if(idx===1) return toolStepIs(w,1);
+    if(idx===2) return dataLoaded(w) && toolStepIs(w,2);
+    return dataLoaded(w) && toolStepIs(w,3) && riskShown(w);
+  }
+  function setNextEnabled(on){ const b=root&&root.querySelector(".tour-next"); if(b) b.disabled=!on; }
+  function gateNext(){ if(gateTimer){ clearInterval(gateTimer); gateTimer=null; }
+    const tick=()=>{ const ok=stepReady(); setNextEnabled(ok); if(ok&&gateTimer){ clearInterval(gateTimer); gateTimer=null; } };
+    setNextEnabled(false); tick(); if(!stepReady()) gateTimer=setInterval(tick,250);
   }
   function position(){
     if(!root) return;
@@ -355,6 +370,7 @@ $("block-btn").addEventListener("click",()=>{
     root.querySelector(".tour-back").style.visibility = idx===0?"hidden":"visible";
     root.querySelector(".tour-next").textContent = idx===STEPS.length-1?"Got it":"Next";
     if(step.before) step.before(toolWin());
+    gateNext();
     setTimeout(()=>{
       const el = step.host==="survey" ? document.querySelector(step.sel) : document.getElementById("tool-frame");
       if(el && el.scrollIntoView) el.scrollIntoView({block:"center",behavior:"smooth"});
@@ -362,6 +378,7 @@ $("block-btn").addEventListener("click",()=>{
     }, step.before?380:20);
   }
   function finish(){
+    if(gateTimer){ clearInterval(gateTimer); gateTimer=null; }
     if(repos){ window.removeEventListener("resize",repos); window.removeEventListener("scroll",repos,true); repos=null; }
     if(root){ root.remove(); root=null; }
     const w=toolWin();
