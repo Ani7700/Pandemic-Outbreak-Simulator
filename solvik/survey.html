@@ -18,6 +18,7 @@
   .q{padding:14px 0;border-bottom:1px solid #eee;}
   .q:last-child{border-bottom:none;}
   .q .prompt{font-weight:600;margin-bottom:10px;}
+  .qnum{color:#0071e3;font-weight:700;margin-right:2px;}
   .opts label{display:block;padding:8px 10px;border:1px solid var(--line);border-radius:8px;margin-bottom:6px;cursor:pointer;font-size:15px;}
   .opts label:hover{background:#f5f5f7;}
   .opts input{margin-right:8px;}
@@ -209,10 +210,12 @@ const BLOCKS = [
  ]},
 ];
 
+// Give each graded comprehension question a display number (1..N, in the order shown).
+(function(){ let n=0; BLOCKS.forEach(b=>b.items.forEach(q=>{ if(q.type==="radio") q.num=++n; })); })();
 let bi = 0;
 
 function itemHTML(q){
-  let h=`<div class="q" data-id="${q.id}"><div class="prompt">${q.prompt}</div>`;
+  let h=`<div class="q" data-id="${q.id}"><div class="prompt">${q.num?`<span class="qnum">Q${q.num}.</span> `:""}${q.prompt}</div>`;
   if(q.type==="select"){
     h+=`<select name="${q.id}"><option value="">— choose —</option>`+
        q.opts.map((o,i)=>`<option value="${i}">${o}</option>`).join("")+`</select>`;
@@ -256,10 +259,11 @@ function buildRecord(){
     user_agent:navigator.userAgent};
   let correct=0,graded=0;
   BLOCKS.forEach(b=>b.items.forEach(q=>{
-    rec[q.id]=ANS[q.id]!=null?ANS[q.id]:"";
+    const col = q.num ? ("Q"+String(q.num).padStart(2,"0")+"_"+q.id) : q.id;
+    rec[col]=ANS[q.id]!=null?ANS[q.id]:"";
     if(q.type==="radio" && q.correct!=null){
       const ok=(ANS[q.id]!==""&&parseInt(ANS[q.id])===q.correct)?1:0;
-      rec[q.id+"_correct"]=ANS[q.id]===""?"":ok; graded++; if(ok)correct++;
+      rec[col+"_correct"]=ANS[q.id]===""?"":ok; graded++; if(ok)correct++;
     }
   }));
   rec.comprehension_score=correct; rec.comprehension_max=graded;
