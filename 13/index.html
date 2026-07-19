@@ -1253,7 +1253,7 @@ const APP_VERSION = (function(){
   return (n>=1 && n<=30) ? n : 0;      // 0 = root (baseline)
 })();
 const DATA_BASE = APP_VERSION ? "../" : "";   // data files live at the repo root
-const DATA_V = "?v=3";   // bump this whenever a data file changes, to bust browser caches
+const DATA_V = "?v=4";   // bump this whenever a data file changes, to bust browser caches
 let STATE = { code: null, disease: "mmr2", districtName: null, placeName: null, placeType: null };
 let LMAP = null, GJSON = null, LABEL = null;
 const $ = id => document.getElementById(id);
@@ -1268,19 +1268,19 @@ fetch(DATA_BASE+"measles_cases.json"+DATA_V).then(r=>r.json()).then(j=>{
   if(GJSON){ repaintMap(); updateLegend(); if(MAP_MODE==="dots") addCaseDots(); if(MAP_MODE==="table") buildCaseTable(); }
   updateCasePanel();
 }).catch(()=>{});
-// Case dot-density data (1 dot = 1 case) loaded via <script> so it also works from file://.
-(function(){
+// Heavier extras (case dots + projections) — DEFERRED: loaded only after the map data
+// is in, so they do not compete for bandwidth with the large boundary file (faster first paint).
+function loadCaseDots(){
   if(window.__CASEDOTS__){ CASEDOTS=window.__CASEDOTS__; initCaseDots(); return; }
   const s=document.createElement("script"); s.src=DATA_BASE+"case_dots.js"+DATA_V;
   s.onload=()=>{ CASEDOTS=window.__CASEDOTS__||CASEDOTS; initCaseDots(); };
   document.head.appendChild(s);
-})();
-// Precomputed outbreak projections (static; replaces the live simulator API).
-(function(){
+}
+function loadSimProj(){
   const s=document.createElement("script"); s.src=DATA_BASE+"sim_projections.js"+DATA_V;
   s.onload=()=>{ const c=STATE.code; if(c && UTLA && UTLA[c]) runAreaSim(UTLA[c], UTLA[c].mmr2); };
   document.head.appendChild(s);
-})();
+}
 
 Promise.all([
   fetch(DATA_BASE+"utla.geojson"+DATA_V).then(r=>r.json()),
@@ -1295,6 +1295,8 @@ Promise.all([
   wireNameSearch();
   wireWizard();
   goStep(1);
+  loadCaseDots();   // pull the heavier extras now that the map is up
+  loadSimProj();
 }).catch(err => {
   $("loading").style.display = "none";
   document.body.insertAdjacentHTML("beforeend",
