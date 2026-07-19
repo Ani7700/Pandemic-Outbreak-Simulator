@@ -116,6 +116,16 @@ body{
   /* on-map label on phones */
   .map-label .ml-big{font-size:30px;}
   .map-label .ml-inner{padding:6px 11px;}
+  /* Floating case panel: compact on phones */
+  #case-panel{top:8px;left:8px;width:185px;padding:9px 10px;border-radius:11px;}
+  #case-panel .cp-search{padding:6px 8px;margin-bottom:7px;}
+  #case-panel .cp-search input{font-size:16px;}   /* 16px stops iOS focus-zoom */
+  #case-panel .cp-name{font-size:16px;}
+  #case-panel .cp-num{font-size:20px;}
+  #case-panel .cp-lab{font-size:11px;margin-top:5px;}
+  #case-panel .cp-deselect{font-size:11px;margin:2px 0 4px;}
+  /* Hover tooltip is a desktop affordance; on touch it sticks and overflows — hide it */
+  .map-tt{display:none !important;}
 }
 
 /* ── Left panel ── */
@@ -395,6 +405,11 @@ body{
 .sim-section{margin-top:12px;padding-top:10px;border-top:1px solid var(--line);}
 .sim-title{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:4px;}
 .sim-status{font-size:19px;font-weight:800;color:var(--ink);letter-spacing:-.01em;margin-bottom:8px;}
+.sim-legend2{display:flex;flex-wrap:wrap;gap:14px;margin:0 0 6px;font-size:12.5px;color:#777;}
+.sim-legend2 .lg-item{display:inline-flex;align-items:center;gap:6px;}
+.sim-legend2 .lg-sw{display:inline-block;width:18px;height:10px;flex:none;}
+.sim-legend2 .lg-band{background:#8C3A2B33;}
+.sim-legend2 .lg-line{height:3px;background:#8C3A2B;border-radius:2px;}
 .sim-legend{font-size:11px;color:var(--ink-soft);margin-top:5px;}
 .comp-card{padding:6px 8px;border:2px solid;}
 .comp-card.vacc{border-color:#00703c;background:#f3faf6;}
@@ -606,6 +621,10 @@ body{
         <!-- Local outbreak projection (simulator) — legend + note are baked into the chart -->
         <div class="sim-section" id="sim-section" style="display:none">
           <div class="sim-status" id="sim-status"></div>
+          <div class="sim-legend2" id="sim-legend2">
+            <span class="lg-item"><i class="lg-sw lg-band"></i>range of outcomes</span>
+            <span class="lg-item"><i class="lg-sw lg-line"></i>most likely infected</span>
+          </div>
           <svg class="sim-chart" id="sim-chart" viewBox="0 0 620 300" preserveAspectRatio="xMidYMid meet"
                style="width:100%;max-width:760px;height:auto;display:none" xmlns="http://www.w3.org/2000/svg"></svg>
         </div>
@@ -1637,8 +1656,13 @@ function showTT(e,code,d){
 }
 function moveTT(e){
   const tt=$("map-tt"), r=$("map-wrap").getBoundingClientRect();
-  tt.style.left=(e.clientX-r.left+12)+"px";
-  tt.style.top=(e.clientY-r.top+12)+"px";
+  const tw=tt.offsetWidth||160, th=tt.offsetHeight||40;
+  let x=e.clientX-r.left+12, y=e.clientY-r.top+12;
+  if(x+tw>r.width-4)  x=(e.clientX-r.left)-tw-12;   // flip left near right edge
+  if(x<4) x=4;
+  if(y+th>r.height-4) y=(e.clientY-r.top)-th-12;    // flip up near bottom edge
+  if(y<4) y=4;
+  tt.style.left=x+"px"; tt.style.top=y+"px";
 }
 function hideTT(){ $("map-tt").style.opacity=0; }
 
@@ -1870,7 +1894,7 @@ function drawSimChart(sim){
   $("sim-chart").innerHTML = ticks
     + `<path d="${band}" fill="#8C3A2B22" stroke="none"/>`
     + `<path d="${line(I.med)}" fill="none" stroke="#8C3A2B" stroke-width="1.8"/>`
-    + xlabels + legend + yTitle + startMark + peakMark;
+    + xlabels + yTitle + startMark + peakMark;
 }
 function shortNum(v){
   if(v>=1e6) return (v/1e6).toFixed(1)+"M";
