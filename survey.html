@@ -315,11 +315,14 @@ $("block-btn").addEventListener("click",()=>{
      before(w){ try{ w.goStep(2); }catch(e){} }},
     {host:"tool", title:"Step 4 of 4 · Risk & outbreak",
      body:"Once you choose an area you reach this page. It shows the area's community risk level and a modelled outbreak curve. When you have looked, answer the questions shown below the tool.",
-     before(w){ try{ if(w.UTLA && w.UTLA["E10000003"]) w.selectUTLA("E10000003"); w.goStep(3); }catch(e){} }}
+     before(w){ try{ w.selectUTLA("E10000003"); }catch(e){} try{ w.goStep(3); }catch(e){} }}
   ];
   let idx=0, root=null, repos=null;
   function toolWin(){ const f=document.getElementById("tool-frame"); return f?f.contentWindow:null; }
-  function ready(){ const w=toolWin(); return !!(w && w.goStep && w.UTLA && w.STATE); }
+  function ready(){
+    try{ const w=toolWin(); return !!(w && typeof w.goStep==="function" && w.document && w.document.querySelector(".layout")); }
+    catch(e){ return false; }
+  }
   function rectFor(step){
     if(step.host==="survey"){ const el=document.querySelector(step.sel); return el?el.getBoundingClientRect():null; }
     const f=document.getElementById("tool-frame"); return f?f.getBoundingClientRect():null;
