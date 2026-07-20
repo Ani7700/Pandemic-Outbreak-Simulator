@@ -214,7 +214,7 @@ function itemHTML(q,i){
   const num = q._num ? `<span class="qnum">${q._num}.</span> ` : "";
   let h=`<div class="q" data-id="${q.id}"><div class="prompt">${num}${q.prompt}</div>`;
   if(q.type==="radio"){ h+=`<div class="opts">`+q.opts.map((o,k)=>`<label><input type="radio" name="${q.id}" value="${k}">${o}</label>`).join("")+`</div>`; }
-  else if(q.type==="likert"){ h+=`<div class="likert"><span class="end">${q.lo}</span>`; for(let k=1;k<=7;k++) h+=`<label>${k}<input type="radio" name="${q.id}" value="${k}"></label>`; h+=`<span class="end">${q.hi}</span></div>`; }
+  else if(q.type==="likert"){ h+=`<div class="likert"><span class="end">${q.lo}</span>`; for(let k=1;k<=5;k++) h+=`<label>${k}<input type="radio" name="${q.id}" value="${k}"></label>`; h+=`<span class="end">${q.hi}</span></div>`; }
   else if(q.type==="number"){ h+=`<input type="number" name="${q.id}" step="any" inputmode="decimal"> <span class="muted">${q.unit||""}</span>`; }
   else if(q.type==="select"){ h+=`<select name="${q.id}"><option value="">— choose —</option>`+q.opts.map(o=>`<option value="${o}">${o}</option>`).join("")+`</select>`; }
   else if(q.type==="text"){ h+=`<textarea name="${q.id}"></textarea>`; }
