@@ -113,8 +113,11 @@ const $ = id => document.getElementById(id);
 const P = new URLSearchParams(location.search);
 
 const participantId = P.get("PROLIFIC_PID") || P.get("pid") || ("anon-"+Math.random().toString(36).slice(2,10));
+// Prototype arm from the filename: survey1.html / survey2.html / survey3.html -> interface versions 1 / 2 / 7.
+const ARM_TO_VERSION = {1:1, 2:2, 3:7};
+const surveyArm = parseInt((location.pathname.match(/survey(\d+)\.html$/i)||[])[1]) || 0;
 const version = (parseInt(P.get("v"))>=1 && parseInt(P.get("v"))<=N_VERSIONS) ? parseInt(P.get("v"))
-              : Math.floor(Math.random()*N_VERSIONS)+1;
+              : (ARM_TO_VERSION[surveyArm] || 1);   // fixed by filename; default version 1 (no random)
 // Two conditions, chosen by URL (NOT random). One survey file served at 2 paths:
 //   /survey.html   -> visual   (the map/coverage tool, one of N_VERSIONS)
 //   /baseline/     -> baseline (combined page: prose briefing + chatbot assistant)
@@ -251,7 +254,7 @@ function saveBlock(){
 }
 
 function buildRecord(){
-  const rec={participantId,study:"solvik",condition,version:condition==="visual"?version:"",assignedUrl:toolURL,timestamp:new Date().toISOString(),
+  const rec={participantId,study:"solvik",condition,version:condition==="visual"?version:"",arm:condition==="visual"?surveyArm:"",assignedUrl:toolURL,timestamp:new Date().toISOString(),
     seconds_total:Math.round((Date.now()-started)/1000),
     seconds_on_tool:toolStart?Math.round((Date.now()-toolStart)/1000):"",
     user_agent:navigator.userAgent};

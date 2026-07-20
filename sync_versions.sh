@@ -41,4 +41,12 @@ if [ -d solvik/baseline ]; then
   cp solvik/survey.html solvik/baseline/index.html
   echo "synced -> solvik/baseline/index.html"
 fi
+
+# Fixed-arm survey pages: surveyN.html embeds a fixed interface version (no random).
+for base in "" "solvik/" "tarnpox/"; do
+  for n in 1 2 3; do
+    cp "${base}survey.html" "${base}survey${n}.html"
+    echo "synced -> ${base}survey${n}.html"
+  done
+done
 echo "done. (create a new version folder with: mkdir N)"
