@@ -258,16 +258,24 @@ function buildRecord(){
     seconds_total:Math.round((Date.now()-started)/1000),
     seconds_on_tool:toolStart?Math.round((Date.now()-toolStart)/1000):"",
     user_agent:navigator.userAgent};
-  let correct=0,graded=0;
+  let correct=0,graded=0, scoreRisk=0,maxRisk=0, scoreShared=0,maxShared=0;
+  // These 4 items are the ONLY ones that differ across prototype arms (they read the step-3
+  // risk display, which is what versions 1/2/7 change). The other 10 are about the shared
+  // map/coverage/projection, so use score_risk_display as the primary DV for the arm comparison.
+  const RISK_IDS = ["C1","C_dose2","C_ratio","C5"];
   BLOCKS.forEach(b=>b.items.forEach(q=>{
     const col = q.num ? ("Q"+String(q.num).padStart(2,"0")+"_"+q.id) : q.id;
     rec[col]=ANS[q.id]!=null?ANS[q.id]:"";
     if(q.type==="radio" && q.correct!=null){
       const ok=(ANS[q.id]!==""&&parseInt(ANS[q.id])===q.correct)?1:0;
       rec[col+"_correct"]=ANS[q.id]===""?"":ok; graded++; if(ok)correct++;
+      if(RISK_IDS.indexOf(q.id)>=0){ maxRisk++; if(ok)scoreRisk++; }
+      else { maxShared++; if(ok)scoreShared++; }
     }
   }));
   rec.comprehension_score=correct; rec.comprehension_max=graded;
+  rec.score_risk_display=scoreRisk; rec.max_risk_display=maxRisk;   // primary DV for comparing prototype arms
+  rec.score_shared=scoreShared; rec.max_shared=maxShared;           // shared map/projection (for visual-vs-baseline)
   // Attach the chatbot transcript for baseline participants (for analysis of
   // what they asked, how many turns, and how long they spent chatting).
   if(CHAT){
