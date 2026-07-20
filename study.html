@@ -20,15 +20,29 @@
   #done .card{max-width:520px;background:#fff;border:1px solid #d2d2d7;border-radius:16px;padding:28px;text-align:center;box-shadow:0 2px 12px rgba(0,0,0,.05);}
   #done .code{font-size:24px;font-weight:800;letter-spacing:2px;background:#f5f5f7;border-radius:8px;padding:10px 16px;display:inline-block;margin:10px 0;}
   .muted{color:#6e6e73;}
+  #intro{flex:1 1 auto;display:flex;align-items:center;justify-content:center;padding:30px;}
+  #intro .card{max-width:460px;background:#fff;border:1px solid #d2d2d7;border-radius:16px;padding:28px;box-shadow:0 2px 12px rgba(0,0,0,.05);}
+  #intro h1{margin:0 0 10px;font-size:22px;}
+  #intro input{width:100%;font-size:16px;padding:11px 13px;border:1px solid #d2d2d7;border-radius:10px;margin:14px 0 6px;font-family:inherit;}
+  #intro input:focus{outline:2px solid #0071e3;border-color:#0071e3;}
+  #intro button{margin-top:14px;font-size:16px;font-weight:600;padding:11px 24px;border:0;border-radius:10px;background:#0071e3;color:#fff;cursor:pointer;}
+  #intro .err{color:#d4351c;font-size:14px;display:none;margin-top:4px;}
 </style>
 </head>
 <body>
-  <div id="bar">
+  <div id="intro"><div class="card">
+    <h1>Before you begin</h1>
+    <p class="muted">Please confirm your Prolific ID below. If you came from Prolific it is filled in automatically — otherwise paste it from your Prolific account. This lets us link your responses to your submission.</p>
+    <input id="pid-in" type="text" placeholder="Your Prolific ID" autocomplete="off" spellcheck="false"/>
+    <div class="err" id="pid-err">Please enter your Prolific ID to continue.</div>
+    <button id="begin-btn">Begin →</button>
+  </div></div>
+  <div id="bar" style="display:none">
     <strong id="part">Part 1 of 3</strong>
     <span class="muted" id="hint"></span>
     <span class="dots" id="dots"></span>
   </div>
-  <iframe id="frame" title="survey"></iframe>
+  <iframe id="frame" title="survey" style="display:none"></iframe>
   <div id="next"><span id="next-msg">You’ve completed this part.</span><button id="next-btn">Continue →</button></div>
   <div id="done"><div class="card">
     <h1>All done — thank you</h1>
@@ -43,10 +57,7 @@
 //    change them in any way — each survey runs unmodified and submits its own row. ──
 const $ = id => document.getElementById(id);
 const P = new URLSearchParams(location.search);
-const PID = P.get("PROLIFIC_PID") || P.get("pid") || ("anon-"+Math.random().toString(36).slice(2,10));
-// One completion code per participant. All three parts record this same code, and it is shown
-// only once, at the very end.
-const CODE = "MRV-" + ((PID.replace(/[^a-zA-Z0-9]/g,"").slice(-6).toUpperCase()) || "000000");
+let PID = "", CODE = "";   // set once the participant confirms their Prolific ID on the intro screen
 
 // F1/F2/F3 -> the deployed arm files survey1/2/3.html ; D1/D2/D3 -> the three disease sites.
 const FILE = { F1:1, F2:2, F3:3 };
@@ -119,7 +130,7 @@ function showNext(){
   if(!last){
     try{
       const note = $("frame").contentDocument.getElementById("done-note");
-      if(note) note.textContent = "Please continue to the next part below.";
+      if(note) note.textContent = "Please continue to the next disease below.";
     }catch(e){}
   }
   if(last){
@@ -145,7 +156,19 @@ function finish(){
   $("code").textContent = CODE;
 }
 
-loadTrial(0);
+// ── Intro: collect / confirm the Prolific ID before starting ──
+$("pid-in").value = P.get("PROLIFIC_PID") || P.get("pid") || "";
+function begin(){
+  const v = $("pid-in").value.trim();
+  if(!v){ $("pid-err").style.display="block"; $("pid-in").focus(); return; }
+  PID = v;
+  CODE = "MRV-" + ((PID.replace(/[^a-zA-Z0-9]/g,"").slice(-6).toUpperCase()) || "000000");
+  $("intro").style.display = "none";
+  $("bar").style.display = "flex";
+  loadTrial(0);
+}
+$("begin-btn").addEventListener("click", begin);
+$("pid-in").addEventListener("keydown", e=>{ if(e.key==="Enter") begin(); });
 </script>
 </body>
 </html>
