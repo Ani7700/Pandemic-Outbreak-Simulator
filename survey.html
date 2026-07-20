@@ -254,7 +254,7 @@ function saveBlock(){
 }
 
 function buildRecord(){
-  const rec={participantId,study:"verrow",condition,version:condition==="visual"?version:"",arm:condition==="visual"?surveyArm:"",assignedUrl:toolURL,timestamp:new Date().toISOString(),
+  const rec={participantId,code:(new URLSearchParams(location.search).get("code")||""),study:"verrow",condition,version:condition==="visual"?version:"",arm:condition==="visual"?surveyArm:"",assignedUrl:toolURL,timestamp:new Date().toISOString(),
     seconds_total:Math.round((Date.now()-started)/1000),
     seconds_on_tool:toolStart?Math.round((Date.now()-toolStart)/1000):"",
     user_agent:navigator.userAgent};
@@ -296,10 +296,18 @@ function submit(rec){
     showDone();
   }
 }
+const CHAIN_CODE = new URLSearchParams(location.search).get("code") || "";
 function showDone(){
   $("s-survey").style.display="none"; $("s-done").style.display="block";
-  $("done-code").textContent="MRV-"+(condition==="baseline"?"BL":String(version).padStart(2,"0"))+"-"+participantId.slice(-4).toUpperCase();
-  $("done-note").textContent=ENDPOINT.startsWith("http")?"You can close this window.":"(Test mode: a data file was downloaded because no storage endpoint is set yet.)";
+  if(CHAIN_CODE){
+    const ps=document.querySelectorAll("#s-done .card p");
+    if(ps[0]) ps[0].style.display="none";       // "...completion code is:" line
+    $("done-code").style.display="none";
+    $("done-note").textContent="";               // the wrapper fills the continue / finish message
+  } else {
+    $("done-code").textContent="MRV-"+(condition==="baseline"?"BL":String(version).padStart(2,"0"))+"-"+participantId.slice(-4).toUpperCase();
+    $("done-note").textContent=ENDPOINT.startsWith("http")?"You can close this window.":"(Test mode: a data file was downloaded because no storage endpoint is set yet.)";
+  }
   window.scrollTo(0,0);
 }
 

@@ -44,6 +44,9 @@
 const $ = id => document.getElementById(id);
 const P = new URLSearchParams(location.search);
 const PID = P.get("PROLIFIC_PID") || P.get("pid") || ("anon-"+Math.random().toString(36).slice(2,10));
+// One completion code per participant. All three parts record this same code, and it is shown
+// only once, at the very end.
+const CODE = "MRV-" + ((PID.replace(/[^a-zA-Z0-9]/g,"").slice(-6).toUpperCase()) || "000000");
 
 // F1/F2/F3 -> the deployed arm files survey1/2/3.html ; D1/D2/D3 -> the three disease sites.
 const FILE = { F1:1, F2:2, F3:3 };
@@ -71,7 +74,8 @@ function trialURL(i){
   const [f,d] = TRIALS[i];
   // Show the information sheet + guide only in the first part; parts 2 & 3 skip straight in.
   const extra = i>0 ? "&tour=0&consent=0" : "";
-  return SITE[d] + "survey" + FILE[f] + ".html?PROLIFIC_PID=" + encodeURIComponent(PID) + extra;
+  return SITE[d] + "survey" + FILE[f] + ".html?PROLIFIC_PID=" + encodeURIComponent(PID)
+         + "&code=" + encodeURIComponent(CODE) + extra;
 }
 
 function loadTrial(i){
@@ -135,7 +139,7 @@ function finish(){
   $("frame").style.display = "none";
   $("next").style.display = "none";
   $("done").style.display = "flex";
-  $("code").textContent = "MRV-S" + seq + "-" + PID.slice(-4).toUpperCase();
+  $("code").textContent = CODE;
 }
 
 loadTrial(0);
