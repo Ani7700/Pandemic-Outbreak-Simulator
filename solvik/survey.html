@@ -67,7 +67,7 @@
     <h1>A study of an interactive tool for vaccination coverage</h1>
     <div class="card">
       <p class="muted">Participant Information Sheet</p>
-      <p>Thank you for your interest in this study. Please read the following carefully before you decide whether to take part. The study evaluates a public-facing, interactive tool that visualises how childhood vaccination coverage in local areas affects the population-level spread of a childhood disease. The aim is to investigate how well different ways of presenting this information help people <strong>correctly and accurately understand</strong> what is shown. It is completed entirely online and takes about <strong>10–15 minutes</strong>.</p>
+      <p>Thank you for your interest in this study. Please read the following carefully before you decide whether to take part. The study evaluates a public-facing, interactive tool that visualises how childhood vaccination coverage in local areas affects the population-level spread of a childhood disease. The aim is to investigate how well different ways of presenting this information help people <strong>correctly and accurately understand</strong> what is shown. It is completed entirely online and takes about <strong>15–20 minutes</strong>.</p>
       <p><strong>The data shown is fictional.</strong> The disease (called “Solvik”), the vaccine, and all statistics shown — coverage, cases and risks — are entirely hypothetical. They are used only so the study measures how you <em>read</em> the information presented, not your knowledge of any real disease, and so that you cannot look up answers online. The areas and map are real UK locations, used only so the tool works. Nothing in this tool is a prediction about any real disease, vaccine or area, and nothing in it should be used to make real health decisions. For accurate information about childhood vaccination, please consult the NHS (<span style="white-space:nowrap">www.nhs.uk</span>) or your GP.</p>
       <p>Its only focus is how accurately you understand the information displayed. <strong>No questions are asked about your views, feelings, intentions, decisions or trust regarding vaccination</strong>, and no personally identifying information is collected. The study records only your answers to comprehension questions, usability ratings, and the time taken; these are stored anonymously and cannot be linked back to you. Participants who finish with a higher level of accuracy receive a bonus in addition to compensation.</p>
       <p><strong>Taking part is voluntary.</strong> You do not have to take part, and if you do you may withdraw at any time without giving a reason. You may also request deletion of your data up to <strong>two weeks</strong> after your session.</p>
@@ -256,7 +256,7 @@ function saveBlock(){
 }
 
 function buildRecord(){
-  const rec={participantId,code:(new URLSearchParams(location.search).get("code")||""),study:"solvik",condition,version:condition==="visual"?version:"",arm:condition==="visual"?surveyArm:"",assignedUrl:toolURL,timestamp:new Date().toISOString(),
+  const rec={participantId,code:(new URLSearchParams(location.search).get("code")||""),prolific_id:(new URLSearchParams(location.search).get("PROLIFIC_PID")||""),study:"solvik",condition,version:condition==="visual"?version:"",arm:condition==="visual"?surveyArm:"",assignedUrl:toolURL,timestamp:new Date().toISOString(),
     seconds_total:Math.round((Date.now()-started)/1000),
     seconds_on_tool:toolStart?Math.round((Date.now()-toolStart)/1000):"",
     user_agent:navigator.userAgent};
