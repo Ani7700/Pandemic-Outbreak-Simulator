@@ -84,10 +84,13 @@ function loadTrial(i){
   $("hint").textContent = "";
   $("next").style.display = "none";
   dots.forEach((el,k)=>{ el.className = "dot" + (k<i?" done":k===i?" on":""); });
+  if(pollTimer){ clearInterval(pollTimer); pollTimer=null; }   // stop watching the previous part
   $("frame").style.display = "block";
+  // Only start watching once the NEW survey document has loaded — otherwise the poll would still
+  // see the previous part's (already-visible) #s-done and jump ahead immediately.
+  $("frame").onload = () => watchForDone();
   $("frame").src = trialURL(i);
   window.scrollTo(0,0);
-  watchForDone();
 }
 
 // The existing survey shows its own "Thank you" screen (#s-done) when finished and submits its
