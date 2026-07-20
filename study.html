@@ -57,7 +57,7 @@
       <p class="muted">Participant Information Sheet</p>
       <p>Thank you for your interest. Please read this carefully before deciding whether to take part. The study evaluates <strong>how different ways of showing the same risk numbers help people read them accurately</strong>. It is completed online and takes about <strong>30–40 minutes</strong>. You will use an interactive tool <strong>three times</strong>, each time with a different (fictional) disease and a different display style, and answer short comprehension questions after each.</p>
       <p><strong>All data shown is fictional.</strong> The diseases (“Verrow fever”, “Solvik”, “Tarnpox”), the vaccine, and every statistic — coverage, cases, and risks — are entirely hypothetical, used only so we can measure how you <em>read</em> the information, not your knowledge of any real disease. The areas and map are real UK locations, used only so the tool works. Nothing here is a prediction about any real disease, vaccine, or area, and nothing should be used for real health decisions. For accurate vaccination information, consult the NHS (www.nhs.uk) or your GP.</p>
-      <p>The study’s only focus is how accurately you understand the information displayed, and how usable you find it. <strong>No questions are asked about your views, feelings, intentions, decisions, or trust regarding vaccination</strong>, and no personally identifying information is collected. We record only your answers to comprehension questions, usability ratings, brief numeracy and graph-literacy measures, basic demographics, and the time taken; these are stored anonymously.</p>
+      <p>The study’s only focus is how accurately you understand the information displayed, and how usable you find it. <strong>No questions are asked about your views, feelings, intentions, decisions, or trust regarding vaccination</strong>, and no personally identifying information is collected. We record only your answers to comprehension questions, usability ratings, and the time taken; these are stored anonymously.</p>
       <p><strong>Taking part is voluntary.</strong> You may withdraw at any time without giving a reason, and may request deletion of your data up to two weeks after your session.</p>
       <p><strong>Organised by</strong> Ninghan Qi and Dr Miri Zilka, Department of Engineering, University of Cambridge (PI: Dr Miri Zilka). Results form part of an MPhil dissertation and may be published for groups of participants; you will not be identified. Reviewed by the Department of Engineering Research Ethics Committee. Questions: nq221@cam.ac.uk.</p>
       <p style="margin-top:14px"><strong>Please tick each box to confirm and take part:</strong></p>
@@ -184,36 +184,6 @@ const CLOSING = [
  {id:"unclear",type:"text",prompt:"Was there anything about how the information was shown that was unclear or confusing? (optional)",optional:true},
 ];
 
-// ── Covariates ──
-// Berlin Numeracy Test (4-item paper format, Cokely et al. 2012). Open numeric; score = number correct.
-const BNT = [
- {id:"bnt1",prompt:"Out of 1,000 people in a small town, 500 are members of a choir. Of these 500 members, 100 are men. Of the 500 inhabitants who are NOT in the choir, 300 are men. What is the probability that a randomly drawn man is a member of the choir? (Please give a percentage, 0–100.)",unit:"%",ans:25},
- {id:"bnt2",prompt:"Imagine we roll a fair five-sided die 50 times. On average, out of these 50 rolls, how many times would the die show an odd number (1, 3, or 5)?",unit:"times",ans:30},
- {id:"bnt3",prompt:"Imagine we roll a loaded six-sided die 70 times. On this die the probability of showing a 6 is twice as high as each other number. On average, out of these 70 rolls, how many times would it show a 6?",unit:"times",ans:20},
- {id:"bnt4",prompt:"In a forest, 20% of mushrooms are red, 50% are brown, and 30% are white. A red mushroom is poisonous with probability 20%. A mushroom that is not red is poisonous with probability 5%. What is the probability that a poisonous mushroom in the forest is red? (Please give a percentage, 0–100.)",unit:"%",ans:50},
-];
-// Graph-literacy short scale — PLACEHOLDER. Replace with the validated Galesic & Garcia-Retamero (2011)
-// items (they require specific graphs). One neutral warm item is included so the block is not empty.
-const GRAPHLIT = [
- {id:"gl_placeholder",prompt:"[Graph-literacy scale placeholder — replace with the validated Galesic & Garcia-Retamero (2011) graph items before launch.] For now: on a line that rises from left to right, does the value get larger or smaller as you move right?",opts:["Larger","Smaller","Stays the same"],ans:0},
-];
-const DEMO = [
- {id:"age",type:"select",prompt:"Age band",opts:["18–24","25–34","35–44","45–54","55–64","65+"]},
- {id:"education",type:"select",prompt:"Highest completed education",opts:["No formal qualifications","Secondary school (GCSE or equivalent)","Further (A-levels / vocational)","Undergraduate degree","Postgraduate degree"]},
- {id:"first_lang_en",type:"radio",prompt:"Is English your first language?",opts:["Yes","No"]},
-];
-
-// ── Static practice panel (warm-up part 2): mock display + 6 practice items with feedback ──
-const PRACTICE = { no:80, one:40, two:10 };   // mock "per 100" values (practice pathogen)
-const PRACTICE_ITEMS = [
- {q:"A child with NO doses meets a case. Out of 100 such children, about how many catch it?",opts:["about 10 in 100","about 40 in 100","about 80 in 100","not sure"],ans:2,exp:"Read the No-doses card: 80 in 100."},
- {q:"Out of 100 fully-vaccinated (2-dose) children who are exposed, about how many still catch it?",opts:["about 10","about 40","about 80","not sure"],ans:0,exp:"Read the After-2nd-dose card: 10 in 100."},
- {q:"How many times more likely is an unvaccinated child than a fully-vaccinated one?",opts:["about the same","about 8 times","about 30 times","not sure"],ans:1,exp:"80 ÷ 10 = about 8 times."},
- {q:"Of 200 unvaccinated children all exposed, about how many catch it?",opts:["about 40","about 160","about 200","not sure"],ans:1,exp:"80 in 100 → 160 in 200."},
- {q:"Of 300 fully-vaccinated children all exposed, about how many catch it?",opts:["about 3","about 30","about 100","not sure"],ans:1,exp:"10 in 100 → 30 in 300."},
- {q:"In a class of 50 unvaccinated children all exposed, about how many catch it?",opts:["about 8","about 40","about 50","not sure"],ans:1,exp:"80 in 100 → 40 in 50."},
-];
-
 // ════════════════════════════════════════════════
 // Engine
 // ════════════════════════════════════════════════
@@ -281,63 +251,10 @@ $("block-btn").addEventListener("click",()=>{
 $("consent-btn").addEventListener("click",()=>{
   const boxes=[...document.querySelectorAll(".consent-req")];
   if(!boxes.length || !boxes.every(b=>b.checked)){ $("consent-err").style.display="block"; return; }
-  stepCovariates();
+  startTrial(0);   // straight into the trials
 });
 
-// 1) Covariates
-function stepCovariates(){
-  const items=[]
-    .concat(BNT.map(b=>({id:b.id,type:"number",prompt:b.prompt,unit:b.unit})))
-    .concat(GRAPHLIT.map(g=>({id:g.id,type:"radio",prompt:g.prompt,opts:g.opts})))
-    .concat(DEMO);
-  renderBlock({ prog:"Part 1 of 5 · About you", items,
-    instr:"A few quick background questions before the main task. Please answer as best you can — there is no time pressure.",
-    onNext:(ans)=>{
-      let bntScore=0;
-      BNT.forEach(b=>{ const v=parseFloat(ans[b.id]); const ok=(!isNaN(v)&&Math.abs(v-b.ans)<0.5)?1:0; REC[b.id]=ans[b.id]; REC[b.id+"_correct"]=ok; bntScore+=ok; });
-      REC.bnt_score=bntScore;
-      GRAPHLIT.forEach((g,i)=>{ REC[g.id]=ans[g.id]; REC[g.id+"_correct"]=(parseInt(ans[g.id])===g.ans)?1:0; });
-      DEMO.forEach(d=>REC[d.id]=ans[d.id]);
-      stepWarmup1();
-    }});
-}
-
-// 2) Warm-up part 1 — guided walkthrough of tool steps 1–2 (no risk display)
-function stepWarmup1(){
-  renderBlock({ prog:"Part 2 of 5 · Warm-up (1 of 2)",
-    tool:"1/", timeTrial:false,
-    toolInstr:"<strong>Warm-up.</strong> In the tool above, try the first two steps only: type the postcode <strong>CB3 9DF</strong> and press Enter, then look at the <strong>map</strong> that appears (hover or tap areas). You do <strong>not</strong> need the risk page yet — we will practise that next.",
-    items:[{id:"w1_done",type:"radio",prompt:"Have you searched CB3 9DF and looked at the map above?",opts:["Yes, I've tried the search and the map"]}],
-    onNext:()=>stepWarmup2() });
-}
-
-// 3) Warm-up part 2 — static practice panel (mock display) + 6 practice items with feedback
-function stepWarmup2(){
-  const cardsHTML =
-    `<div class="pcards">
-      <div class="pcard u"><div class="h">No doses</div><div class="big">${PRACTICE.no} in 100</div><div class="muted" style="font-size:12px">if exposed to a case</div></div>
-      <div class="pcard p"><div class="h">After 1st dose</div><div class="big">${PRACTICE.one} in 100</div><div class="muted" style="font-size:12px">if exposed to a case</div></div>
-      <div class="pcard v"><div class="h">After 2nd dose</div><div class="big">${PRACTICE.two} in 100</div><div class="muted" style="font-size:12px">if exposed to a case</div></div>
-    </div>`;
-  const items = PRACTICE_ITEMS.map((it,i)=>({id:"pr"+i,type:"radio",prompt:it.q,opts:it.opts}));
-  renderBlock({ prog:"Part 2 of 5 · Warm-up (2 of 2)",
-    instr:"<strong>Practice.</strong> Here is a mock display for a made-up “practice pathogen”, with the same layout you will see in the real trials. Answer the six practice questions below; you will get feedback on each. These do not count."+cardsHTML,
-    items, btn:"Check answers",
-    onNext:(ans)=>{
-      // show feedback, then a Continue button
-      PRACTICE_ITEMS.forEach((it,i)=>{
-        const ok=parseInt(ans["pr"+i])===it.ans;
-        const node=document.querySelector(`.q[data-id="pr${i}"]`);
-        if(node){ const fb=document.createElement("div"); fb.className="fb "+(ok?"ok":"no");
-          fb.textContent=(ok?"Correct. ":"Not quite. ")+it.exp; node.appendChild(fb); }
-      });
-      $("block-instr").scrollIntoView({behavior:"smooth"});
-      $("block-btn").textContent="Continue to the study →"; $("block-btn").disabled=false;
-      cur.onNext=()=>startTrial(0);   // next click proceeds
-    }});
-}
-
-// 4) Test trials (×3)
+// Test trials (×3)
 function startTrial(ti){
   if(ti>=3) return stepShared();
   const [fkey,dkey]=TRIALS[ti];
@@ -345,7 +262,7 @@ function startTrial(ti){
   const toolURL = dis.site + fmt.version + "/";
   const comp = compItems(dkey).map((q,i)=>({...q,_num:i+1}));
   const items = comp.concat(SUBJ);
-  renderBlock({ prog:`Part 3 of 5 · Trial ${ti+1} of 3`,
+  renderBlock({ prog:`Trial ${ti+1} of 3`,
     tool:toolURL, timeTrial:true,
     toolInstr:`<strong>Trial ${ti+1} of 3 — ${dis.name}.</strong> This is a different disease and a different display style. In the tool above, search <strong>CB3 9DF</strong>, go through to the <strong>Risk &amp; coverage</strong> page, and explore it. Then answer the questions below (you can scroll the tool back up at any time).`,
     items,
@@ -362,10 +279,10 @@ function startTrial(ti){
     }});
 }
 
-// 5) Shared 10-item block (once, Verrow tool, descriptive)
+// Shared 10-item block (once, Verrow tool, descriptive)
 function stepShared(){
   const items = SHARED.map((q,i)=>({...q,_num:i+1}));
-  renderBlock({ prog:"Part 4 of 5 · A few more questions",
+  renderBlock({ prog:"Almost done",
     tool:SHARED_TOOL, timeTrial:false,
     toolInstr:"<strong>Almost done.</strong> Using the tool above (search <strong>CB3 9DF</strong>, and you may also look up <strong>Hackney</strong> for the comparison questions), answer the questions below about the map, coverage, and outbreak chart.",
     items,
@@ -377,9 +294,9 @@ function stepShared(){
     }});
 }
 
-// 6) Closing
+// Closing
 function stepClosing(){
-  renderBlock({ prog:"Part 5 of 5 · Finally", items:CLOSING,
+  renderBlock({ prog:"Finally", items:CLOSING,
     instr:"Thinking about the whole session:",
     btn:"Submit",
     onNext:(ans)=>{ CLOSING.forEach(q=>REC[q.id]=ans[q.id]); finish(); }});
