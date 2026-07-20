@@ -50,7 +50,7 @@
   #tour-root{position:fixed;inset:0;z-index:100000;font-family:-apple-system,"Helvetica Neue",Arial,sans-serif;}
   #tour-root .tour-backdrop{position:fixed;inset:0;background:transparent;}
   #tour-root .tour-hole{position:fixed;border-radius:12px;box-shadow:0 0 0 9999px rgba(15,18,25,.55);
-    pointer-events:none;transition:left .25s ease,top .25s ease,width .25s ease,height .25s ease;border:2px solid rgba(255,255,255,.92);}
+    pointer-events:none;border:2px solid rgba(255,255,255,.92);}
   #tour-root .tour-bubble{position:fixed;max-width:360px;background:#fff;border-radius:14px;padding:16px 18px;box-shadow:0 12px 44px rgba(0,0,0,.32);z-index:100002;}
   #tour-root .tour-title{font-size:12.5px;font-weight:700;color:#0071e3;letter-spacing:.03em;text-transform:uppercase;margin-bottom:6px;}
   #tour-root .tour-body{font-size:15px;line-height:1.5;color:#1d1d1f;margin-bottom:14px;}
@@ -402,6 +402,7 @@ function showDone(){
     if(gateTimer){ clearInterval(gateTimer); gateTimer=null; }
     if(repos){ window.removeEventListener("resize",repos); window.removeEventListener("scroll",repos,true); repos=null; }
     if(root){ root.remove(); root=null; }
+    document.body.style.overflow="";   // restore scrolling
     const w=toolWin();
     try{ if(w){ if(w.caseDeselect) w.caseDeselect(); if(w.STATE) w.STATE.code=null; w.goStep(1); } }catch(e){}
     try{ riskEntryTime=0; trialStartTime=Date.now(); }catch(e){}   // restart timing so the tour demo does not count
@@ -414,6 +415,7 @@ function showDone(){
       +'<span class="tour-spacer"></span><button type="button" class="tour-back">Back</button>'
       +'<button type="button" class="tour-next">Next</button></div></div>';
     document.body.appendChild(root);
+    document.body.style.overflow="hidden";   // lock page scroll during the tour so the spotlight stays put
     root.querySelector(".tour-skip").addEventListener("click",finish);
     root.querySelector(".tour-back").addEventListener("click",()=>{ if(idx>0){ idx--; render(); } });
     root.querySelector(".tour-next").addEventListener("click",()=>{ if(idx<STEPS.length-1){ idx++; render(); } else finish(); });
