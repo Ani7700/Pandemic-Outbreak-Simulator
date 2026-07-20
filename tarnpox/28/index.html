@@ -803,9 +803,8 @@ function cardsHTML(dyn, fmtGp, fmtExp){
     const d=dyn[t.key];
     return `<div class="comp-card ${t.cls}">
       <div class="comp-head ${t.cls}">${t.head}</div>
-      <div class="comp-big ${t.cls}">${fmtGp(d.gp)}</div>
-      <div class="comp-desc">in the general public, per year</div>
-      <div class="comp-exp">if exposed to a case: <strong>${fmtExp(d.exp)}</strong></div>
+      <div class="comp-big ${t.cls}">${fmtExp(d.exp)}</div>
+      <div class="comp-desc">if exposed to a case</div>
     </div>`;
   }).join('') + '</div>';
 }
@@ -822,7 +821,6 @@ function iconArrayHTML(dyn){
       <div class="ia-grid">${dots}</div>
       <div class="comp-big ${t.cls}" style="font-size:22px">${n} in 100</div>
       <div class="comp-desc">infected if exposed to a case</div>
-      <div class="comp-exp">general public: ${fmt1inN(d.gp)} per year</div>
     </div>`;
   }).join('') + '</div>';
 }
