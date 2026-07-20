@@ -768,6 +768,7 @@ function fmtChance(p){
   if(p >= 0.1) return `${Math.round(p*10)} in 10`;
   return fmt1inN(p);
 }
+function fmtPer100(p){ return `${Math.max(0,Math.round(p*100))} in 100`; }  // normalised unit so all 3 arms show the same numbers
 
 function fmt1inN(p){
   if(!p || p <= 0 || !isFinite(p)) return "< 1 in 1M";
@@ -1187,7 +1188,7 @@ function tallyHTML(dyn){
 
 
 const RISK_VERSIONS = {
-  1:  (dyn)    => cardsHTML(dyn, fmt1inN, fmtChance),    // natural frequencies (baseline)
+  1:  (dyn)    => cardsHTML(dyn, fmtPer100, fmtPer100),  // plain frequency cards, out of 100 (unit matched across arms)
   2:  (dyn)    => iconArrayHTML(dyn),                    // icon array (100 people)
   3:  (dyn)    => cardsHTML(dyn, pctText, pctText),      // percentages
   4:  (dyn)    => barsHTML(dyn),                         // frequency bars
