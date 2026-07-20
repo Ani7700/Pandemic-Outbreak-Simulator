@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Risk-display study</title>
+<style>
+  :root{--ink:#1d1d1f;--muted:#6e6e73;--line:#d2d2d7;--accent:#0071e3;--good:#00703c;--bad:#d4351c;}
+  *{box-sizing:border-box;}
+  body{font-family:-apple-system,"Helvetica Neue",Arial,sans-serif;color:var(--ink);margin:0;background:#f5f5f7;line-height:1.5;}
+  .wrap{max-width:880px;margin:0 auto;padding:20px 18px 90px;}
+  h1{font-size:24px;letter-spacing:-.02em;margin:0 0 12px;}
+  h2{font-size:19px;margin:0 0 10px;}
+  p{margin:0 0 12px;}
+  .muted{color:var(--muted);}
+  .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:16px;box-shadow:0 2px 12px rgba(0,0,0,.04);}
+  .progress{font-size:13px;color:var(--muted);margin-bottom:8px;}
+  .q{padding:14px 0;border-bottom:1px solid #eee;}
+  .q:last-child{border-bottom:none;}
+  .q .prompt{font-weight:600;margin-bottom:10px;}
+  .qnum{color:var(--accent);font-weight:700;margin-right:2px;}
+  .opts label{display:block;padding:8px 10px;border:1px solid var(--line);border-radius:8px;margin-bottom:6px;cursor:pointer;font-size:15px;}
+  .opts label:hover{background:#f5f5f7;}
+  .opts input{margin-right:8px;}
+  .likert{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+  .likert label{display:flex;flex-direction:column;align-items:center;font-size:12px;color:var(--muted);cursor:pointer;width:40px;}
+  .likert .end{font-size:12px;color:var(--muted);max-width:120px;}
+  input[type=number],input[type=text],select{font-size:15px;padding:9px 10px;border:1px solid var(--line);border-radius:8px;width:100%;max-width:360px;}
+  textarea{font-size:15px;padding:9px 10px;border:1px solid var(--line);border-radius:8px;width:100%;min-height:70px;}
+  button{font-size:16px;font-weight:600;padding:13px 26px;border:0;border-radius:10px;background:var(--accent);color:#fff;cursor:pointer;}
+  button:disabled{opacity:.45;cursor:not-allowed;}
+  .btnrow{margin-top:16px;}
+  iframe{width:100%;height:74vh;min-height:540px;border:1px solid var(--line);border-radius:12px;background:#fff;}
+  .instr{background:#fff8e6;border:1px solid #f0d488;border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:15px;}
+  .err{color:var(--bad);font-size:14px;margin-top:8px;}
+  .code{font-size:22px;font-weight:800;letter-spacing:2px;background:#f5f5f7;border-radius:8px;padding:8px 14px;display:inline-block;}
+  /* practice cards */
+  .pcards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:10px 0 16px;}
+  .pcard{border:2px solid var(--line);border-radius:12px;padding:12px 14px;}
+  .pcard .h{font-weight:700;font-size:13px;margin-bottom:6px;}
+  .pcard .big{font-size:24px;font-weight:800;}
+  .pcard.u{border-color:#8C3A2B;} .pcard.u .h,.pcard.u .big{color:#8C3A2B;}
+  .pcard.p{border-color:#c8923a;} .pcard.p .h,.pcard.p .big{color:#c8923a;}
+  .pcard.v{border-color:#00703c;} .pcard.v .h,.pcard.v .big{color:#00703c;}
+  .fb{font-size:13px;margin-top:6px;}
+  .fb.ok{color:var(--good);} .fb.no{color:var(--bad);}
+  @media(max-width:640px){ .pcards{grid-template-columns:1fr;} iframe{height:70vh;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ══ CONSENT ══ -->
+  <div id="s-consent">
+    <h1>A study of interactive tools for vaccination-coverage information</h1>
+    <div class="card">
+      <p class="muted">Participant Information Sheet</p>
+      <p>Thank you for your interest. Please read this carefully before deciding whether to take part. The study evaluates <strong>how different ways of showing the same risk numbers help people read them accurately</strong>. It is completed online and takes about <strong>30–40 minutes</strong>. You will use an interactive tool <strong>three times</strong>, each time with a different (fictional) disease and a different display style, and answer short comprehension questions after each.</p>
+      <p><strong>All data shown is fictional.</strong> The diseases (“Verrow fever”, “Solvik”, “Tarnpox”), the vaccine, and every statistic — coverage, cases, and risks — are entirely hypothetical, used only so we can measure how you <em>read</em> the information, not your knowledge of any real disease. The areas and map are real UK locations, used only so the tool works. Nothing here is a prediction about any real disease, vaccine, or area, and nothing should be used for real health decisions. For accurate vaccination information, consult the NHS (www.nhs.uk) or your GP.</p>
+      <p>The study’s only focus is how accurately you understand the information displayed, and how usable you find it. <strong>No questions are asked about your views, feelings, intentions, decisions, or trust regarding vaccination</strong>, and no personally identifying information is collected. We record only your answers to comprehension questions, usability ratings, brief numeracy and graph-literacy measures, basic demographics, and the time taken; these are stored anonymously.</p>
+      <p><strong>Taking part is voluntary.</strong> You may withdraw at any time without giving a reason, and may request deletion of your data up to two weeks after your session.</p>
+      <p><strong>Organised by</strong> Ninghan Qi and Dr Miri Zilka, Department of Engineering, University of Cambridge (PI: Dr Miri Zilka). Results form part of an MPhil dissertation and may be published for groups of participants; you will not be identified. Reviewed by the Department of Engineering Research Ethics Committee. Questions: nq221@cam.ac.uk.</p>
+      <p style="margin-top:14px"><strong>Please tick each box to confirm and take part:</strong></p>
+      <label style="display:block;margin-top:8px;font-size:14px"><input type="checkbox" class="consent-req"> I confirm I have read and understood the information above and have had the opportunity to ask questions.</label>
+      <label style="display:block;margin-top:8px;font-size:14px"><input type="checkbox" class="consent-req"> I understand participation is voluntary, that I may withdraw at any time without giving a reason, and may request deletion of my data up to two weeks after my session.</label>
+      <label style="display:block;margin-top:8px;font-size:14px"><input type="checkbox" class="consent-req"> I agree that my data may be stored anonymously and securely and used for this and future research.</label>
+      <label style="display:block;margin-top:8px;font-size:14px"><input type="checkbox" class="consent-req"> I understand the diseases and all statistics shown are fictional and are not medical advice.</label>
+      <label style="display:block;margin-top:8px;font-size:14px"><input type="checkbox" class="consent-req"> I agree to take part in this study.</label>
+      <div class="err" id="consent-err" style="display:none">Please tick all boxes to continue.</div>
+      <div class="btnrow"><button id="consent-btn">Start</button></div>
+    </div>
+  </div>
+
+  <!-- ══ GENERIC BLOCK (covariates / trial questions / shared / closing) ══ -->
+  <div id="s-block" style="display:none">
+    <div class="progress" id="prog"></div>
+    <div id="tool-wrap" style="display:none"><div class="instr" id="tool-instr"></div><iframe id="tool" title="risk tool"></iframe></div>
+    <div class="card">
+      <div class="instr" id="block-instr" style="display:none"></div>
+      <div id="block-body"></div>
+      <div class="err" id="block-err" style="display:none">Please answer everything on this page before continuing.</div>
+      <div class="btnrow"><button id="block-btn">Next →</button></div>
+    </div>
+  </div>
+
+  <!-- ══ DONE ══ -->
+  <div id="s-done" style="display:none">
+    <div class="card">
+      <h1>Thank you</h1>
+      <p>Your responses have been recorded. Your completion code is:</p>
+      <p><span class="code" id="done-code">—</span></p>
+      <p class="muted" id="done-note"></p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const ENDPOINT = "https://script.google.com/macros/s/AKfycbxKZUDuws3kNB6snxzE-lUPqllb4P1paQPXWQ0JbCoLmnS1qT6Eya4JFOsnmvfTrl-g/exec";
+const $ = id => document.getElementById(id);
+const P = new URLSearchParams(location.search);
+const participantId = P.get("PROLIFIC_PID") || P.get("pid") || ("anon-"+Math.random().toString(36).slice(2,10));
+const started = Date.now();
+
+// ── Sequence (Graeco-Latin square, six sequences). F1/F2/F3 = display formats; D1/D2/D3 = diseases. ──
+const FORMATS = { F1:{label:"F1",version:1}, F2:{label:"F2",version:2}, F3:{label:"F3",version:7} };
+const DISEASES = { D1:{label:"D1",name:"Verrow fever",site:""}, D2:{label:"D2",name:"Solvik",site:"solvik/"}, D3:{label:"D3",name:"Tarnpox",site:"tarnpox/"} };
+const SEQUENCES = {
+  1:[["F1","D1"],["F2","D2"],["F3","D3"]],
+  2:[["F1","D1"],["F2","D3"],["F3","D2"]],
+  3:[["F2","D2"],["F3","D1"],["F1","D3"]],
+  4:[["F2","D3"],["F3","D1"],["F1","D2"]],
+  5:[["F3","D2"],["F1","D3"],["F2","D1"]],
+  6:[["F3","D3"],["F1","D2"],["F2","D1"]],
+};
+let seq = parseInt(P.get("seq")||P.get("s"));
+if(!(seq>=1 && seq<=6)) seq = ((Math.floor(Math.random()*6))+1);   // real study assigns a fixed ?seq=1..6 per condition
+const TRIALS = SEQUENCES[seq];
+
+// ── Primary comprehension scale S1–S6 (per-disease option sets + keys; verified against the interface integers) ──
+function radioItem(id,prompt,opts,correct){ return {id,type:"radio",prompt,opts,correct}; }
+const SITEMS = [
+ {id:"S1", prompt:d=>`Suppose a child who has never had the vaccine comes into contact with someone carrying ${d}. How likely is that child to become ill?`,
+   D1:[["about 10 in 100","about 30 in 100","about 50 in 100","about 60 in 100","not sure"],3],
+   D2:[["about 5 in 100","about 20 in 100","about 50 in 100","about 75 in 100","not sure"],2],
+   D3:[["about 8 in 100","about 20 in 100","about 40 in 100","about 65 in 100","not sure"],2]},
+ {id:"S2", prompt:d=>`Out of 100 children who have completed the full course of the vaccine, roughly how many would still become infected if they came into contact with ${d}?`,
+   D1:[["about 7","about 25","about 50","about 85","not sure"],0],
+   D2:[["about 1","about 5","about 20","about 60","not sure"],1],
+   D3:[["about 2","about 8","about 30","about 70","not sure"],1]},
+ {id:"S3", prompt:d=>`Compared with a child who has had both doses, roughly how many times more likely is an unvaccinated child to catch ${d} if they are exposed?`,
+   D1:[["about the same","about 3 times","about 8 times","about 30 times","not sure"],2],
+   D2:[["about the same","about 3 times","about 10 times","about 40 times","not sure"],2],
+   D3:[["about the same","about 2 times","about 5 times","about 20 times","not sure"],2]},
+ {id:"S4", prompt:d=>`Picture a group of 200 children, none of whom have been vaccinated, who all come into contact with ${d}. Roughly how many would end up infected?`,
+   D1:[["about 20","about 60","about 120","about 190","not sure"],2],
+   D2:[["about 20","about 50","about 100","about 180","not sure"],2],
+   D3:[["about 15","about 40","about 80","about 160","not sure"],2]},
+ {id:"S5", prompt:d=>`Now picture 300 children who have all completed the full course of the vaccine and are all exposed. Roughly how many would become infected?`,
+   D1:[["about 3","about 21","about 90","about 200","not sure"],1],
+   D2:[["about 3","about 15","about 70","about 180","not sure"],1],
+   D3:[["about 4","about 24","about 100","about 220","not sure"],1]},
+ {id:"S6", prompt:d=>`In a class of 50 children, none of whom have been vaccinated, who are all exposed, roughly how many would be expected to catch it?`,
+   D1:[["about 5","about 15","about 30","about 45","not sure"],2],
+   D2:[["about 5","about 12","about 25","about 42","not sure"],2],
+   D3:[["about 4","about 10","about 20","about 38","not sure"],2]},
+];
+function compItems(dkey){
+  const dname = DISEASES[dkey].name;
+  return SITEMS.map(it=>radioItem(it.id, it.prompt(dname), it[dkey][0], it[dkey][1]));
+}
+
+// ── Per-trial subjective items (7-point) ──
+function lik(id,prompt,lo,hi){ return {id,type:"likert",prompt,lo,hi}; }
+const SUBJ = [
+ lik("E1","How easy or difficult was this information to understand?","Very difficult","Very easy"),
+ lik("E2","How easy was it to find the information you needed?","Very hard","Very easy"),
+ lik("E3","How confident do you feel about the answers you gave?","Not at all","Very confident"),
+ lik("E4","How much did you like this way of presenting the information?","Disliked it","Liked it a lot"),
+ lik("TLX_mental","How mentally demanding was it to use?","Very low","Very high"),
+ lik("TLX_effort","How hard did you have to work to understand the information?","Very low","Very high"),
+];
+
+// ── Shared 10-item scale (map / coverage / projection), administered once, descriptive. Uses the Verrow (D1) tool. ──
+const SHARED_TOOL = "1/";   // Verrow, version 1, for the shared block reference
+const SHARED = [
+ radioItem("A_cov_val","In this area, out of every 100 children, roughly how many have completed all of their scheduled vaccine doses?",["About 70%","About 80%","About 90%","About 98%","Not sure"],2),
+ radioItem("A_level","Taking everything together, how serious is the overall situation for this area's population?",["Low","Medium","High","Very high","Not sure"],1),
+ radioItem("B_cov_val","In Hackney, out of every 100 children, roughly how many have completed all of their scheduled vaccine doses?",["About 55%","About 70%","About 85%","About 95%","Not sure"],0),
+ radioItem("B_cases","Compared with most other areas, how much Verrow fever illness is Hackney seeing at the moment?",["High","Low","About average","Not sure"],0),
+ radioItem("XB","Of the two areas, which has the greater share of its children fully vaccinated?",["Cambridge / Cambridgeshire","Hackney (London)","About the same","Not sure"],0),
+ radioItem("XC","Comparing the two areas, which one is currently seeing the larger number of Verrow fever infections?",["Cambridge / Cambridgeshire","Hackney (London)","About the same","Not sure"],1),
+ radioItem("XD","If Verrow fever began to take hold in both places, in which one would it build up more rapidly and ultimately affect a greater number of residents?",["Cambridge / Cambridgeshire","Hackney (London)","About the same","Not sure"],1),
+ radioItem("Fpeakht","If an outbreak ran its course in Hackney, at its very worst moment roughly how many people would be ill at the same time?",["About 700","About 7,000","About 68,000","About 250,000","Not sure"],2),
+ radioItem("Fpeaktime","If an outbreak ran its course in Hackney, at roughly what point in time would the number of people affected be at its highest?",["Around month 1","Around month 2","Around month 3 or 4","Around month 5 or 6","Not sure"],0),
+ radioItem("F3","The ‘modelled outbreak’ shown for an area is best described as…",["A record of cases that already happened","A count of how many people are unwell in the area right now","A guaranteed prediction of exactly what will happen","A model of what could happen if an outbreak started here","Not sure"],3),
+];
+
+// ── Closing subjective (once) ──
+const CLOSING = [
+ lik("TLX_frustration","Overall, how stressed or irritated did you feel while using the tools?","Very low","Very high"),
+ lik("TLX_pace","Overall, how hurried or rushed did the task feel?","Very low","Very high"),
+ lik("TLX_perf","Overall, how successful were you at understanding the information?","A complete failure","Perfect"),
+ {id:"unclear",type:"text",prompt:"Was there anything about how the information was shown that was unclear or confusing? (optional)",optional:true},
+];
+
+// ── Covariates ──
+// Berlin Numeracy Test (4-item paper format, Cokely et al. 2012). Open numeric; score = number correct.
+const BNT = [
+ {id:"bnt1",prompt:"Out of 1,000 people in a small town, 500 are members of a choir. Of these 500 members, 100 are men. Of the 500 inhabitants who are NOT in the choir, 300 are men. What is the probability that a randomly drawn man is a member of the choir? (Please give a percentage, 0–100.)",unit:"%",ans:25},
+ {id:"bnt2",prompt:"Imagine we roll a fair five-sided die 50 times. On average, out of these 50 rolls, how many times would the die show an odd number (1, 3, or 5)?",unit:"times",ans:30},
+ {id:"bnt3",prompt:"Imagine we roll a loaded six-sided die 70 times. On this die the probability of showing a 6 is twice as high as each other number. On average, out of these 70 rolls, how many times would it show a 6?",unit:"times",ans:20},
+ {id:"bnt4",prompt:"In a forest, 20% of mushrooms are red, 50% are brown, and 30% are white. A red mushroom is poisonous with probability 20%. A mushroom that is not red is poisonous with probability 5%. What is the probability that a poisonous mushroom in the forest is red? (Please give a percentage, 0–100.)",unit:"%",ans:50},
+];
+// Graph-literacy short scale — PLACEHOLDER. Replace with the validated Galesic & Garcia-Retamero (2011)
+// items (they require specific graphs). One neutral warm item is included so the block is not empty.
+const GRAPHLIT = [
+ {id:"gl_placeholder",prompt:"[Graph-literacy scale placeholder — replace with the validated Galesic & Garcia-Retamero (2011) graph items before launch.] For now: on a line that rises from left to right, does the value get larger or smaller as you move right?",opts:["Larger","Smaller","Stays the same"],ans:0},
+];
+const DEMO = [
+ {id:"age",type:"select",prompt:"Age band",opts:["18–24","25–34","35–44","45–54","55–64","65+"]},
+ {id:"education",type:"select",prompt:"Highest completed education",opts:["No formal qualifications","Secondary school (GCSE or equivalent)","Further (A-levels / vocational)","Undergraduate degree","Postgraduate degree"]},
+ {id:"first_lang_en",type:"radio",prompt:"Is English your first language?",opts:["Yes","No"]},
+];
+
+// ── Static practice panel (warm-up part 2): mock display + 6 practice items with feedback ──
+const PRACTICE = { no:80, one:40, two:10 };   // mock "per 100" values (practice pathogen)
+const PRACTICE_ITEMS = [
+ {q:"A child with NO doses meets a case. Out of 100 such children, about how many catch it?",opts:["about 10 in 100","about 40 in 100","about 80 in 100","not sure"],ans:2,exp:"Read the No-doses card: 80 in 100."},
+ {q:"Out of 100 fully-vaccinated (2-dose) children who are exposed, about how many still catch it?",opts:["about 10","about 40","about 80","not sure"],ans:0,exp:"Read the After-2nd-dose card: 10 in 100."},
+ {q:"How many times more likely is an unvaccinated child than a fully-vaccinated one?",opts:["about the same","about 8 times","about 30 times","not sure"],ans:1,exp:"80 ÷ 10 = about 8 times."},
+ {q:"Of 200 unvaccinated children all exposed, about how many catch it?",opts:["about 40","about 160","about 200","not sure"],ans:1,exp:"80 in 100 → 160 in 200."},
+ {q:"Of 300 fully-vaccinated children all exposed, about how many catch it?",opts:["about 3","about 30","about 100","not sure"],ans:1,exp:"10 in 100 → 30 in 300."},
+ {q:"In a class of 50 unvaccinated children all exposed, about how many catch it?",opts:["about 8","about 40","about 50","not sure"],ans:1,exp:"80 in 100 → 40 in 50."},
+];
+
+// ════════════════════════════════════════════════
+// Engine
+// ════════════════════════════════════════════════
+const REC = { participantId, seq, timestamp:new Date().toISOString(), user_agent:navigator.userAgent };
+const SCORE = {};                 // per-format risk-display scores
+let toolStepPoll=null, riskEntryTime=0, trialStartTime=0;
+
+function show(id){ ["s-consent","s-block","s-done"].forEach(s=>$(s).style.display = s===id?"block":"none"); window.scrollTo(0,0); }
+
+// --- item renderers (used by generic block) ---
+function itemHTML(q,i){
+  const num = q._num ? `<span class="qnum">${q._num}.</span> ` : "";
+  let h=`<div class="q" data-id="${q.id}"><div class="prompt">${num}${q.prompt}</div>`;
+  if(q.type==="radio"){ h+=`<div class="opts">`+q.opts.map((o,k)=>`<label><input type="radio" name="${q.id}" value="${k}">${o}</label>`).join("")+`</div>`; }
+  else if(q.type==="likert"){ h+=`<div class="likert"><span class="end">${q.lo}</span>`; for(let k=1;k<=7;k++) h+=`<label>${k}<input type="radio" name="${q.id}" value="${k}"></label>`; h+=`<span class="end">${q.hi}</span></div>`; }
+  else if(q.type==="number"){ h+=`<input type="number" name="${q.id}" step="any" inputmode="decimal"> <span class="muted">${q.unit||""}</span>`; }
+  else if(q.type==="select"){ h+=`<select name="${q.id}"><option value="">— choose —</option>`+q.opts.map(o=>`<option value="${o}">${o}</option>`).join("")+`</select>`; }
+  else if(q.type==="text"){ h+=`<textarea name="${q.id}"></textarea>`; }
+  return h+`</div>`;
+}
+function readVal(q){
+  if(q.type==="number") return document.querySelector(`[name="${q.id}"]`).value.trim();
+  if(q.type==="text")   return document.querySelector(`[name="${q.id}"]`).value.trim();
+  if(q.type==="select") return document.querySelector(`[name="${q.id}"]`).value;
+  const el=document.querySelector(`[name="${q.id}"]:checked`); return el?el.value:"";
+}
+function allAnswered(items){ return items.every(q=> q.optional ? true : readVal(q)!=="" ); }
+
+// --- generic block driver ---
+let cur = null;   // {items, tool, toolInstr, instr, prog, onNext}
+function renderBlock(spec){
+  cur = spec;
+  $("prog").textContent = spec.prog||"";
+  if(spec.tool){ $("tool-wrap").style.display="block"; $("tool-instr").innerHTML=spec.toolInstr||""; loadTool(spec.tool, !!spec.timeTrial); }
+  else { $("tool-wrap").style.display="none"; if(toolStepPoll){clearInterval(toolStepPoll);toolStepPoll=null;} }
+  $("block-instr").style.display = spec.instr?"block":"none"; $("block-instr").innerHTML = spec.instr||"";
+  $("block-body").innerHTML = spec.items.map(itemHTML).join("");
+  if(spec.afterRender) spec.afterRender();
+  $("block-err").style.display="none";
+  $("block-btn").textContent = spec.btn||"Next →";
+  $("block-btn").disabled=false;
+  show("s-block");
+}
+function loadTool(url, timeTrial){
+  const f=$("tool"); f.src=url;
+  riskEntryTime=0; trialStartTime=Date.now();
+  if(toolStepPoll) clearInterval(toolStepPoll);
+  if(timeTrial){
+    toolStepPoll=setInterval(()=>{
+      try{ const L=f.contentDocument && f.contentDocument.querySelector(".layout");
+        if(L && L.dataset.step==="3" && !riskEntryTime){ riskEntryTime=Date.now(); } }catch(e){}
+    },400);
+  }
+}
+$("block-btn").addEventListener("click",()=>{
+  if(!allAnswered(cur.items)){ $("block-err").style.display="block"; window.scrollTo(0,document.body.scrollHeight); return; }
+  const ans={}; cur.items.forEach(q=>ans[q.id]=readVal(q));
+  $("block-btn").disabled=true;
+  cur.onNext(ans);
+});
+
+// ════════════════════════════════════════════════
+// Flow
+// ════════════════════════════════════════════════
+$("consent-btn").addEventListener("click",()=>{
+  const boxes=[...document.querySelectorAll(".consent-req")];
+  if(!boxes.length || !boxes.every(b=>b.checked)){ $("consent-err").style.display="block"; return; }
+  stepCovariates();
+});
+
+// 1) Covariates
+function stepCovariates(){
+  const items=[]
+    .concat(BNT.map(b=>({id:b.id,type:"number",prompt:b.prompt,unit:b.unit})))
+    .concat(GRAPHLIT.map(g=>({id:g.id,type:"radio",prompt:g.prompt,opts:g.opts})))
+    .concat(DEMO);
+  renderBlock({ prog:"Part 1 of 5 · About you", items,
+    instr:"A few quick background questions before the main task. Please answer as best you can — there is no time pressure.",
+    onNext:(ans)=>{
+      let bntScore=0;
+      BNT.forEach(b=>{ const v=parseFloat(ans[b.id]); const ok=(!isNaN(v)&&Math.abs(v-b.ans)<0.5)?1:0; REC[b.id]=ans[b.id]; REC[b.id+"_correct"]=ok; bntScore+=ok; });
+      REC.bnt_score=bntScore;
+      GRAPHLIT.forEach((g,i)=>{ REC[g.id]=ans[g.id]; REC[g.id+"_correct"]=(parseInt(ans[g.id])===g.ans)?1:0; });
+      DEMO.forEach(d=>REC[d.id]=ans[d.id]);
+      stepWarmup1();
+    }});
+}
+
+// 2) Warm-up part 1 — guided walkthrough of tool steps 1–2 (no risk display)
+function stepWarmup1(){
+  renderBlock({ prog:"Part 2 of 5 · Warm-up (1 of 2)",
+    tool:"1/", timeTrial:false,
+    toolInstr:"<strong>Warm-up.</strong> In the tool above, try the first two steps only: type the postcode <strong>CB3 9DF</strong> and press Enter, then look at the <strong>map</strong> that appears (hover or tap areas). You do <strong>not</strong> need the risk page yet — we will practise that next.",
+    items:[{id:"w1_done",type:"radio",prompt:"Have you searched CB3 9DF and looked at the map above?",opts:["Yes, I've tried the search and the map"]}],
+    onNext:()=>stepWarmup2() });
+}
+
+// 3) Warm-up part 2 — static practice panel (mock display) + 6 practice items with feedback
+function stepWarmup2(){
+  const cardsHTML =
+    `<div class="pcards">
+      <div class="pcard u"><div class="h">No doses</div><div class="big">${PRACTICE.no} in 100</div><div class="muted" style="font-size:12px">if exposed to a case</div></div>
+      <div class="pcard p"><div class="h">After 1st dose</div><div class="big">${PRACTICE.one} in 100</div><div class="muted" style="font-size:12px">if exposed to a case</div></div>
+      <div class="pcard v"><div class="h">After 2nd dose</div><div class="big">${PRACTICE.two} in 100</div><div class="muted" style="font-size:12px">if exposed to a case</div></div>
+    </div>`;
+  const items = PRACTICE_ITEMS.map((it,i)=>({id:"pr"+i,type:"radio",prompt:it.q,opts:it.opts}));
+  renderBlock({ prog:"Part 2 of 5 · Warm-up (2 of 2)",
+    instr:"<strong>Practice.</strong> Here is a mock display for a made-up “practice pathogen”, with the same layout you will see in the real trials. Answer the six practice questions below; you will get feedback on each. These do not count."+cardsHTML,
+    items, btn:"Check answers",
+    onNext:(ans)=>{
+      // show feedback, then a Continue button
+      PRACTICE_ITEMS.forEach((it,i)=>{
+        const ok=parseInt(ans["pr"+i])===it.ans;
+        const node=document.querySelector(`.q[data-id="pr${i}"]`);
+        if(node){ const fb=document.createElement("div"); fb.className="fb "+(ok?"ok":"no");
+          fb.textContent=(ok?"Correct. ":"Not quite. ")+it.exp; node.appendChild(fb); }
+      });
+      $("block-instr").scrollIntoView({behavior:"smooth"});
+      $("block-btn").textContent="Continue to the study →"; $("block-btn").disabled=false;
+      cur.onNext=()=>startTrial(0);   // next click proceeds
+    }});
+}
+
+// 4) Test trials (×3)
+function startTrial(ti){
+  if(ti>=3) return stepShared();
+  const [fkey,dkey]=TRIALS[ti];
+  const fmt=FORMATS[fkey], dis=DISEASES[dkey];
+  const toolURL = dis.site + fmt.version + "/";
+  const comp = compItems(dkey).map((q,i)=>({...q,_num:i+1}));
+  const items = comp.concat(SUBJ);
+  renderBlock({ prog:`Part 3 of 5 · Trial ${ti+1} of 3`,
+    tool:toolURL, timeTrial:true,
+    toolInstr:`<strong>Trial ${ti+1} of 3 — ${dis.name}.</strong> This is a different disease and a different display style. In the tool above, search <strong>CB3 9DF</strong>, go through to the <strong>Risk &amp; coverage</strong> page, and explore it. Then answer the questions below (you can scroll the tool back up at any time).`,
+    items,
+    onNext:(ans)=>{
+      const secs = riskEntryTime ? Math.round((Date.now()-riskEntryTime)/1000) : Math.round((Date.now()-trialStartTime)/1000);
+      let sc=0;
+      comp.forEach(q=>{ const ok=(ans[q.id]!==""&&parseInt(ans[q.id])===q.correct)?1:0;
+        REC[`T${ti+1}_${q.id}`]=ans[q.id]; REC[`T${ti+1}_${q.id}_correct`]=ok; sc+=ok; });
+      SUBJ.forEach(q=>REC[`T${ti+1}_${q.id}`]=ans[q.id]);
+      REC[`T${ti+1}_format`]=fkey; REC[`T${ti+1}_disease`]=dkey; REC[`T${ti+1}_position`]=ti+1;
+      REC[`T${ti+1}_score_risk_display`]=sc; REC[`T${ti+1}_seconds`]=secs;
+      REC[`score_risk_display_${fkey}`]=sc;    // format-keyed, for the analysis DV
+      startTrial(ti+1);
+    }});
+}
+
+// 5) Shared 10-item block (once, Verrow tool, descriptive)
+function stepShared(){
+  const items = SHARED.map((q,i)=>({...q,_num:i+1}));
+  renderBlock({ prog:"Part 4 of 5 · A few more questions",
+    tool:SHARED_TOOL, timeTrial:false,
+    toolInstr:"<strong>Almost done.</strong> Using the tool above (search <strong>CB3 9DF</strong>, and you may also look up <strong>Hackney</strong> for the comparison questions), answer the questions below about the map, coverage, and outbreak chart.",
+    items,
+    onNext:(ans)=>{
+      let sc=0; SHARED.forEach(q=>{ const ok=(ans[q.id]!==""&&parseInt(ans[q.id])===q.correct)?1:0;
+        REC[`shared_${q.id}`]=ans[q.id]; REC[`shared_${q.id}_correct`]=ok; sc+=ok; });
+      REC.score_shared=sc;
+      stepClosing();
+    }});
+}
+
+// 6) Closing
+function stepClosing(){
+  renderBlock({ prog:"Part 5 of 5 · Finally", items:CLOSING,
+    instr:"Thinking about the whole session:",
+    btn:"Submit",
+    onNext:(ans)=>{ CLOSING.forEach(q=>REC[q.id]=ans[q.id]); finish(); }});
+}
+
+function finish(){
+  REC.seconds_total = Math.round((Date.now()-started)/1000);
+  const done=()=>showDone();
+  if(ENDPOINT.startsWith("http")){
+    fetch(ENDPOINT,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(REC)}).then(done).catch(done);
+  } else {
+    const blob=new Blob([JSON.stringify(REC,null,2)],{type:"application/json"});
+    const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=`study_${participantId}.json`; a.click(); showDone();
+  }
+}
+function showDone(){
+  show("s-done");
+  $("done-code").textContent="MRV-S"+seq+"-"+participantId.slice(-4).toUpperCase();
+  $("done-note").textContent = ENDPOINT.startsWith("http") ? "You can close this window (and return to Prolific if applicable)." : "(Test mode: a data file was downloaded.)";
+}
+</script>
+</body>
+</html>
