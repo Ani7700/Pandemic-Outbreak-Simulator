@@ -69,8 +69,9 @@ let idx = 0, pollTimer = null;
 
 function trialURL(i){
   const [f,d] = TRIALS[i];
-  const tour = i>0 ? "&tour=0" : "";   // show the guide only in the first part
-  return SITE[d] + "survey" + FILE[f] + ".html?PROLIFIC_PID=" + encodeURIComponent(PID) + tour;
+  // Show the information sheet + guide only in the first part; parts 2 & 3 skip straight in.
+  const extra = i>0 ? "&tour=0&consent=0" : "";
+  return SITE[d] + "survey" + FILE[f] + ".html?PROLIFIC_PID=" + encodeURIComponent(PID) + extra;
 }
 
 function loadTrial(i){

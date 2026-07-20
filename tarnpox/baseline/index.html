@@ -303,13 +303,19 @@ function showDone(){
   window.scrollTo(0,0);
 }
 
-$("consent-btn").addEventListener("click",()=>{
-  const boxes=[...document.querySelectorAll(".consent-req")];
-  if(!boxes.length || !boxes.every(b=>b.checked)){ $("consent-err").style.display="block"; return; }
+function startSurvey(){
   $("s-consent").style.display="none"; $("s-survey").style.display="block";
   $("tool-frame").src=toolURL; toolStart=Date.now();
   bi=0; renderBlock();
+}
+$("consent-btn").addEventListener("click",()=>{
+  const boxes=[...document.querySelectorAll(".consent-req")];
+  if(!boxes.length || !boxes.every(b=>b.checked)){ $("consent-err").style.display="block"; return; }
+  startSurvey();
 });
+// Chained multi-part study: parts 2 & 3 arrive with ?consent=0 — the information sheet was already
+// shown in part 1, so go straight into the survey without repeating it.
+if(new URLSearchParams(location.search).get("consent")==="0") startSurvey();
 $("block-btn").addEventListener("click",()=>{
   if(!saveBlock()){ $("block-err").style.display="block"; window.scrollTo(0,document.body.scrollHeight); return; }
   if(bi<BLOCKS.length-1){ bi++; renderBlock(); }
