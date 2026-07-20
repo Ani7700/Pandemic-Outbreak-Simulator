@@ -105,12 +105,21 @@ function watchForDone(){
 }
 
 function showNext(){
-  if(idx >= TRIALS.length-1){
+  const last = idx >= TRIALS.length-1;
+  // The survey's own "Thank you" screen says "You can close this window." — that's only true on
+  // the final part. On parts 1 and 2, rewrite it to tell the participant to continue.
+  if(!last){
+    try{
+      const note = $("frame").contentDocument.getElementById("done-note");
+      if(note) note.textContent = "Please continue to the next part below.";
+    }catch(e){}
+  }
+  if(last){
     $("next-msg").textContent = "You’ve completed the last part.";
     $("next-btn").textContent = "Finish";
   } else {
     $("next-msg").textContent = "You’ve completed part " + (idx+1) + " of 3.";
-    $("next-btn").textContent = "Continue to part " + (idx+2) + " →";
+    $("next-btn").textContent = "Proceed to part " + (idx+2) + " →";
   }
   $("next").style.display = "flex";
 }
