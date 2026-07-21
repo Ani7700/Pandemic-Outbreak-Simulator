@@ -244,7 +244,7 @@ const RL = ["Low","Medium","High","Very high","Not sure"];  // risk-level option
 const BLOCKS = [
  // ── PART 1: Cambridge (medium risk) — go through the WHOLE tool, then answer ──
  {tool:true,
-  instr:"<strong>PART 1 of 2 — Cambridge.</strong> In the tool above, search <strong>CB3 9DF</strong>, then go through <strong>both</strong> the <strong>Map</strong> stage and the <strong>Risk &amp; coverage</strong> stage — try any buttons, slider, toggle or dice a few times. Once you've seen both, answer below (you can scroll the tool back up to check at any time):",
+  instr:"<strong>PART 1 of 2 — Cambridge.</strong> In the tool above, search <strong>CB3 9DF</strong>, then go through <strong>both</strong> the <strong>Map</strong> stage and the <strong>Risk &amp; coverage</strong> stage — try any of the controls a few times. Once you've seen both, answer below (you can scroll the tool back up to check at any time):",
   instrBaseline:"<strong>PART 1 of 2 — Cambridge.</strong> Use the briefing and the assistant above to learn about <strong>Cambridge / Cambridgeshire</strong> — read the text on the left and/or ask the assistant on the right. Once you feel you understand this area, answer below (you can scroll back or keep asking at any time):",
   items:[
    RADIO("A_cov_val","In this area, out of every 100 children, roughly how many have completed all of their scheduled vaccine doses?",
@@ -257,8 +257,8 @@ const BLOCKS = [
    RADIO("C_ratio","Compared with a child who has had both doses, roughly how many times more likely is an unvaccinated child to catch Tarnpox if they are exposed?",["About the same","About 2 times","About 5 times","About 20 times","Not sure"],2),
    RADIO("C5","Picture a group of 200 children, none of whom have been vaccinated, who all come into contact with Tarnpox. Roughly how many would end up infected?",
      ["About 20","About 80","About 140","About 190","Not sure"],1),
-   RADIO("F3","The coverage bar shows a marked threshold line. What does that line represent?",
-     ["The coverage level needed to stop the disease spreading easily","The number of people currently unwell","The national average coverage","The share of people who have already been infected","Not sure"],0),
+   RADIO("F3","If this area had higher vaccination coverage, the modelled outbreak shown for it would most likely…",
+     ["Reach fewer people and spread more slowly","Reach more people and spread faster","Look exactly the same","Begin sooner","Not sure"],0),
    // ── Reading Cambridge's outbreak projection: peak timing, then peak size ──
    RADIO("Fpeakht","If an outbreak ran its course in Cambridge, at its very worst moment roughly how many people would be ill at the same time?",
      ["About 1,000","About 11,000","About 110,000","About 400,000","Not sure"],2),
