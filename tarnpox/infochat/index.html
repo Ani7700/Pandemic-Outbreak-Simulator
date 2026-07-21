@@ -146,10 +146,10 @@ html.skin-brutal .dc-result{border:3px solid #111;border-radius:0;background:#ff
 html.skin-brutal #case-panel{border:3px solid #111;border-radius:0;box-shadow:4px 4px 0 #111;background:#fff;}
 html.skin-brutal #case-panel .cp-num{font-weight:900;}
 
-/* ALWAYS-ON (not skin-scoped): explain the previously-unlabelled threshold marker on the coverage bar */
-#cov-bar-section::after{
-  content:"\25AE The marked line = the coverage level needed to stop the disease spreading easily.";
-  display:block;margin-top:8px;font-size:13px;line-height:1.45;color:#505a5f;font-weight:600;}
+/* ALWAYS-ON (not skin-scoped): declutter the coverage bar — hide the herd-immunity
+   threshold marker (no survey question asks about it) and the redundant area-name hint. */
+#cov-marker{display:none !important;}
+#nav2-hint{display:none !important;}
 </style>
 
 </head>
