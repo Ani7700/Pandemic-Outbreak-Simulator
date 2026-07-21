@@ -404,7 +404,7 @@ function showDone(){
 
 function startSurvey(){
   $("s-consent").style.display="none"; $("s-survey").style.display="block";
-  $("tool-frame").src=toolURL; toolStart=Date.now();
+  $("tool-frame").src=toolURL + (P.get("skin")==="brutal" ? (toolURL.indexOf("?")<0?"?":"&")+"skin=brutal" : ""); toolStart=Date.now();
   bi=0; renderBlock();
 }
 $("consent-btn").addEventListener("click",()=>{

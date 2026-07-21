@@ -537,6 +537,100 @@ body{
 #case-panel .cp-lab{font-size:12.5px;color:#6a6d72;margin-top:8px;}
 #case-panel .cp-num{font-size:30px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.05;color:#0b0c0c;}
 </style>
+<script>if(new URLSearchParams(location.search).get("skin")==="brutal")document.documentElement.className+=" skin-brutal";</script>
+<style id="brutal-skin-tool">
+/* ===== Neo-Brutalist skin for the risk tool — opt-in via ?skin=brutal =====
+   Re-skins ALL chrome + card/table/badge containers to match the survey.
+   Data-encoding colours (risk tiers, vacc-status dots/bars, coverage fill,
+   projection marks) are deliberately preserved — they carry the risk
+   information itself, not decoration. ===== */
+html.skin-brutal body{background:#ffd84d;font-family:Arial,Helvetica,"Helvetica Neue",sans-serif;}
+
+/* topbar */
+html.skin-brutal .topbar{background:#fff;border-bottom:4px solid #111;}
+html.skin-brutal .brand{color:#111;font-weight:900;letter-spacing:-.01em;}
+html.skin-brutal .brand span{color:#4a4f5a;font-weight:700;}
+html.skin-brutal .topbar-note{color:#4a4f5a;font-weight:700;}
+
+/* panels */
+html.skin-brutal .panel{background:#fff;border-right:4px solid #111;}
+html.skin-brutal .panel-title{font-weight:900;color:#111;letter-spacing:-.02em;}
+html.skin-brutal .panel-sub{color:#4a4f5a;}
+
+/* stepper */
+html.skin-brutal .stepper{background:#fff;border-bottom:4px solid #111;gap:14px;}
+html.skin-brutal .step-chip{font-weight:800;color:#111;text-transform:uppercase;letter-spacing:.02em;}
+html.skin-brutal .step-chip .num{border-radius:0;border:3px solid #111;background:#fff;color:#111;font-weight:900;box-shadow:3px 3px 0 #111;}
+html.skin-brutal .step-chip.active{color:#0b57ff;}
+html.skin-brutal .step-chip.active .num{background:#0b57ff;color:#fff;}
+html.skin-brutal .step-chip.done .num{background:#12b866;color:#fff;}
+
+/* generic search / postcode inputs + buttons */
+html.skin-brutal .search-wrap input,
+html.skin-brutal .pc-row input{border:3px solid #111;border-radius:0;background:#f3f6ff;font-weight:700;}
+html.skin-brutal .pc-row input{border-right:none;}
+html.skin-brutal #pc-btn,
+html.skin-brutal .pc-row button,
+html.skin-brutal .wiz-btn.primary{background:#ff5a3c;color:#fff;border:3px solid #111;border-radius:0;
+  font-weight:900;text-transform:uppercase;letter-spacing:.02em;box-shadow:4px 4px 0 #111;}
+html.skin-brutal .wiz-btn.primary:hover,
+html.skin-brutal .pc-row button:hover{background:#ff6f55;}
+html.skin-brutal .wiz-btn{border:3px solid #111;border-radius:0;background:#fff;color:#111;font-weight:800;
+  text-transform:uppercase;letter-spacing:.02em;box-shadow:3px 3px 0 #111;}
+html.skin-brutal .wiz-btn:disabled{opacity:.5;box-shadow:3px 3px 0 #111;}
+html.skin-brutal .disease-tag{border:3px solid #111;border-radius:0;font-weight:800;box-shadow:3px 3px 0 #111;}
+html.skin-brutal .disease-btn{border:3px solid #111 !important;border-radius:0 !important;font-weight:700;}
+html.skin-brutal .ac-drop{border:3px solid #111;}
+
+/* ── landing (step 1) — beat the .layout[data-step="1"] specific rules ── */
+html.skin-brutal .layout[data-step="1"] .pc-row{border:3px solid #111 !important;border-radius:0 !important;box-shadow:5px 5px 0 #111 !important;background:#fff !important;}
+html.skin-brutal .layout[data-step="1"] #search-btn{background:#ff5a3c !important;border-radius:0 !important;color:#fff !important;font-weight:900 !important;text-transform:uppercase;}
+html.skin-brutal .layout[data-step="1"] #search-btn:hover{background:#ff6f55 !important;}
+html.skin-brutal .layout[data-step="1"] .ac-drop{border-radius:0 !important;box-shadow:6px 6px 0 #111 !important;}
+html.skin-brutal .layout[data-step="1"] .panel-title{font-weight:900 !important;letter-spacing:-.03em !important;}
+
+/* area header */
+html.skin-brutal .area-hdr{border-left:6px solid #0b57ff;}
+html.skin-brutal .area-hdr h2{font-weight:900;letter-spacing:-.01em;}
+
+/* risk badge — box it; KEEP risk-dot / risk-level semantic colours */
+html.skin-brutal .risk-badge{border:3px solid #111;border-radius:0;background:#fff;box-shadow:4px 4px 0 #111;padding:10px 12px;}
+html.skin-brutal .layout[data-step="3"] .risk-badge{padding:10px 12px !important;}
+html.skin-brutal .risk-level{font-weight:900;}
+
+/* coverage bar — box the track; KEEP the fill colour */
+html.skin-brutal .cov-track{border:3px solid #111;border-radius:0;background:#fff;height:16px;}
+html.skin-brutal .cov-marker{background:#111;width:3px;}
+
+/* comparison / cases / result cards */
+html.skin-brutal .comp-card{border:3px solid #111;border-radius:0;box-shadow:4px 4px 0 #111;}
+html.skin-brutal .layout[data-step="3"] .comp-card{border-radius:0 !important;border:3px solid #111 !important;box-shadow:4px 4px 0 #111 !important;}
+html.skin-brutal .comp-big{font-weight:900;}
+html.skin-brutal .cases-block{border:3px solid #111;border-radius:0;background:#fff;box-shadow:4px 4px 0 #111;}
+html.skin-brutal .cases-stat b{font-weight:900;}
+html.skin-brutal .comparison-label,html.skin-brutal .cases-title{font-weight:900;text-transform:uppercase;letter-spacing:.03em;}
+html.skin-brutal .layout[data-step="3"] .comparison-label{font-weight:900 !important;text-transform:uppercase;letter-spacing:.02em;}
+html.skin-brutal .unprotected-row{border-radius:0 !important;border:3px solid #111 !important;}
+
+/* risk-display format containers (tables / bars / toggles) — box + bold, KEEP data hues */
+html.skin-brutal .rd-table,html.skin-brutal .rank-table{border:3px solid #111;}
+html.skin-brutal .rd-table th,html.skin-brutal .rd-table td{border:2px solid #111;}
+html.skin-brutal .rd-table th{background:#ffe89a;color:#111;font-weight:800;}
+html.skin-brutal .rd-bar-track{border:2px solid #111;border-radius:0;background:#fff;}
+html.skin-brutal .rd-bar-fill{border-radius:0;}
+html.skin-brutal .rd-plain-head,html.skin-brutal .an-head{font-weight:900;}
+html.skin-brutal .cr-toggle button{border:3px solid #111;border-radius:0;font-weight:800;}
+html.skin-brutal .cr-toggle button.active{background:#0b57ff;color:#fff;border-color:#111;}
+html.skin-brutal .dc-controls select{border:3px solid #111;border-radius:0;font-weight:700;}
+html.skin-brutal #dice-roll{background:#ff5a3c;color:#fff;border:3px solid #111;border-radius:0;font-weight:900;
+  text-transform:uppercase;box-shadow:4px 4px 0 #111;}
+html.skin-brutal .dc-result{border:3px solid #111;border-radius:0;background:#fff;}
+
+/* floating case panel on the map */
+html.skin-brutal #case-panel{border:3px solid #111;border-radius:0;box-shadow:4px 4px 0 #111;background:#fff;}
+html.skin-brutal #case-panel .cp-num{font-weight:900;}
+</style>
+
 </head>
 <body>
 
