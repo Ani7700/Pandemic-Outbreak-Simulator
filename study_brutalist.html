@@ -75,7 +75,7 @@
     <span class="tag">Study · 3 parts</span>
     <h1 class="big display">Before<br>you begin</h1>
     <p class="lead">This study has <strong>three parts</strong>. In each part you will look at a tool about a <strong>different disease</strong> and answer some questions about it. Please complete all three parts in one sitting — you will get a single completion code at the end.</p>
-    <div class="chips"><span class="chip">⏱ 15–20 MIN</span><span class="chip">3 PARTS</span></div>
+    <div class="chips"><span class="chip">⏱ 15–20 MIN</span><span class="chip">3 PARTS</span><span class="chip">🔒 ANONYMOUS</span></div>
     <div class="panel">
       <label class="fld">Your Prolific ID</label>
       <p class="muted" style="font-size:12.5px;font-weight:600;margin:-2px 0 10px">If you came from Prolific it is filled in automatically — otherwise paste it from your Prolific account.</p>
@@ -115,7 +115,7 @@ const P = new URLSearchParams(location.search);
 let PID = "", CODE = "";   // set once the participant confirms their Prolific ID on the intro screen
 
 const FILE = { F1:1, F2:2, F3:3 };
-const SITE = { D1:"", D2:"solvik/", D3:"tarnpox/" };
+const SITE = { D1:"verrow/", D2:"solvik/", D3:"tarnpox/" };
 const SEQUENCES = {
   1:[["F1","D1"],["F2","D2"],["F3","D3"]],
   2:[["F1","D1"],["F2","D3"],["F3","D2"]],
@@ -176,14 +176,19 @@ function watchForDone(){
 
 function showNext(){
   const last = idx >= TRIALS.length-1;
-  // Last part: skip the extra "Finish" click — jump straight to the completion-code screen.
-  if(last){ finish(); return; }
-  try{
-    const note = $("frame").contentDocument.getElementById("done-note");
-    if(note) note.textContent = "Please continue to the next disease below.";
-  }catch(e){}
-  $("next-msg").textContent = "You’ve completed part " + (idx+1) + " of 3.";
-  $("next-btn").textContent = "Proceed to part " + (idx+2) + " →";
+  if(!last){
+    try{
+      const note = $("frame").contentDocument.getElementById("done-note");
+      if(note) note.textContent = "Please continue to the next disease below.";
+    }catch(e){}
+  }
+  if(last){
+    $("next-msg").textContent = "You’ve completed the last part.";
+    $("next-btn").textContent = "Finish";
+  } else {
+    $("next-msg").textContent = "You’ve completed part " + (idx+1) + " of 3.";
+    $("next-btn").textContent = "Proceed to part " + (idx+2) + " →";
+  }
   $("next").style.display = "flex";
 }
 
