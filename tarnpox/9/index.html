@@ -1866,7 +1866,7 @@ function renderRisk(){
   }
 
   // Disease label
-  $("cov-label-text").textContent=`${dis.label} coverage`;
+  $("cov-label-text").textContent=`${dis.unprotectedLabel} vaccine — ${dis.label} coverage`;
   $("cov-bar-section").style.display="block";   // reveal the coverage bar on the map stage
 
   // Coverage
