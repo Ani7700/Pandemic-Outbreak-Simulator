@@ -58,6 +58,95 @@
 #tour-root .tour-skip{background:none;color:#8a8d93;padding:8px 4px;font-weight:500;}
 #tour-root .tour-progress{font-size:12px;color:#a1a1a6;margin-top:10px;}
 </style>
+<script>if(new URLSearchParams(location.search).get("skin")==="brutal")document.documentElement.className+=" skin-brutal";</script>
+<style id="brutal-skin">
+/* ===== Neo-Brutalist skin — active only when the shell adds ?skin=brutal ===== */
+html.skin-brutal, html.skin-brutal body{background:#ffd84d!important;color:#111!important;
+  font-family:Arial,Helvetica,"Helvetica Neue",sans-serif!important;}
+html.skin-brutal .wrap{max-width:880px;}
+html.skin-brutal h1{font-weight:900;letter-spacing:-.02em;}
+html.skin-brutal h2{font-weight:900;letter-spacing:-.01em;}
+html.skin-brutal .muted{color:#4a4f5a;}
+html.skin-brutal a{color:#0b57ff;font-weight:700;}
+
+/* cards / boxes */
+html.skin-brutal .card{background:#fff;border:3px solid #111;border-radius:0;
+  box-shadow:6px 6px 0 #111;}
+
+/* progress label */
+html.skin-brutal .progress{display:inline-block;background:#0b57ff;color:#fff;
+  border:3px solid #111;border-radius:0;padding:6px 12px;font-weight:900;font-size:12px;
+  letter-spacing:.06em;text-transform:uppercase;margin-bottom:12px;box-shadow:4px 4px 0 #111;}
+
+/* instruction banner */
+html.skin-brutal .instr{background:#0b57ff;color:#fff;border:3px solid #111;border-radius:0;
+  box-shadow:6px 6px 0 #111;font-weight:700;font-size:15px;}
+html.skin-brutal .instr b,html.skin-brutal .instr strong{font-weight:900;}
+
+/* the risk tool frame (only the frame around it — never its contents) */
+html.skin-brutal #tool iframe,html.skin-brutal iframe{border:3px solid #111;border-radius:0;
+  box-shadow:6px 6px 0 #111;background:#fff;}
+
+/* each question becomes its own hard-edged box */
+html.skin-brutal .q{border:3px solid #111;border-radius:0;box-shadow:4px 4px 0 #111;
+  background:#fff;padding:16px;margin-bottom:14px;}
+html.skin-brutal .q:last-child{border-bottom:3px solid #111;}
+html.skin-brutal .prompt{font-weight:800;font-size:15.5px;}
+html.skin-brutal .qnum{display:inline-block;background:#0b57ff;color:#fff;border:2px solid #111;
+  padding:2px 8px;font-weight:900;margin-right:7px;}
+
+/* radio option rows */
+html.skin-brutal .opts label{display:block;border:3px solid #111;border-radius:0;
+  box-shadow:4px 4px 0 #111;background:#fff;font-weight:700;font-size:15px;padding:11px 13px;
+  margin-bottom:10px;transition:transform .08s,box-shadow .08s,background .08s;}
+html.skin-brutal .opts label:hover{background:#c8f04d;}
+html.skin-brutal .opts label:active{transform:translate(4px,4px);box-shadow:0 0 0 #111;}
+html.skin-brutal .opts label:has(input:checked){background:#c8f04d;}
+html.skin-brutal .opts input{accent-color:#ff5a3c;width:16px;height:16px;}
+
+/* select dropdown */
+html.skin-brutal select{border:3px solid #111;border-radius:0;font-weight:700;
+  background:#f3f6ff;box-shadow:4px 4px 0 #111;padding:11px 12px;}
+
+/* likert -> row of hard-edged square buttons */
+html.skin-brutal .likert{gap:8px;align-items:center;}
+html.skin-brutal .likert label{position:relative;width:46px;height:46px;border:3px solid #111;
+  border-radius:0;box-shadow:4px 4px 0 #111;background:#fff;font-weight:900;font-size:15px;
+  color:#111;justify-content:center;transition:transform .08s,box-shadow .08s,background .08s;}
+html.skin-brutal .likert label:hover{background:#c8f04d;}
+html.skin-brutal .likert label:has(input:checked){background:#ff5a3c;color:#fff;}
+html.skin-brutal .likert label input{position:absolute;opacity:0;width:1px;height:1px;margin:0;}
+html.skin-brutal .likert .end{font-weight:800;font-size:12px;color:#3a3f48;text-transform:uppercase;}
+
+/* buttons */
+html.skin-brutal button{font-family:"Arial Black",Arial,sans-serif;font-weight:900;
+  text-transform:uppercase;letter-spacing:.02em;border:3px solid #111;border-radius:0;
+  background:#ff5a3c;color:#fff;box-shadow:4px 4px 0 #111;
+  transition:transform .08s,box-shadow .08s,background .08s;}
+html.skin-brutal button:hover{background:#ff6f55;}
+html.skin-brutal button:active{transform:translate(4px,4px);box-shadow:0 0 0 #111;}
+html.skin-brutal button:disabled{opacity:.5;box-shadow:4px 4px 0 #111;}
+
+/* consent checkboxes */
+html.skin-brutal .consent-req{accent-color:#ff5a3c;width:16px;height:16px;}
+
+/* completion code */
+html.skin-brutal .code{font-family:"Arial Black",ui-monospace,monospace;border:3px solid #111;
+  border-radius:0;background:#fff;box-shadow:6px 6px 0 #111;letter-spacing:3px;}
+
+/* error banners */
+html.skin-brutal .err{background:#ff5a3c;color:#fff;border:3px solid #111;border-radius:0;
+  padding:9px 12px;font-weight:800;}
+
+/* guided tour bubbles */
+html.skin-brutal #tour-root .tour-bubble{border-radius:0;border:3px solid #111;box-shadow:8px 8px 0 #111;}
+html.skin-brutal #tour-root .tour-title{color:#0b57ff;}
+html.skin-brutal #tour-root .tour-hole{border-radius:0;border:3px solid #fff;}
+html.skin-brutal #tour-root .tour-nav button{border-radius:0;border:2px solid #111;font-weight:900;text-transform:uppercase;}
+html.skin-brutal #tour-root .tour-next{background:#ff5a3c;color:#fff;}
+html.skin-brutal #tour-root .tour-back{background:#eaf1fb;color:#0b57ff;}
+</style>
+
 </head>
 <body>
 <div class="wrap">
