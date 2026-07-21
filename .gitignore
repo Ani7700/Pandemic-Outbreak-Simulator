@@ -3,3 +3,9 @@
 *.prebak
 *.realbak
 *.bak
+
+# --- added by Claude (housekeeping) ---
+_skin_backup/
+*.tgz
+deploy.sh
+.DS_Store
