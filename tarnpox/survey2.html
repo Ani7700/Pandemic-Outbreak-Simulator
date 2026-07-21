@@ -260,10 +260,6 @@ const BLOCKS = [
    RADIO("F3","On the modelled outbreak for this area, at its worst point, roughly how many people are ill at the same time?",
      ["About 30","About 800","About 8,000","About 110,000","Not sure"],3),
    // ── Reading Cambridge's outbreak projection: peak timing, then peak size ──
-   RADIO("Fpeakht","If an outbreak ran its course in Cambridge, at its very worst moment roughly how many people would be ill at the same time?",
-     ["About 1,300","About 13,000","About 60,000","About 130,000","Not sure"],1),
-   RADIO("Fpeaktime","If an outbreak ran its course in Cambridge, at roughly what point in time would the number of people affected be at its highest?",
-     ["Around month 1","Around month 2","Around month 3 or 4","Around month 5 or 6","Not sure"],2),
    // ── Outbreak projection: what kind of thing it is (conceptual) ──
  ]},
  // ── PART 2: a DIFFERENT area, Hackney (high risk) ──
@@ -278,6 +274,10 @@ const BLOCKS = [
    RADIO("XB","Of the two areas, which has the greater share of its children fully vaccinated?",
      ["Cambridge / Cambridgeshire","Hackney (London)","About the same","Not sure"],1),
    RADIO("XC","Comparing the two areas, which one is currently seeing the larger number of Tarnpox infections?",["Cambridge / Cambridgeshire","Hackney (London)","About the same","Not sure"],0),
+   RADIO("Fpeakht","If an outbreak ran its course in Hackney, at its very worst moment roughly how many people would be ill at the same time?",
+     ["About 1,300","About 13,000","About 60,000","About 130,000","Not sure"],1),
+   RADIO("Fpeaktime","If an outbreak ran its course in Hackney, at roughly what point in time would the number of people affected be at its highest?",
+     ["Around month 1","Around month 2","Around month 3 or 4","Around month 5 or 6","Not sure"],2),
    // ── Hardest: link coverage to how an outbreak would unfold across the two areas ──
    RADIO("XD","If Tarnpox began to take hold in both places, in which one would it build up more rapidly and ultimately affect a greater number of residents?",
      ["Cambridge / Cambridgeshire","Hackney (London)","About the same","Not sure"],0),
