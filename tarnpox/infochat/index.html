@@ -162,13 +162,13 @@ html.skin-brutal #case-panel .cp-num{font-weight:900;}
 
     <p>Tarnpox is a contagious childhood disease that a two-dose vaccine can prevent. The fewer children an area has vaccinated, the more freely it spreads. There is a tipping point called herd immunity, the level at which the disease can no longer sustain itself, and for Tarnpox that takes roughly 85% of children having had both doses.</p>
 
-    <p>Cambridgeshire gives some cause for concern. About seventy-two per cent of its children have had the second dose and seventy-nine per cent the first, which leaves it a fair way below that 85% mark. It has also seen a comparatively large number of Tarnpox cases in the past six months, among the higher counts anywhere, and its community risk is rated very high.</p>
+    <p>Cambridgeshire gives some cause for concern. About seventy-two per cent of its children have had the second dose and seventy-nine per cent the first, which leaves it a fair way below that 85% mark. It has also seen a comparatively large number of Tarnpox cases between January and June, among the higher counts anywhere, and its community risk is rated very high.</p>
 
     <p>Hackney is in a much stronger position. Ninety-six per cent of its children have completed the second dose, and ninety-eight per cent the first, comfortably above the herd-immunity threshold, and it has recorded relatively few cases. Its community risk is judged to be low. Of the two places, then, Hackney is the better vaccinated, while Cambridgeshire carries both the greater case load and, for an unvaccinated child, the greater chance of catching Tarnpox over a year.</p>
 
     <p>Whether an exposed child actually falls ill turns largely on their own doses. A child with none who meets a case has something like a four in ten chance of catching it. A single dose pulls that down to about two in ten, and both doses bring it to only around eight in a hundred. The first dose does the heaviest lifting, since the fall from four in ten to two in ten outweighs the further drop to eight in a hundred. Even so, no amount of vaccination erases the danger completely, and after two doses a small chance always lingers. In round numbers, of two hundred unvaccinated children all exposed, roughly eighty would be infected, against about eight of every hundred who had had both doses.</p>
 
-    <p>Were an outbreak to take hold, it would not hold steady. Modelling suggests the number infected would climb over the opening months to a peak and then subside as the outbreak burned itself out, the whole arc playing out across something like half a year. Any such projection carries a spread of possibilities around its most likely path, which is a measure of how uncertain it is rather than a single promised figure, and it describes what could happen rather than what is bound to. Where coverage is thinner, as in Cambridgeshire, that wave would gather pace faster and wash over a larger share of the population than in a better protected place such as Hackney. In concrete terms, the modelling puts Cambridgeshire’s wave at a high point of around a hundred and ten thousand people infected at once, reached within the first month, whereas Hackney’s high point is far lower, only about twelve thousand, and comes later, nearer the third month.</p>
+    <p>Were an outbreak to take hold, it would not hold steady. Over the six weeks the modelling suggests the number infected would climb — quickly where vaccine coverage is thin, slowly where it is high — with the fastest-moving outbreaks reaching a high point inside that window and slower ones still rising when the six weeks are up. Any such projection carries a spread of possibilities around its most likely path, which is a measure of how uncertain it is rather than a single promised figure, and it describes what could happen rather than what is bound to. Where coverage is thinner, as in Cambridgeshire, that wave gathers pace far faster than in a better-protected place such as Hackney. In concrete terms, the modelling puts Cambridgeshire on a steep climb to a high point of around a hundred and ten thousand people infected at once by about the sixth week, whereas Hackney rises only slowly, reaching a few hundred within the same six weeks and still climbing — well short of the far larger wave it would see only later.</p>
   </div>
 
   <!-- ══ RIGHT: chatbot ══ -->
@@ -196,9 +196,9 @@ html.skin-brutal #case-panel .cp-num{font-weight:900;}
 // so it can't be used as a copy-paste answer key. Refuses survey/meta questions.
 const AREAS = {
   cambridge: { name:"Cambridge / Cambridgeshire", cov2:"72%", cov1:"79%",
-    herd:"below the ~85% herd-immunity level", cases:"high, among the higher counts in the past 6 months", risk:"Very high" },
+    herd:"below the ~85% herd-immunity level", cases:"high, among the higher counts between January and June", risk:"Very high" },
   hackney: { name:"Hackney (London)", cov2:"96%", cov1:"98%",
-    herd:"above the ~85% herd-immunity level", cases:"low, relatively few in the past 6 months", risk:"Low" }
+    herd:"above the ~85% herd-immunity level", cases:"low, relatively few between January and June", risk:"Low" }
 };
 let area = "cambridge";
 const EXPOSED_UNVACC="about 4 in 10 (≈40%)", EXPOSED_1DOSE="about 2 in 10 (≈20%)", EXPOSED_2DOSE="about 8 in 100 (≈8%)";
@@ -206,7 +206,7 @@ const SUGGESTIONS = [
   "What is the community risk level?",
   "How do the vaccine doses protect a child?",
   "How do the two areas compare?",
-  "What would an outbreak look like over 6 months?"
+  "What would an outbreak look like over 6 weeks?"
 ];
 // Route a question to a guiding reply. There is a reply for every comprehension
 // topic in the survey. Order matters: specific / disambiguating checks first.
@@ -232,7 +232,7 @@ function classify(t){
   // ── trend / projection (F1–F3) ──
   if(has("range","band","shaded","uncertain","spread of outcomes","how confident")) return "f2";
   if(has("guaranteed","certain","will happen","a prediction","just a model","really happen","for sure","best described","a model of")) return "f3";
-  if(has("outbreak","trend","projection","6 month","six month","over time","peak","change over","how would the number","curve","next few months","future")) return "f1";
+  if(has("outbreak","trend","projection","6 week","six week","6 month","six month","over time","peak","change over","how would the number","curve","next few weeks","next few months","future")) return "f1";
 
   // ── doses / exposure (C1–C5, D1–D2) ──
   if(has("least likely","which child","most protected child")) return "least";
@@ -294,7 +294,7 @@ function reply(intent){
     case "compare": return "Compare the two areas in the briefing on coverage and on case numbers. The one further below the 85% mark, with more cases, is the higher-risk area.";
 
     // ── trend / projection (F1–F3) ──
-    case "f1": return "The briefing describes how the number infected would change over six months — whether it stays flat, keeps rising, or climbs to a high point and then falls — and, for each area, it also gives roughly how many people would be infected at that high point and when it is reached. Read those figures off the briefing.";
+    case "f1": return "The briefing describes how the number infected would change over the six weeks — how fast it climbs, and whether it reaches a high point within that time or is still rising at the end. For each area it gives the rough figures: the high point and roughly when it is reached if the outbreak peaks within the six weeks, or the level it has climbed to by the end if it is still rising. Read those figures off the briefing.";
     case "f2": return "The briefing explains the range shown around a projection. It reflects how uncertain the projection is, not deaths and not past cases.";
     case "f3": return "The briefing says whether an outbreak projection is a guaranteed prediction or a model of what could happen if an outbreak started. Check how it describes it.";
 

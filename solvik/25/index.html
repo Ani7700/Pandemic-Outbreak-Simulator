@@ -1700,7 +1700,7 @@ function buildCaseTable(){
   const box=$("map-table"); if(!box||!CASES) return;
   const name2code={}; Object.entries(UTLA).forEach(([code,d])=>name2code[d.name]=code);
   const rows=Object.entries(CASES.byUTLA).sort((a,b)=>b[1]-a[1]);
-  box.innerHTML='<table class="rank-table"><caption>Confirmed Solvik cases by area (past ~6 months)</caption>'
+  box.innerHTML='<table class="rank-table"><caption>Confirmed Solvik cases by area (Jan–Jun, cumulative)</caption>'
     +'<thead><tr><th>#</th><th>Area</th><th>Region</th><th>Cases</th></tr></thead><tbody>'
     + rows.map(([nm,n],i)=>{const code=name2code[nm], reg=code&&UTLA[code]?UTLA[code].region:"";
         return `<tr data-code="${code||''}"><td>${i+1}</td><td class="rk-name">${nm}</td><td>${reg}</td><td class="rk-n">${n}</td></tr>`;}).join('')
@@ -1725,7 +1725,7 @@ function updateLegend(){
   if(MAP_MODE==="cases"){
     if(bar) bar.style.background="linear-gradient(to right,#f4ead9,#f0b07a,#7a1f12)";
     if(spans[0])spans[0].textContent="few"; if(spans[1])spans[1].textContent="many";
-    setTick("colour = confirmed Solvik cases (past ~6 months)");
+    setTick("colour = confirmed Solvik cases (Jan–Jun, cumulative)");
   } else if(MAP_MODE==="threshold"){
     if(bar) bar.style.background="linear-gradient(to right,#d4351c 50%,#00703c 50%)";
     if(spans[0])spans[0].textContent="below 89%"; if(spans[1])spans[1].textContent="89%+";
@@ -1816,10 +1816,10 @@ function placeMapLabel(center, d){
     } else {
       big="—"; sub="no case data";
     }
-    // Approximate span from the start of the year to the data's "as of" date,
-    // phrased loosely, e.g. "over the past 6 months"
-    const nMonths=(CASES.monthly && Object.keys(CASES.monthly).length) || 6;
-    range=`over the past ${nMonths} months`;
+    // Exact reporting period, read straight off the data's own monthly keys —
+    // e.g. "Jan–Jun total": a cumulative count, not a vague "past few months".
+    const mk=(CASES.monthly && Object.keys(CASES.monthly)) || [];
+    range = mk.length ? `${mk[0]}–${mk[mk.length-1]} total` : "";
   }
   const html=`<div class="ml-inner"><div class="ml-name">${d.name}</div>`
     + `<div class="ml-big">${big}</div><div class="ml-lbl">${sub}</div>`
@@ -1899,7 +1899,7 @@ function renderRisk(){
   // Risk display — the ONLY thing that differs between interface versions
   renderRiskDisplay(calcDynRisk(d), d);
 
-  // Local 6-month outbreak projection (community-level risk uses 2nd-dose coverage)
+  // Local 6-week outbreak projection (community-level risk uses 2nd-dose coverage)
   runAreaSim(d, mmr2);
 
   // Threshold legend label
@@ -1916,7 +1916,7 @@ const API_BASE = new URLSearchParams(location.search).get("api")
 // Warm the (free-tier) API on load so it isn't cold when the user reaches step 3.
 /* static build — no live API warmup */
 
-async function simulate({disease, region, population, coverage, days = 120, n_runs = 20}){
+async function simulate({disease, region, population, coverage, days = 42, n_runs = 20}){
   const res = await fetch(`${API_BASE}/simulate`, {
     method: "POST",
     headers: {"Content-Type": "application/json"},
@@ -1942,7 +1942,7 @@ function runAreaSim(d, cov){
 }
 
 function drawSimChart(sim){
-  const I = sim.I, n = I.med.length;
+  const _I0 = sim.I, _D = 42; const I = { med:_I0.med.slice(0,_D+1), lo:_I0.lo.slice(0,_D+1), hi:_I0.hi.slice(0,_D+1) }, n = I.med.length;
   const W = 620, H = 300, padL = 42, padR = 10, padT = 16, padB = 28;
   // Trim the y-axis: use the 85th-percentile of the upper band so a few noisy
   // stochastic spikes don't squash the median. Keep the median peak in frame.
@@ -1960,12 +1960,12 @@ function drawSimChart(sim){
     ticks += `<line x1="${padL}" y1="${yy}" x2="${W-padR}" y2="${yy}" stroke="#eee"/>`
       + `<text x="${padL-4}" y="${yy+3}" text-anchor="end" font-size="11" fill="#999">${shortNum(v)}</text>`;
   }
-  // Month labels along the x-axis (≈30 days each) for a 6-month view.
+  // Week labels along the x-axis (7 days each) for a 6-week view.
   let xlabels="";
-  const months=Math.round((n-1)/30);
-  for(let m=0;m<=months;m++){
-    const idx=Math.min(n-1, m*30), xx=x(idx);
-    xlabels += `<text x="${xx.toFixed(1)}" y="${H-padB+14}" text-anchor="middle" font-size="11" fill="#999">${m===0?"now":m+"mo"}</text>`;
+  const weeks=Math.round((n-1)/7);
+  for(let m=0;m<=weeks;m++){
+    const idx=Math.min(n-1, m*7), xx=x(idx);
+    xlabels += `<text x="${xx.toFixed(1)}" y="${H-padB+14}" text-anchor="middle" font-size="11" fill="#999">${m===0?"now":m+"w"}</text>`;
   }
   // Legend baked into the chart (top-left, where the early curve is low).
   const lx=padL+6, ly=padT+2;
