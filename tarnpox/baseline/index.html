@@ -267,13 +267,8 @@ const BLOCKS = [
    RADIO("C_ratio","Compared with a child who has had both doses, roughly how many times more likely is an unvaccinated child to catch Tarnpox if they are exposed?",["About the same","About 2 times","About 5 times","About 20 times","Not sure"],2),
    RADIO("C5","Picture a group of 200 children, none of whom have been vaccinated, who all come into contact with Tarnpox. Roughly how many would end up infected?",
      ["About 20","About 80","About 140","About 190","Not sure"],1),
-   RADIO("A_cases","In Cambridge, roughly how many confirmed Tarnpox cases have there been in the past 6 months?",
-     ["About 10","About 20","About 30","About 80","Not sure"],3),
-   // ── Reading Cambridge's outbreak projection: peak timing, then peak size ──
-   RADIO("Fpeakht","Looking at the six-week outbreak projection for Cambridge, at its highest point within those six weeks roughly how many people would be ill at the same time?",
-     ["About 1,000","About 11,000","About 110,000","About 400,000","Not sure"],2),
-   RADIO("Fpeaktime","At the end of the six-week projection for Cambridge, is the number of people ill still rising, leveling off near a peak, or already past its peak and falling?",
-     ["Still rising","Leveling off near a peak","Already past its peak and falling","Not sure"],1),
+   RADIO("A_peakht","Looking at the six-week outbreak projection for Cambridge, at its highest point within those six weeks roughly how many people would be ill at the same time?",
+     ["About 30","About 500","About 11,000","About 110,000","Not sure"],3),
    // ── Outbreak projection: what kind of thing it is (conceptual) ──
  ]},
  // ── PART 2: a DIFFERENT area, Hackney (high risk) ──
@@ -289,6 +284,10 @@ const BLOCKS = [
      ["Cambridge / Cambridgeshire","Hackney (London)","About the same","Not sure"],1),
    RADIO("XC","Comparing the two areas, which one is currently seeing the larger number of Tarnpox infections?",["Cambridge / Cambridgeshire","Hackney (London)","About the same","Not sure"],0),
    // ── Hardest: link coverage to how an outbreak would unfold across the two areas ──
+   RADIO("Fpeakht","Looking at the six-week outbreak projection for Hackney, at its highest point within those six weeks roughly how many people would be ill at the same time?",
+     ["About 650","About 5,700","About 68,000","About 250,000","Not sure"],0),
+   RADIO("Fpeaktime","At the end of the six-week projection for Hackney, is the number of people ill still rising, leveling off near a peak, or already past its peak and falling?",
+     ["Still rising","Leveling off near a peak","Already past its peak and falling","Not sure"],0),
    RADIO("XD","If Tarnpox began to take hold in both places, in which one would it build up more rapidly and ultimately affect a greater number of residents?",
      ["Cambridge / Cambridgeshire","Hackney (London)","About the same","Not sure"],0),
  ]},
