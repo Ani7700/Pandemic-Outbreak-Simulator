@@ -750,13 +750,13 @@ html.skin-brutal #case-panel .cp-num{font-weight:900;}
       <div id="case-panel">
         <div class="cp-search"><input id="cp-search-input" type="text" placeholder="Type a name/postcode" autocomplete="off"></div>
         <div id="cp-default">
-          <div class="cp-lab">Confirmed cases, England</div>
+          <div class="cp-lab">Confirmed cases, England (in the past 6 months)</div>
           <div class="cp-num" id="cp-nat">0</div>
         </div>
         <div id="cp-area" style="display:none">
           <div class="cp-name" id="cp-name">—</div>
           <span class="cp-deselect" id="cp-deselect">Deselect</span>
-          <div class="cp-lab">Confirmed cases</div>
+          <div class="cp-lab">Confirmed cases (in the past 6 months)</div>
           <div class="cp-num" id="cp-caseval">0</div>
         </div>
       </div>
@@ -1700,7 +1700,7 @@ function buildCaseTable(){
   const box=$("map-table"); if(!box||!CASES) return;
   const name2code={}; Object.entries(UTLA).forEach(([code,d])=>name2code[d.name]=code);
   const rows=Object.entries(CASES.byUTLA).sort((a,b)=>b[1]-a[1]);
-  box.innerHTML='<table class="rank-table"><caption>Confirmed Tarnpox cases by area (Jan–Jun, cumulative)</caption>'
+  box.innerHTML='<table class="rank-table"><caption>Confirmed Tarnpox cases by area (in the past 6 months)</caption>'
     +'<thead><tr><th>#</th><th>Area</th><th>Region</th><th>Cases</th></tr></thead><tbody>'
     + rows.map(([nm,n],i)=>{const code=name2code[nm], reg=code&&UTLA[code]?UTLA[code].region:"";
         return `<tr data-code="${code||''}"><td>${i+1}</td><td class="rk-name">${nm}</td><td>${reg}</td><td class="rk-n">${n}</td></tr>`;}).join('')
@@ -1725,7 +1725,7 @@ function updateLegend(){
   if(MAP_MODE==="cases"){
     if(bar) bar.style.background="linear-gradient(to right,#f4ead9,#f0b07a,#7a1f12)";
     if(spans[0])spans[0].textContent="few"; if(spans[1])spans[1].textContent="many";
-    setTick("colour = confirmed Tarnpox cases (Jan–Jun, cumulative)");
+    setTick("colour = confirmed Tarnpox cases (in the past 6 months)");
   } else if(MAP_MODE==="threshold"){
     if(bar) bar.style.background="linear-gradient(to right,#d4351c 50%,#00703c 50%)";
     if(spans[0])spans[0].textContent="below 85%"; if(spans[1])spans[1].textContent="85%+";
@@ -1817,9 +1817,9 @@ function placeMapLabel(center, d){
       big="—"; sub="no case data";
     }
     // Exact reporting period, read straight off the data's own monthly keys —
-    // e.g. "Jan–Jun total": a cumulative count, not a vague "past few months".
+    // e.g. "in the past 6 months", derived from the count of monthly buckets in the data.
     const mk=(CASES.monthly && Object.keys(CASES.monthly)) || [];
-    range = mk.length ? `${mk[0]}–${mk[mk.length-1]} total` : "";
+    range = mk.length ? `in the past ${mk.length} months` : "";
   }
   const html=`<div class="ml-inner"><div class="ml-name">${d.name}</div>`
     + `<div class="ml-big">${big}</div><div class="ml-lbl">${sub}</div>`
