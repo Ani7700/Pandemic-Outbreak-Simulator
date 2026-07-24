@@ -257,8 +257,8 @@ const BLOCKS = [
    RADIO("C_ratio","Compared with a child who has had both doses, roughly how many times more likely is an unvaccinated child to catch Verrow fever if they are exposed?",["About the same","About 3 times","About 8 times","About 30 times","Not sure"],2),
    RADIO("C5","Picture a group of 200 children, none of whom have been vaccinated, who all come into contact with Verrow fever. Roughly how many would end up infected?",
      ["About 20","About 60","About 120","About 190","Not sure"],2),
-   RADIO("F3","On the modelled outbreak for this area, at its worst point, roughly how many people are ill at the same time?",
-     ["About 30","About 800","About 8,000","About 110,000","Not sure"],2),
+   RADIO("F3","The ‘modelled outbreak’ shown for an area is best described as…",
+     ["A record of cases that already happened","A count of how many people are unwell in the area right now","A guaranteed prediction of exactly what will happen","A model of what could happen if an outbreak started here","Not sure"],3),
    // ── Outbreak projection: what kind of thing it is (conceptual) ──
  ]},
  // ── PART 2: a DIFFERENT area, Hackney (high risk) ──
@@ -274,10 +274,10 @@ const BLOCKS = [
      ["Cambridge / Cambridgeshire","Hackney (London)","About the same","Not sure"],0),
    RADIO("XC","Comparing the two areas, which one is currently seeing the larger number of Verrow fever infections?",["Cambridge / Cambridgeshire","Hackney (London)","About the same","Not sure"],1),
    // ── Reading Hackney's outbreak projection: peak timing, then peak size ──
-   RADIO("Fpeakht","If an outbreak ran its course in Hackney, at its very worst moment roughly how many people would be ill at the same time?",
+   RADIO("Fpeakht","Looking at the six-week outbreak projection for Hackney, at its highest point within those six weeks roughly how many people would be ill at the same time?",
      ["About 700","About 7,000","About 68,000","About 250,000","Not sure"],2),
-   RADIO("Fpeaktime","If an outbreak ran its course in Hackney, at roughly what point in time would the number of people affected be at its highest?",
-     ["Around month 1","Around month 2","Around month 3 or 4","Around month 5 or 6","Not sure"],0),
+   RADIO("Fpeaktime","At the end of the six-week projection for Hackney, is the number of people ill still rising, leveling off near a peak, or already past its peak and falling?",
+     ["Still rising","Leveling off near a peak","Already past its peak and falling","Not sure"],2),
    // ── Hardest: link coverage to how an outbreak would unfold across the two areas ──
    RADIO("XD","If Verrow fever began to take hold in both places, in which one would it build up more rapidly and ultimately affect a greater number of residents?",
      ["Cambridge / Cambridgeshire","Hackney (London)","About the same","Not sure"],1),
