@@ -322,5 +322,24 @@ $("input").addEventListener("keydown",e=>{ if(e.key==="Enter") submit($("input")
 renderChips();
 add("bot","Hi. I can help you make sense of the briefing on the left: how herd immunity works, how the doses protect a child, how an area’s risk is judged, and how an outbreak unfolds. The figures for each area are in the briefing; ask and I’ll help you read and reason about them. Tap a question below to start.");
 </script>
+<style id="brutal-infochat">
+html.skin-brutal .app{max-width:1000px;}
+html.skin-brutal .left{border-right:3px solid #111;background:#fff;}
+html.skin-brutal .left h1{font-weight:900;letter-spacing:-.01em;}
+html.skin-brutal .left .sub{color:#4a4f5a;font-weight:700;}
+html.skin-brutal .right{background:#fff;}
+html.skin-brutal .rhead{border-bottom:3px solid #111;background:#fff;}
+html.skin-brutal .rhead h2{font-weight:900;}
+html.skin-brutal .area-chip{border:3px solid #111;border-radius:0;background:#fff;color:#111;font-weight:800;box-shadow:2px 2px 0 #111;}
+html.skin-brutal .area-chip.on{background:#0b57ff;border-color:#111;color:#fff;}
+html.skin-brutal .msg .bubble{border:3px solid #111;border-radius:0;box-shadow:3px 3px 0 #111;font-weight:600;}
+html.skin-brutal .msg.bot .bubble{background:#fff;}
+html.skin-brutal .msg.user .bubble{background:#0b57ff;color:#fff;}
+html.skin-brutal .chip{border:3px solid #111;border-radius:0;background:#fff;color:#111;font-weight:800;box-shadow:2px 2px 0 #111;}
+html.skin-brutal .chip:hover{background:#c8f04d;}
+html.skin-brutal .composer{border-top:3px solid #111;background:#fff;}
+html.skin-brutal .composer input{border:3px solid #111;border-radius:0;background:#f3f6ff;font-weight:700;}
+html.skin-brutal .composer button{border:3px solid #111;border-radius:0;background:#0b57ff;color:#fff;font-weight:900;box-shadow:2px 2px 0 #111;}
+</style>
 </body>
 </html>

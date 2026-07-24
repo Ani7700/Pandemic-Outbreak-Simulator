@@ -231,7 +231,7 @@ const condition = ["baseline","chatbot","text","b"].includes(condRaw) ? "baselin
 // Interface loaded in the iframe. /baseline/ steps up one level to reach the shared
 // folders; the baseline interface is the combined prose+chatbot page (infochat).
 const basePath = atBaselinePath ? "../" : "./";
-const toolURL = condition==="baseline" ? basePath+"infochat/" : basePath+version+"/";
+const toolURL = (condition==="baseline" ? basePath+"infochat/" : basePath+version+"/") + (new URLSearchParams(location.search).get("skin")==="brutal" ? "?skin=brutal" : "");
 const started = Date.now();
 let toolStart=0;
 const ANS = {};
