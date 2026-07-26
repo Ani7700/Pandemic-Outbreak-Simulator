@@ -2018,13 +2018,18 @@ function runAreaSim(d, cov){
 function drawSimChart(sim){
   const _I0 = sim.I, _D = 42; const I = { med:_I0.med.slice(0,_D+1), lo:_I0.lo.slice(0,_D+1), hi:_I0.hi.slice(0,_D+1) }, n = I.med.length;
   const W = 620, H = 300, padL = 42, padR = 10, padT = 16, padB = 28;
-  // Trim the y-axis: use the 85th-percentile of the upper band so a few noisy
-  // stochastic spikes don't squash the median. Keep the median peak in frame.
-  const hiSorted = I.hi.slice().sort((a,b)=>a-b);
-  const p85 = hiSorted[Math.floor(hiSorted.length*0.85)] || 1;
-  const yMax = Math.max(1, Math.max(...I.med)*1.15, p85);
+  // y-axis top: the whole uncertainty band has to fit inside the frame.
+  // The previous rule trimmed to the 85th percentile of the upper band, to stop a few
+  // stochastic spikes squashing the median line. That was written for the ensemble the
+  // projections used to come from; they are a deterministic RK4 run now and the band
+  // rises monotonically over most of the six-week window, so a percentile cut removes
+  // no spikes -- it removes the end of the window, which is the part Fpeaktime asks
+  // about. It clipped the band in 63 to 89 percent of areas depending on the arm, and a
+  // band flattened against the top edge reads as a plateau in the outbreak that is not
+  // there. Five percent of headroom keeps the band's own peak visibly inside the frame.
+  const yMax = Math.max(1, Math.max(...I.med)*1.15, Math.max(...I.hi)*1.05);
   const x = i => padL + (W-padL-padR)*(i/(n-1));
-  const y = v => H-padB - (H-padT-padB)*(Math.min(v,yMax)/yMax);  // clamp to top edge
+  const y = v => H-padB - (H-padT-padB)*(Math.min(v,yMax)/yMax);  // clamp is now a guard: yMax covers hi
   const line = arr => arr.map((v,i)=>(i?"L":"M")+x(i).toFixed(1)+" "+y(v).toFixed(1)).join(" ");
   const band = I.hi.map((v,i)=>(i?"L":"M")+x(i).toFixed(1)+" "+y(v).toFixed(1)).join(" ")
     + " " + I.lo.map((_,i)=>"L"+x(n-1-i).toFixed(1)+" "+y(I.lo[n-1-i]).toFixed(1)).join(" ") + " Z";
