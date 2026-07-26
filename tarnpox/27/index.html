@@ -2078,13 +2078,10 @@ function drawSimChart(sim){
     const idx=Math.min(n-1, m*7), xx=x(idx);
     xlabels += `<text x="${xx.toFixed(1)}" y="${H-padB+14}" text-anchor="middle" font-size="11" fill="#999">${m===0?"now":m+"w"}</text>`;
   }
-  // Legend baked into the chart (top-left, where the early curve is low).
-  const lx=padL+6, ly=padT+2;
-  const legend =
-      `<rect x="${lx}" y="${ly}" width="20" height="10" fill="#8C3A2B33"/>`
-    + `<text x="${lx+27}" y="${ly+9}" font-size="11" fill="#777">range of outcomes</text>`
-    + `<line x1="${lx}" y1="${ly+23}" x2="${lx+20}" y2="${ly+23}" stroke="#8C3A2B" stroke-width="2.8"/>`
-    + `<text x="${lx+27}" y="${ly+27}" font-size="11" fill="#777">most likely number ill</text>`;
+  // No legend is drawn inside the SVG: the one the participant sees is the HTML block
+  // #sim-legend2 above the chart, which sits outside the plot area and cannot collide
+  // with the curve. A second, in-SVG legend used to be built here and was never inserted
+  // into the output -- dead code, removed.
   // Y-axis title + disclaimer baked in.
   const midY=(padT+(H-padB))/2;
   const yTitle=`<text x="11" y="${midY}" font-size="10" fill="#999" text-anchor="middle" transform="rotate(-90 11 ${midY})">people ill at the same time</text>`;
