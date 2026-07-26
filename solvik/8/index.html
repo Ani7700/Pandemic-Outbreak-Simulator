@@ -828,7 +828,7 @@ const DISEASES = {
 //   base5yr   = 5-year cumulative Solvik risk for an UNVACCINATED child at
 //               national-average coverage; natCov = national 2nd-dose coverage
 // FICTIONAL parameters for a hypothetical disease ("Solvik") — not real.
-const MEASLES = { R0: 8, natCov: 0.83, base5yr: 0.0012, sar: 0.50, ve1: 0.60, ve2: 0.90 };
+const MEASLES = { R0: 5.0, natCov: 0.83, base5yr: 0.0012, sar: 0.50, ve1: 0.60, ve2: 0.90 };
 
 // Annual Solvik risk for an UNVACCINATED child at a given 2-dose coverage.
 function annualUnvaccAt(cov){
@@ -1351,7 +1351,7 @@ const APP_VERSION = (function(){
   return (n>=1 && n<=30) ? n : 0;      // 0 = root (baseline)
 })();
 const DATA_BASE = APP_VERSION ? "../" : "";   // data files live at the repo root
-const DATA_V = "?v=4";   // bump this whenever a data file changes, to bust browser caches
+const DATA_V = "?v=5";   // bump this whenever a data file changes, to bust browser caches
 let STATE = { code: null, disease: "mmr2", districtName: null, placeName: null, placeType: null };
 let LMAP = null, GJSON = null, LABEL = null;
 const $ = id => document.getElementById(id);

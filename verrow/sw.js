@@ -8,7 +8,7 @@
 //
 // Bump CACHE (v2 -> v3 …) any time you want to force-drop the old cache.
 
-const CACHE = 'vax-risk-v15';
+const CACHE = 'vax-risk-v16';
 
 const PRECACHE = [
   './',
@@ -85,7 +85,11 @@ self.addEventListener('fetch', event => {
   const isDocument = req.mode === 'navigate' ||
     url.pathname === '/' || url.pathname.endsWith('/') || url.pathname.endsWith('.html');
   const isData = /\.(json|geojson)$/.test(url.pathname);
-  if (isDocument || isData) {
+  // Same-origin app scripts (sim_projections.js, case_dots.js) are network-first too,
+  // otherwise a regenerated projection never reaches a page whose cache is already
+  // warm. Third-party / CDN scripts stay cache-first.
+  const isAppScript = url.origin === self.location.origin && url.pathname.endsWith('.js');
+  if (isDocument || isData || isAppScript) {
     event.respondWith(networkFirst(req));
     return;
   }
