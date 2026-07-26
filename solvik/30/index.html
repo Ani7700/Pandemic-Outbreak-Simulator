@@ -212,6 +212,7 @@ body{
 .risk-dot.very-high{background:#942514;}
 .risk-label-wrap{flex:1;}
 .risk-label{font-size:13px;color:var(--muted);margin-bottom:1px;}
+.risk-why{font-size:13px;color:var(--muted);line-height:1.5;margin:6px 0 14px;max-width:62ch;}
 .risk-level{font-size:17px;font-weight:700;}
 .risk-level.low{color:#00703c;}
 .risk-level.medium{color:#f47738;}
@@ -388,6 +389,7 @@ body{
 .layout[data-step="3"] .risk-badge{padding:0;}
 .layout[data-step="3"] .risk-label{font-size:14px;}
 .layout[data-step="3"] .risk-level{font-size:24px;letter-spacing:-.01em;}
+.layout[data-step="3"] .risk-why{font-size:15px;margin:10px 0 20px;}
 .layout[data-step="3"] .cov-bar-label{font-size:14px;}
 .layout[data-step="3"] .cov-ticks span{font-size:13px;}
 .layout[data-step="3"] .comparison-label{font-size:17px;font-weight:600;margin:22px 0 12px;letter-spacing:-.01em;}
@@ -713,11 +715,16 @@ html.skin-brutal #case-panel .cp-num{font-weight:900;}
           </div>
         </div>
 
-        <!-- Risk for your child — rendered per interface VERSION (uncertainty display) -->
-        <div class="comparison-label">Your child's chance of catching Solvik</div>
-        <div id="risk-display"></div>
+        <!-- What the badge is built from. The badge is banded off the curve below, and the
+             two figures named here are the model's local inputs; both otherwise live on the
+             map stage, which is hidden by the time the participant reads the badge. -->
+        <div class="risk-why" id="risk-why"></div>
 
-        <!-- Local outbreak projection (simulator) — legend + note are baked into the chart -->
+        <!-- Local outbreak projection (simulator) — legend + note are baked into the chart.
+             This sits directly under the badge because the badge is derived from it. The
+             personal dose figures used to come between the two; they are an individual
+             chance of infection on exposure and do not depend on the area at all, so they
+             now follow the community block rather than splitting it. -->
         <div class="sim-section" id="sim-section" style="display:none">
           <div class="sim-status" id="sim-status"></div>
           <div class="sim-legend2" id="sim-legend2">
@@ -727,6 +734,10 @@ html.skin-brutal #case-panel .cp-num{font-weight:900;}
           <svg class="sim-chart" id="sim-chart" viewBox="0 0 620 300" preserveAspectRatio="xMidYMid meet"
                style="width:100%;max-width:760px;height:auto;display:none" xmlns="http://www.w3.org/2000/svg"></svg>
         </div>
+
+        <!-- Risk for your child — rendered per interface VERSION (uncertainty display) -->
+        <div class="comparison-label">Your child's chance of catching Solvik</div>
+        <div id="risk-display"></div>
 
       </div><!-- /risk-block -->
 
@@ -1970,6 +1981,25 @@ function renderRisk(){
     $("risk-level").textContent=risk.label;
   }
 
+  // Name the two local figures the band is built from, and point at the curve it came
+  // from. Deliberately no trend word and no growth multiple: "still rising / past its
+  // peak" and the size of the peak are what Fpeaktime and the peak-height items ask
+  // for, and the chart states them a few centimetres below. This line supplies the
+  // inputs, not the conclusion.
+  {
+    const why=$("risk-why");
+    if(why){
+      const covPct = (mmr2!=null) ? Math.round(mmr2*1000)/10 : null;
+      const now = (typeof ILLNOW!=="undefined" && ILLNOW && ILLNOW[d.name]!=null) ? ILLNOW[d.name] : null;
+      const bits=[];
+      if(covPct!=null) bits.push(`${covPct}% of children here have had both doses`);
+      if(now!=null) bits.push(`about ${now.toLocaleString()} ${now===1?"person is":"people are"} ill right now`);
+      why.textContent = bits.length
+        ? bits.join(", and ") + ". The chart below is what the model expects from that over the next six weeks."
+        : "";
+    }
+  }
+
   // Risk display — the ONLY thing that differs between interface versions
   renderRiskDisplay(calcDynRisk(d), d);
 
@@ -2011,7 +2041,9 @@ function runAreaSim(d, cov){
   sec.style.display = "block";
   drawSimChart({ I: proj });
   $("sim-status").style.display = "";
-  $("sim-status").textContent = "Modelled outbreak \u2014 people ill at the same time";
+  // The area name belongs on the chart: step 3 hides the map, and by the time the
+  // participant has scrolled to the curve the heading at the top is out of view.
+  $("sim-status").textContent = `${d.name} \u2014 modelled outbreak over the next 6 weeks`;
   $("sim-chart").style.display = "block";
 }
 
