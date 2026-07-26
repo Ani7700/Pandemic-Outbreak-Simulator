@@ -1,10 +1,12 @@
-*.realbak
-*.realbak
-*.prebak
-*.realbak
+# Data snapshots taken before a regeneration — kept locally, not in the repo.
 *.bak
+*_bak
+*.prebak
+*.prebak2
+*.realbak
+*.preseed_bak
 
-# --- added by Claude (housekeeping) ---
+# Housekeeping
 _skin_backup/
 *.tgz
 deploy.sh

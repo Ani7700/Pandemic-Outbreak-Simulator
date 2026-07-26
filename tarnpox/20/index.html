@@ -708,7 +708,7 @@ html.skin-brutal #case-panel .cp-num{font-weight:900;}
         <div class="risk-badge" id="risk-badge">
           <div class="risk-dot" id="risk-dot"></div>
           <div class="risk-label-wrap">
-            <div class="risk-label">Community Tarnpox risk</div>
+            <div class="risk-label">Community Tarnpox risk · next 6 weeks</div>
             <div class="risk-level" id="risk-level">—</div>
           </div>
         </div>
@@ -1323,22 +1323,52 @@ function renderRiskDisplay(dyn, d){
   if(WIRE[v]) WIRE[v](dyn, d);   // attach listeners for interactive versions
 }
 
-// Risk levels based on 2nd-dose coverage
-function riskFromCov(c) {
-  if (c == null) return null;
-  if (c >= 0.90) return { key:"low",       label:"LOW",       sub:"Strong community protection." };
-  if (c >= 0.85) return { key:"medium",    label:"MEDIUM",    sub:"Some gaps — periodic outbreaks possible." };
-  if (c >= 0.80) return { key:"high",      label:"HIGH",      sub:"Below target — significant outbreak risk." };
-  return          { key:"very-high",  label:"VERY HIGH", sub:"Well below herd immunity — outbreaks likely." };
+// ── Community risk band ─────────────────────────────────────────────────
+// The band is read OFF the six-week projection, not off coverage. It is the
+// highest number of people ill at the same time during the next six weeks,
+// expressed per 100,000 children under 5 living in the area. The badge and the
+// chart are computed from the same numbers, so they cannot disagree.
+// Cut-points are calibrated for this disease (35th / 68th / 87th percentile of
+// areas with a reportable peak).
+const RISK_CUTS = { medium: 117, high: 221, veryHigh: 367 };  // per 100,000 under 5
+const RISK_MIN_CASES = 10;   // fewer people than this: too few to report a rate
+const RISK_DAYS = 42;        // six weeks
+
+function sixWeekPeak(code){
+  const P = window.__SIMPROJ__ && window.__SIMPROJ__[code];
+  if(!P || !P.med) return null;
+  const w = P.med.slice(0, RISK_DAYS + 1);
+  const peak = Math.max.apply(null, w);
+  return { peak: peak, day: w.indexOf(peak), start: w[0], end: w[RISK_DAYS] };
 }
 
-// Unvaccinated community exposure probability by coverage level
-function exposureNote(c, areaName) {
-  if (c == null) return "Community risk unknown for this area.";
-  if (c >= 0.90) return `Community protection is strong in ${areaName}. Even unvaccinated children have some herd protection — but remain personally at risk.`;
-  if (c >= 0.85) return `${areaName} is approaching the herd immunity threshold. Unvaccinated children face meaningful exposure risk during any local outbreak.`;
-  if (c >= 0.80) return `Coverage in ${areaName} is below the threshold. Unvaccinated children are at elevated risk — community protection has significant gaps.`;
-  return `Coverage in ${areaName} is well below safe levels. Unvaccinated children face a HIGH probability of exposure if Tarnpox enters the community.`;
+function riskFromCurve(code, d){
+  if(!d || d.mmr2 == null || !d.under5) return null;
+  const s = sixWeekPeak(code);
+  if(!s) return null;
+  const rate = s.peak / d.under5 * 1e5;
+  const Re   = MEASLES.R0 * (1 - d.mmr2 * MEASLES.ve2);
+  let k = 0;
+  if(s.peak >= RISK_MIN_CASES){
+    k = rate >= RISK_CUTS.veryHigh ? 3 : rate >= RISK_CUTS.high ? 2 : rate >= RISK_CUTS.medium ? 1 : 0;
+    if(Re < 1 && k > 1) k = 1;   // below the threshold an outbreak cannot sustain itself
+  }
+  const n = s.peak.toLocaleString(), ppl = s.peak === 1 ? "person" : "people";
+  return [
+    { key:"low",       label:"LOW",       sub:`Projection stays small — at most about ${n} ${ppl} ill at once.` },
+    { key:"medium",    label:"MEDIUM",    sub:`Projection reaches about ${n} ${ppl} ill at once.` },
+    { key:"high",      label:"HIGH",      sub:`Projection climbs to about ${n} ${ppl} ill at once.` },
+    { key:"very-high", label:"VERY HIGH", sub:`Projection climbs steeply — about ${n} ${ppl} ill at once at the peak.` },
+  ][k];
+}
+
+// Wording that goes with the community risk band (same band as the badge).
+function exposureNote(band, areaName) {
+  if (!band) return "Community risk unknown for this area.";
+  if (band === "low")    return `The six-week projection for ${areaName} stays small. Even unvaccinated children have some herd protection — but they remain personally at risk.`;
+  if (band === "medium") return `The six-week projection for ${areaName} grows to a moderate size. Unvaccinated children face meaningful exposure risk.`;
+  if (band === "high")   return `The six-week projection for ${areaName} climbs steadily. Unvaccinated children are at elevated risk — community protection has significant gaps.`;
+  return `The six-week projection for ${areaName} climbs steeply. Unvaccinated children face a high probability of exposure.`;
 }
 
 let GEO = null, UTLA = null, CASES = null, CASEDOTS = null;
@@ -1351,7 +1381,7 @@ const APP_VERSION = (function(){
   return (n>=1 && n<=30) ? n : 0;      // 0 = root (baseline)
 })();
 const DATA_BASE = APP_VERSION ? "../" : "";   // data files live at the repo root
-const DATA_V = "?v=5";   // bump this whenever a data file changes, to bust browser caches
+const DATA_V = "?v=6";   // bump this whenever a data file changes, to bust browser caches
 let STATE = { code: null, disease: "mmr2", districtName: null, placeName: null, placeType: null };
 let LMAP = null, GJSON = null, LABEL = null;
 const $ = id => document.getElementById(id);
@@ -1376,7 +1406,7 @@ function loadCaseDots(){
 }
 function loadSimProj(){
   const s=document.createElement("script"); s.src=DATA_BASE+"sim_projections.js"+DATA_V;
-  s.onload=()=>{ const c=STATE.code; if(c && UTLA && UTLA[c]) runAreaSim(UTLA[c], UTLA[c].mmr2); };
+  s.onload=()=>{ if(STATE.code && UTLA && UTLA[STATE.code]) renderRisk(); };  // badge is derived from these curves
   document.head.appendChild(s);
 }
 
@@ -1486,7 +1516,9 @@ function areaCaseCount(d){
 function caseColor(d){
   const n = areaCaseCount(d);
   if(n==null) return "#CFCAB9";
-  return lerpColor("#f4ead9","#7a1f12", Math.min(1, n/130));
+  // Saturates at the 90th percentile of this disease's case counts, so the
+  // middle of the distribution still shows visible colour differences.
+  return lerpColor("#f4ead9","#7a1f12", Math.min(1, n/520));
 }
 // Fill colour for an area, per map version
 function fillFor(d){
@@ -1836,7 +1868,7 @@ function renderRisk(){
   if(!d)return;
   const dis=DISEASES[STATE.disease];
   const cov=d[dis.field]; // may be null
-  const mmr2=d.mmr2;      // always use 2nd dose for risk level
+  const mmr2=d.mmr2;      // 2nd-dose coverage (drives the coverage bar and the projection)
 
   // (risk-block visibility is controlled by the wizard step CSS, not here)
   // Determine what to show in the header
@@ -1888,8 +1920,8 @@ function renderRisk(){
     $("cov-fill").style.width="0";
   }
 
-  // Risk badge (always based on 2nd dose)
-  const risk=riskFromCov(mmr2);
+  // Risk badge — read off the six-week projection (see riskFromCurve)
+  const risk=riskFromCurve(STATE.code, d);
   if(risk){
     $("risk-dot").className="risk-dot "+risk.key;
     $("risk-level").className="risk-level "+risk.key;
