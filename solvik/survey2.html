@@ -264,7 +264,7 @@ const BLOCKS = [
    RADIO("C_ratio","If both are exposed to Solvik, how many times more likely is an unvaccinated child to catch it than a fully vaccinated child?",["About the same","About 3 times","About 10 times","About 30 times","Not sure"],2),
    RADIO("C5","If 200 unvaccinated children all came into contact with Solvik, roughly how many would catch it?",
      ["About 20","About 60","About 100","About 180","Not sure"],2),
-   RADIO("A_peakht","In the six-week outbreak projection for Cambridge, at its highest point, about how many people are ill at the same time on the \"most likely\" line?",
+   RADIO("A_peakht","In the six-week outbreak projection for Cambridge, at its highest point, about how many confirmed cases are active at the same time on the \"most likely\" line?",
      ["About 30","About 2,900","About 35,000","About 710,000","Not sure"],0),
    // ── Outbreak projection: what kind of thing it is (conceptual) ──
  ]},
@@ -275,15 +275,15 @@ const BLOCKS = [
   items:[
    RADIO("B_cov_val","Out of every 100 children in Hackney, roughly how many have had all of their vaccine doses?",
      ["About 55%","About 70%","About 85%","About 95%","Not sure"],1),
-   RADIO("B_cases","About how many people in Hackney are ill with Solvik right now?",
+   RADIO("B_cases","About how many confirmed Solvik cases are active in Hackney today?",
      ["About 4","About 30","About 150","About 2,900","Not sure"],0),
    RADIO("XB","Which of the two areas has more of its children fully vaccinated?",
      ["Cambridge / Cambridgeshire","Hackney (London)","About the same","Not sure"],0),
-   RADIO("XC","Which of the two areas has more people ill with Solvik right now?",["Cambridge / Cambridgeshire","Hackney (London)","About the same","Not sure"],0),
+   RADIO("XC","Which of the two areas has more active Solvik cases today?",["Cambridge / Cambridgeshire","Hackney (London)","About the same","Not sure"],0),
    // ── Reading Hackney's outbreak projection: peak timing, then peak size ──
-   RADIO("Fpeakht","In the six-week outbreak projection for Hackney, at its highest point, about how many people are ill at the same time on the \"most likely\" line?",
+   RADIO("Fpeakht","In the six-week outbreak projection for Hackney, at its highest point, about how many confirmed cases are active at the same time on the \"most likely\" line?",
      ["About 4","About 150","About 16,000","About 270,000","Not sure"],1),
-   RADIO("Fpeaktime","By the end of the six-week projection for Hackney, which best describes the number of people ill?",
+   RADIO("Fpeaktime","By the end of the six-week projection for Hackney, which best describes the number of active cases?",
      ["Still rising","Leveling off near a peak","Already past its peak and falling","Not sure"],0),
    // ── Hardest: link coverage to how an outbreak would unfold across the two areas ──
    RADIO("XD","If Solvik started spreading in both areas, in which one would it spread faster and affect more people?",
@@ -437,7 +437,7 @@ $("block-btn").addEventListener("click",()=>{
      body:"Use the highlighted tool below. Type the location from the instructions (a postcode or a place name) into the search box, then press Enter.",
      before(w){ try{ w.goStep(1); }catch(e){} }},
     {host:"tool", title:"Step 3 of 4 · Explore the map",
-     body:"This is the map. Hover over or tap any area to see its vaccination coverage and how many people are ill there right now — the panel on the top-left shows the details.",
+     body:"This is the map. Hover over or tap any area to see its vaccination coverage and how many confirmed cases are active there today — the panel on the top-left shows the details.",
      before(w){ try{ w.goStep(2); }catch(e){} }},
     {host:"tool", title:"Step 4 of 4 · Risk & outbreak",
      body:"Once you choose an area you reach this page. It shows the area's community risk level and a modelled outbreak curve. When you have looked, answer the questions shown below the tool.",

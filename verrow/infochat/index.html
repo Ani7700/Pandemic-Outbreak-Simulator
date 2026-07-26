@@ -162,9 +162,9 @@ html.skin-brutal #case-panel .cp-num{font-weight:900;}
 
     <p>Verrow fever is a highly contagious childhood disease that a two-dose vaccine can prevent. The fewer children an area has vaccinated, the more freely it spreads. There is a tipping point called herd immunity, the level at which the disease can no longer sustain itself, and for Verrow fever that takes roughly 93% of children having had both doses.</p>
 
-    <p>Cambridgeshire presents a mixed picture. Ninety-one per cent of its children have had the second dose and ninety-six per cent the first, which leaves it sitting just short of that 93% mark. About twenty-four people there are ill with Verrow fever right now, among the higher numbers anywhere. Even so, because coverage is close to the threshold those cases spread only very slowly, and its community risk over the next six weeks is rated low.</p>
+    <p>Cambridgeshire presents a mixed picture. Ninety-one per cent of its children have had the second dose and ninety-six per cent the first, which leaves it sitting just short of that 93% mark. Twenty-four confirmed Verrow fever cases are active there today, among the higher numbers anywhere. Even so, because coverage is close to the threshold those cases spread only very slowly, and its community risk over the next six weeks is rated low.</p>
 
-    <p>Hackney reads very differently. Barely more than half of its children, fifty-six per cent, have completed the second dose, and sixty-four per cent the first, which leaves the borough far beneath the herd-immunity threshold. The number ill right now, about thirteen, is somewhat above the middle of the range — fewer than Cambridgeshire's — but with coverage this low each case passes the disease on to nearly three others, and its community risk over the next six weeks is rated very high. Of the two places, then, Cambridgeshire is the better vaccinated and has more people ill right now, while Hackney carries by far the greater chance, for an unvaccinated child, of catching Verrow fever.</p>
+    <p>Hackney reads very differently. Barely more than half of its children, fifty-six per cent, have completed the second dose, and sixty-four per cent the first, which leaves the borough far beneath the herd-immunity threshold. The number active today, about thirteen, is somewhat above the middle of the range — fewer than Cambridgeshire's — but with coverage this low each case passes the disease on to nearly three others, and its community risk over the next six weeks is rated very high. Of the two places, then, Cambridgeshire is the better vaccinated and has more active cases, while Hackney carries by far the greater chance, for an unvaccinated child, of catching Verrow fever.</p>
 
     <p>Whether an exposed child actually falls ill turns largely on their own doses. A child with none who meets a case has something like a six in ten chance of catching it. A single dose pulls that down to roughly three in ten, and both doses bring it to only about seven in a hundred. The first dose does the heaviest lifting, since the fall from six in ten to three in ten outweighs the further drop to seven in a hundred. Even so, no amount of vaccination erases the danger completely, and after two doses a small chance always lingers. In round numbers, of two hundred unvaccinated children all exposed, roughly a hundred and twenty would be infected, against about seven of every hundred who had had both doses.</p>
 
@@ -196,9 +196,9 @@ html.skin-brutal #case-panel .cp-num{font-weight:900;}
 // so it can't be used as a copy-paste answer key. Refuses survey/meta questions.
 const AREAS = {
   cambridge: { name:"Cambridge / Cambridgeshire", cov2:"91%", cov1:"96%",
-    herd:"just below the ~93% herd-immunity level", cases:"high — about 24 people ill right now, among the higher numbers anywhere", risk:"Low" },
+    herd:"just below the ~93% herd-immunity level", cases:"high — 24 confirmed cases active today, among the higher numbers anywhere", risk:"Low" },
   hackney: { name:"Hackney (London)", cov2:"56%", cov1:"64%",
-    herd:"far below the ~93% herd-immunity level", cases:"about 13 people ill right now — somewhat above the middle of the range, but fewer than Cambridgeshire", risk:"Very high" }
+    herd:"far below the ~93% herd-immunity level", cases:"13 confirmed cases active today — somewhat above the middle of the range, but fewer than Cambridgeshire", risk:"Very high" }
 };
 let area = "cambridge";
 const EXPOSED_UNVACC="about 6 in 10 (≈60%)", EXPOSED_1DOSE="about 3 in 10 (≈27%)", EXPOSED_2DOSE="about 7 in 100 (≈7%)";
@@ -272,7 +272,7 @@ function reply(intent){
     case "covval": return "The exact vaccination coverage figure for this area (second dose, and first dose) is stated in the briefing on the left. Read it off from there.";
     case "herd": return "Herd immunity for Verrow fever takes about 93% of children having had both doses. The briefing gives this area’s coverage; compare that figure with 93% to see whether it is above or below.";
     case "risk": return "An area’s community risk level comes from two things: how far its coverage sits below the 93% mark, and how many cases it has. The briefing gives both for this area; put them together to work out the level.";
-    case "cases": return "The briefing gives the number of people ill in this area right now. To judge whether that is high or low, compare it with the other area and with the worst affected places.";
+    case "cases": return "The briefing gives the number of confirmed cases active in this area today. To judge whether that is high or low, compare it with the other area and with the worst affected places.";
 
     // ── doses / exposure (C1–C5, D1–D2) ──
     case "c1": return "The briefing gives the if-exposed chance of catching Verrow fever for an unvaccinated child. See where that figure sits on a scale out of ten.";

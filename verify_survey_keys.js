@@ -79,7 +79,7 @@ console.log('  all inline <script> blocks parse');
 console.log('\n=== 4. NO STALE NUMBERS left in the briefings ===');
 const STALE=[/sixty-seven thousand/,/67,000/,/about 111/,/about 20 confirmed/,/around 28 in the past/,/about 85 in the past/,/n\/130/,/riskFromCov/,/~91%, medium risk/,
   // the interface is current-illness only now: no cumulative wording may come back
-  /in the past 6 months/,/confirmed cases/i,/measles_cases\.json/];
+  /in the past 6 months/,/cases in the past \\d+ months/i,/people ill right now/i,/measles_cases\.json/];
 for(const arm of ARMS){
   for(const rel of ['index.html','survey.html','infochat/index.html']){
     const s=fs.readFileSync(p.join(ROOT,arm,rel),'utf8');

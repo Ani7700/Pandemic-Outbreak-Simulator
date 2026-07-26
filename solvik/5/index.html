@@ -729,7 +729,7 @@ html.skin-brutal #case-panel .cp-num{font-weight:900;}
           <div class="sim-status" id="sim-status"></div>
           <div class="sim-legend2" id="sim-legend2">
             <span class="lg-item"><i class="lg-sw lg-band"></i>range of outcomes</span>
-            <span class="lg-item"><i class="lg-sw lg-line"></i>most likely number ill</span>
+            <span class="lg-item"><i class="lg-sw lg-line"></i>most likely number of active cases</span>
           </div>
           <svg class="sim-chart" id="sim-chart" viewBox="0 0 620 300" preserveAspectRatio="xMidYMid meet"
                style="width:100%;max-width:760px;height:auto;display:none" xmlns="http://www.w3.org/2000/svg"></svg>
@@ -761,13 +761,13 @@ html.skin-brutal #case-panel .cp-num{font-weight:900;}
       <div id="case-panel">
         <div class="cp-search"><input id="cp-search-input" type="text" placeholder="Type a name/postcode" autocomplete="off"></div>
         <div id="cp-default">
-          <div class="cp-lab">People ill right now, England</div>
+          <div class="cp-lab">Confirmed cases active today, England</div>
           <div class="cp-num" id="cp-nat">0</div>
         </div>
         <div id="cp-area" style="display:none">
           <div class="cp-name" id="cp-name">—</div>
           <span class="cp-deselect" id="cp-deselect">Deselect</span>
-          <div class="cp-lab">People ill right now</div>
+          <div class="cp-lab">Confirmed cases active today</div>
           <div class="cp-num" id="cp-caseval">0</div>
         </div>
       </div>
@@ -1336,7 +1336,7 @@ function renderRiskDisplay(dyn, d){
 
 // ── Community risk band ─────────────────────────────────────────────────
 // The band is read OFF the six-week projection, not off coverage. It is the
-// highest number of people ill at the same time during the next six weeks,
+// highest number of confirmed cases active at the same time during the next six weeks,
 // expressed per 100,000 children under 5 living in the area. The badge and the
 // chart are computed from the same numbers, so they cannot disagree.
 // Cut-points are calibrated for this disease (35th / 68th / 87th percentile of
@@ -1400,7 +1400,7 @@ const $ = id => document.getElementById(id);
 // ════════════════════════════════════════════════
 // Bootstrap
 // ════════════════════════════════════════════════
-// People ill right now, by area name.  Taken from day 0 of the same median projection
+// Confirmed cases active today, by area name.  Taken from day 0 of the same median projection
 // the outbreak chart plots, so the number printed beside the map and the number the
 // curve starts from are one value read twice, not two calculations that can drift.
 // Nothing shown to the participant is a cumulative count any more.
@@ -1631,7 +1631,7 @@ function repaintMap(){
   });
 }
 
-// Dot-density overlay (version 17): a circle on each area with anyone ill now.
+// Dot-density overlay (version 17): a circle on each area with any active cases.
 // DOT_R_K keeps the circles the size they were when this encoded cumulative counts.
 const DOT_R_K = 4.5;
 function addCaseDots(){
@@ -1651,7 +1651,7 @@ function addCaseDots(){
   DOTLAYER.addTo(LMAP);
 }
 
-// ── Case dot-density overlay (coverage map only) — 1 dot = 1 person ill right now ──
+// ── Case dot-density overlay (coverage map only) — 1 dot = 1 active confirmed case ──
 let CASE_CANVAS=null, CASE_CTX=null, caseWired=false, caseReveal=0;
 function sizeCaseCanvas(){
   if(!CASE_CANVAS||!LMAP) return false;
@@ -1694,7 +1694,7 @@ function drawCaseDots(){
   const sz=LMAP.getSize(), W=sz.x, H=sz.y, R=1.7, M=R+1;
   CASE_CTX.fillStyle="#c0271a"; CASE_CTX.globalAlpha=caseReveal;
   // One canvas path for every dot. There are ~55,000 of them now that 1 dot = 1
-  // person ill right now, and this redraws on every "move" frame, so a beginPath/fill
+  // active confirmed case, and this redraws on every "move" frame, so a beginPath/fill
   // per dot is far too slow; caseProjected() caches the projection per zoom for
   // the same reason. Culling is done in pixel space against the canvas rect.
   CASE_CTX.beginPath();
@@ -1721,7 +1721,7 @@ function initCaseDots(){
   [120,400,800,1300].forEach(ms=>setTimeout(drawCaseDots,ms));
 }
 
-// ── Case panel (coverage map): area name + people ill right now ──
+// ── Case panel (coverage map): area name + active confirmed cases ──
 let CP_N2C=null, cpWired=false;
 function cpNatTotal(){ let s=0; if(ILLNOW) for(const n in ILLNOW) s+=ILLNOW[n]; return s; }
 function updateCasePanel(overrideCode){
@@ -1781,8 +1781,8 @@ function buildCaseTable(){
   const box=$("map-table"); if(!box||!ILLNOW) return;
   const name2code={}; Object.entries(UTLA).forEach(([code,d])=>name2code[d.name]=code);
   const rows=Object.entries(ILLNOW).sort((a,b)=>b[1]-a[1]);
-  box.innerHTML='<table class="rank-table"><caption>People ill with Solvik right now, by area</caption>'
-    +'<thead><tr><th>#</th><th>Area</th><th>Region</th><th>Ill now</th></tr></thead><tbody>'
+  box.innerHTML='<table class="rank-table"><caption>Confirmed Solvik cases active today, by area</caption>'
+    +'<thead><tr><th>#</th><th>Area</th><th>Region</th><th>Active</th></tr></thead><tbody>'
     + rows.map(([nm,n],i)=>{const code=name2code[nm], reg=code&&UTLA[code]?UTLA[code].region:"";
         return `<tr data-code="${code||''}"><td>${i+1}</td><td class="rk-name">${nm}</td><td>${reg}</td><td class="rk-n">${n}</td></tr>`;}).join('')
     +'</tbody></table>';
@@ -1808,13 +1808,13 @@ function updateLegend(){
   if(MAP_MODE==="coverage"){
     if(bar) bar.style.display="none";
     spans.forEach(s=>{ s.style.display="none"; });
-    setTick("each red dot = 1 person ill right now");
+    setTick("each red dot = 1 active confirmed case");
     return;
   }
   if(MAP_MODE==="cases"){
     if(bar) bar.style.background="linear-gradient(to right,#f4ead9,#f0b07a,#7a1f12)";
     if(spans[0])spans[0].textContent="few"; if(spans[1])spans[1].textContent="many";
-    setTick("colour = people ill with Solvik right now");
+    setTick("colour = confirmed Solvik cases active today");
   } else if(MAP_MODE==="threshold"){
     if(bar) bar.style.background="linear-gradient(to right,#d4351c 50%,#00703c 50%)";
     if(spans[0])spans[0].textContent="below 89%"; if(spans[1])spans[1].textContent="89%+";
@@ -1825,7 +1825,7 @@ function updateLegend(){
     setTick("red = below the national average coverage · green = above");
   } else if(MAP_MODE==="dots"){
     if(legend) legend.style.display="none";
-    setTick("each dot = an area with people ill with Solvik now (bigger = more)");
+    setTick("each dot = an area with active Solvik cases (bigger = more)");
   }
 }
 
@@ -1838,7 +1838,7 @@ function showTT(e,code,d){
   if(ILLNOW){
     const uc=ILLNOW[d.name];
     const txt = uc!=null ? `${uc.toLocaleString()}` : "no data";
-    casesLine = `<br>Ill with Solvik right now: <span class="num">${txt}</span>`;
+    casesLine = `<br>Active Solvik cases: <span class="num">${txt}</span>`;
   }
   tt.innerHTML=`<b>${d.name}</b><br>${dis.label} coverage: <span class="num">${vs}</span>${approx}${casesLine}`;
   tt.style.opacity=1; moveTT(e);
@@ -1897,11 +1897,11 @@ function placeMapLabel(center, d){
   if(LABEL && LMAP){ LMAP.removeLayer(LABEL); LABEL=null; }
   if(MAP_MODE==="cases" || MAP_MODE==="table" || MAP_MODE==="coverage") return;   // colour/table/panel conveys cases instead
   if(!center || !d || !LMAP) return;
-  let big="—", sub="people ill right now", range="";
+  let big="—", sub="active confirmed cases", range="";
   if(ILLNOW){
     const uc=ILLNOW[d.name];
     if(uc!=null){                       // this area's own current count
-      big=uc.toLocaleString(); sub="ill with Solvik right now";
+      big=uc.toLocaleString(); sub="active Solvik cases here";
     } else {
       big="—"; sub="no data";
     }
@@ -1993,7 +1993,7 @@ function renderRisk(){
       const now = (typeof ILLNOW!=="undefined" && ILLNOW && ILLNOW[d.name]!=null) ? ILLNOW[d.name] : null;
       const bits=[];
       if(covPct!=null) bits.push(`${covPct}% of children here have had both doses`);
-      if(now!=null) bits.push(`about ${now.toLocaleString()} ${now===1?"person is":"people are"} ill right now`);
+      if(now!=null) bits.push(`${now.toLocaleString()} confirmed ${now===1?"case is":"cases are"} active there today`);
       why.textContent = bits.length
         ? bits.join(", and ") + ". The chart below is what the model expects from that over the next six weeks."
         : "";
@@ -2084,7 +2084,7 @@ function drawSimChart(sim){
   // into the output -- dead code, removed.
   // Y-axis title + disclaimer baked in.
   const midY=(padT+(H-padB))/2;
-  const yTitle=`<text x="11" y="${midY}" font-size="10" fill="#999" text-anchor="middle" transform="rotate(-90 11 ${midY})">people ill at the same time</text>`;
+  const yTitle=`<text x="11" y="${midY}" font-size="10" fill="#999" text-anchor="middle" transform="rotate(-90 11 ${midY})">active confirmed cases</text>`;
   // Start marker: dot + number at the local initial case count.
   const _s0v = I.med[0];
   const _sx = x(0), _sy = y(_s0v);

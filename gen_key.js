@@ -59,7 +59,7 @@ computed from the same numbers and cannot disagree. Consequences for this key:
   cannot be misread as the answer.
 - **\`Fpeaktime\` changed in Tarnpox** (Hackney's curve now falls away in the first week instead of rising).
 
-**Second revision (2026-07-26): the interface counts people ill now, not cases since January.** Every number a
+**Second revision (2026-07-26): the interface counts confirmed cases active today, not cases since January.** Every number a
 participant sees is the number of people ill at this moment, taken from day 0 of the same median projection the
 outbreak chart plots. The six-month cumulative count is gone from the interface entirely — map panel, red dots,
 choropleth, rank table, tooltip and briefings all speak one unit, so the figure beside the map and the figure the
@@ -69,7 +69,7 @@ comparative item keeps its answer.
 
 - **\`B_cases\` is now a current-illness read-off.** New prompt and new answer in all three arms. The keyed
   option index moved from 1 to 0 in Verrow and Tarnpox; Solvik was already 0.
-- **\`XC\` wording only** — "more people ill with {disease} right now" rather than "more cases at the moment".
+- **\`XC\` wording only** — "more active {disease} cases today" rather than "more cases at the moment".
   The question always asked about the present; the page now actually answers it. Answer unchanged.
 - **\`A_peakht\` and \`Fpeakht\` keep their answers.** Only distractors moved: the slot holding the area's
   six-month cumulative count held a number that no longer exists anywhere on screen, so it became the England
@@ -100,16 +100,16 @@ md+=`## Underlying numbers (for checking the keys above)
 |---|---|---|---|
 | Herd-immunity threshold | 85% | 93% | 89% |
 | Cambridgeshire 2nd-dose coverage | 72% | 91% | 90% |
-| Cambridgeshire people ill now | 28 | 24 | 32 |
+| Cambridgeshire cases active today | 28 | 24 | 32 |
 | Cambridgeshire six-week peak | 162, still rising | 36, creeping up | 32, easing to 24 |
 | Cambridgeshire band | VERY HIGH | LOW | LOW |
 | Hackney 2nd-dose coverage | 96% | 56% | 71% |
-| Hackney people ill now | 6 | 13 | 4 |
+| Hackney cases active today | 6 | 13 | 4 |
 | Hackney six-week peak | 6, gone within a week | 2,267 at week 5, falling to 1,448 | 150, still rising |
 | Hackney band | LOW | VERY HIGH | MEDIUM |
 | Cambridgeshire under-5 population | 35,406 | 35,406 | 35,406 |
 | Hackney under-5 population | 16,303 | 16,303 | 16,303 |
-| England total people ill now | 2,177 | 2,389 | 2,944 |
+| England total cases active today | 2,177 | 2,389 | 2,944 |
 
 Peaks are the highest point of the median ("most likely") line over days 0-42, and are the number of children
 under 5 ill at the same time. The susceptible pool is the under-5 cohort only, so a projection can never exceed

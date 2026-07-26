@@ -162,9 +162,9 @@ html.skin-brutal #case-panel .cp-num{font-weight:900;}
 
     <p>Solvik is a contagious childhood disease that a two-dose vaccine can prevent. The fewer children an area has vaccinated, the more freely it spreads. There is a tipping point called herd immunity, the level at which the disease can no longer sustain itself, and for Solvik that takes roughly 89% of children having had both doses.</p>
 
-    <p>Cambridgeshire is in a fairly comfortable position. Ninety per cent of its children have had the second dose and ninety-three per cent the first, which puts it just above that 89% mark. About thirty-two people there are ill with Solvik right now, among the higher numbers anywhere, but because coverage has crossed the threshold those cases are already fading rather than building, and its community risk over the next six weeks is judged low.</p>
+    <p>Cambridgeshire is in a fairly comfortable position. Ninety per cent of its children have had the second dose and ninety-three per cent the first, which puts it just above that 89% mark. Thirty-two confirmed Solvik cases are active there today, among the higher numbers anywhere, but because coverage has crossed the threshold those cases are already fading rather than building, and its community risk over the next six weeks is judged low.</p>
 
-    <p>Hackney reads differently. Only seventy-one per cent of its children have completed the second dose, and eighty per cent the first, which leaves the borough well below the herd-immunity threshold. The number ill right now is small — about four, near the lower end of the range for English areas — but with coverage this far below the threshold each case passes the disease on to nearly two others, so those few cases are expected to grow: its community risk over the next six weeks is rated medium. Of the two places, then, Cambridgeshire is the better vaccinated and has many more people ill right now, while Hackney carries the greater chance, for an unvaccinated child, of catching Solvik.</p>
+    <p>Hackney reads differently. Only seventy-one per cent of its children have completed the second dose, and eighty per cent the first, which leaves the borough well below the herd-immunity threshold. The number active today is small — about four, near the lower end of the range for English areas — but with coverage this far below the threshold each case passes the disease on to nearly two others, so those few cases are expected to grow: its community risk over the next six weeks is rated medium. Of the two places, then, Cambridgeshire is the better vaccinated and has many more active cases, while Hackney carries the greater chance, for an unvaccinated child, of catching Solvik.</p>
 
     <p>Whether an exposed child actually falls ill turns largely on their own doses. A child with none who meets a case has something like a five in ten chance of catching it. A single dose pulls that down to about two in ten, and both doses bring it to only around five in a hundred. The first dose does the heaviest lifting, since the fall from five in ten to two in ten outweighs the further drop to five in a hundred. Even so, no amount of vaccination erases the danger completely, and after two doses a small chance always lingers. In round numbers, of two hundred unvaccinated children all exposed, roughly one hundred would be infected, against about five of every hundred who had had both doses.</p>
 
@@ -196,9 +196,9 @@ html.skin-brutal #case-panel .cp-num{font-weight:900;}
 // so it can't be used as a copy-paste answer key. Refuses survey/meta questions.
 const AREAS = {
   cambridge: { name:"Cambridge / Cambridgeshire", cov2:"90%", cov1:"93%",
-    herd:"just above the ~89% herd-immunity level", cases:"high — about 32 people ill right now, among the higher numbers anywhere", risk:"Low" },
+    herd:"just above the ~89% herd-immunity level", cases:"high — 32 confirmed cases active today, among the higher numbers anywhere", risk:"Low" },
   hackney: { name:"Hackney (London)", cov2:"71%", cov1:"80%",
-    herd:"below the ~89% herd-immunity level", cases:"low — about 4 people ill right now, near the lower end of the range", risk:"Medium" }
+    herd:"below the ~89% herd-immunity level", cases:"low — 4 confirmed cases active today, near the lower end of the range", risk:"Medium" }
 };
 let area = "cambridge";
 const EXPOSED_UNVACC="about 5 in 10 (≈50%)", EXPOSED_1DOSE="about 2 in 10 (≈20%)", EXPOSED_2DOSE="about 5 in 100 (≈5%)";
@@ -272,7 +272,7 @@ function reply(intent){
     case "covval": return "The exact vaccination coverage figure for this area (second dose, and first dose) is stated in the briefing on the left. Read it off from there.";
     case "herd": return "Herd immunity for Solvik takes about 89% of children having had both doses. The briefing gives this area’s coverage; compare that figure with 89% to see whether it is above or below.";
     case "risk": return "An area’s community risk level comes from two things: how far its coverage sits below the 89% mark, and how many cases it has. The briefing gives both for this area; put them together to work out the level.";
-    case "cases": return "The briefing gives the number of people ill in this area right now. To judge whether that is high or low, compare it with the other area and with the worst affected places.";
+    case "cases": return "The briefing gives the number of confirmed cases active in this area today. To judge whether that is high or low, compare it with the other area and with the worst affected places.";
 
     // ── doses / exposure (C1–C5, D1–D2) ──
     case "c1": return "The briefing gives the if-exposed chance of catching Solvik for an unvaccinated child. See where that figure sits on a scale out of ten.";
