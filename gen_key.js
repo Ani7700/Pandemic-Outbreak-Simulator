@@ -1,6 +1,7 @@
 const fs=require('fs'),p=require('path');
-const ROOT='/sessions/rcw-01pkc2mww83bfqwm5a8gy588/mnt/dissertation/offline_morl-main/frontend';
-const OUT='/sessions/rcw-01pkc2mww83bfqwm5a8gy588/mnt/dissertation/ANSWER_KEY.md';
+// default to this script's own directory, so the generator runs wherever the repo sits
+const ROOT=process.env.FRONTEND_ROOT || __dirname;
+const OUT=process.env.ANSWER_KEY || p.join(ROOT,'..','..','ANSWER_KEY.md');
 const ARMS=[['verrow','Verrow fever  (measles)'],['solvik','Solvik  (rubella)'],['tarnpox','Tarnpox  (mumps)']];
 const ORDER=['A_cov_val','A_level','C1','C_dose2','C_ratio','C5','A_peakht',
              'B_cov_val','B_cases','XB','XC','Fpeakht','Fpeaktime','XD'];
@@ -53,10 +54,31 @@ computed from the same numbers and cannot disagree. Consequences for this key:
   where an area sits in the national distribution, so "compared with other areas" was no longer answerable.
   The comparative construct survives in XB, XC and XD.
 - **\`A_peakht\` / \`Fpeakht\` options were rebuilt** so that every distractor is a number printed on the same
-  screen — the other area's peak, the area's case count, its under-5 population, its total population, or the
-  England-wide case total. Both prompts now say "on the 'most likely' line" so the shaded range of outcomes
+  screen — the other area's peak, the area's own current count, its under-5 population, its total population,
+  or the England-wide total. Both prompts now say "on the 'most likely' line" so the shaded range of outcomes
   cannot be misread as the answer.
 - **\`Fpeaktime\` changed in Tarnpox** (Hackney's curve now falls away in the first week instead of rising).
+
+**Second revision (2026-07-26): the interface counts people ill now, not cases since January.** Every number a
+participant sees is the number of people ill at this moment, taken from day 0 of the same median projection the
+outbreak chart plots. The six-month cumulative count is gone from the interface entirely — map panel, red dots,
+choropleth, rank table, tooltip and briefings all speak one unit, so the figure beside the map and the figure the
+curve starts from can no longer look like a contradiction. Current illness is the cumulative count times the
+infectious period over 180 days, a constant within each arm, so the ranking of areas is unchanged and every
+comparative item keeps its answer.
+
+- **\`B_cases\` is now a current-illness read-off.** New prompt and new answer in all three arms. The keyed
+  option index moved from 1 to 0 in Verrow and Tarnpox; Solvik was already 0.
+- **\`XC\` wording only** — "more people ill with {disease} right now" rather than "more cases at the moment".
+  The question always asked about the present; the page now actually answers it. Answer unchanged.
+- **\`A_peakht\` and \`Fpeakht\` keep their answers.** Only distractors moved: the slot holding the area's
+  six-month cumulative count held a number that no longer exists anywhere on screen, so it became the England
+  current total or the area's own current count.
+- **Nothing else moved** — \`A_level\`, \`A_cov_val\`, \`B_cov_val\`, \`XB\`, \`Fpeaktime\`, \`XD\` and the four
+  scored items C1, C_dose2, C_ratio and C5 are untouched.
+- **Watch Tarnpox Q9 against Q12.** Hackney's Tarnpox curve is flat, so its current count and its six-week peak
+  are both 6 — the two questions share a numeric answer, and a participant who reads only the map panel gets
+  Q12 right without reading the chart. Consider a different Part 2 area for that arm.
 
 `;
 
@@ -78,16 +100,16 @@ md+=`## Underlying numbers (for checking the keys above)
 |---|---|---|---|
 | Herd-immunity threshold | 85% | 93% | 89% |
 | Cambridgeshire 2nd-dose coverage | 72% | 91% | 90% |
-| Cambridgeshire cases (6 months) | 715 | 539 | 648 |
+| Cambridgeshire people ill now | 28 | 24 | 32 |
 | Cambridgeshire six-week peak | 162, still rising | 36, creeping up | 32, easing to 24 |
 | Cambridgeshire band | VERY HIGH | LOW | LOW |
 | Hackney 2nd-dose coverage | 96% | 56% | 71% |
-| Hackney cases (6 months) | 145 | 289 | 77 |
+| Hackney people ill now | 6 | 13 | 4 |
 | Hackney six-week peak | 6, gone within a week | 2,267 at week 5, falling to 1,448 | 150, still rising |
 | Hackney band | LOW | VERY HIGH | MEDIUM |
 | Cambridgeshire under-5 population | 35,406 | 35,406 | 35,406 |
 | Hackney under-5 population | 16,303 | 16,303 | 16,303 |
-| England total cases (6 months) | 55,839 | 53,701 | 58,749 |
+| England total people ill now | 2,177 | 2,389 | 2,944 |
 
 Peaks are the highest point of the median ("most likely") line over days 0-42, and are the number of children
 under 5 ill at the same time. The susceptible pool is the under-5 cohort only, so a projection can never exceed

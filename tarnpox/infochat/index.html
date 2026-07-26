@@ -162,9 +162,9 @@ html.skin-brutal #case-panel .cp-num{font-weight:900;}
 
     <p>Tarnpox is a contagious childhood disease that a two-dose vaccine can prevent. The fewer children an area has vaccinated, the more freely it spreads. There is a tipping point called herd immunity, the level at which the disease can no longer sustain itself, and for Tarnpox that takes roughly 85% of children having had both doses.</p>
 
-    <p>Cambridgeshire gives real cause for concern. About seventy-two per cent of its children have had the second dose and seventy-nine per cent the first, which leaves it a long way below that 85% mark. It has also recorded just over seven hundred Tarnpox cases in the past 6 months, among the highest counts anywhere, and its community risk over the next six weeks is rated very high.</p>
+    <p>Cambridgeshire gives real cause for concern. About seventy-two per cent of its children have had the second dose and seventy-nine per cent the first, which leaves it a long way below that 85% mark. About twenty-eight people there are ill with Tarnpox right now, among the highest numbers anywhere, and its community risk over the next six weeks is rated very high.</p>
 
-    <p>Hackney is in a much stronger position. Ninety-six per cent of its children have completed the second dose, and ninety-eight per cent the first, comfortably above the herd-immunity threshold. Its case count, about a hundred and forty-five in the past 6 months, is close to the middle of the range for English areas, and because coverage sits so far above the threshold those cases are not expected to build into anything larger: its community risk over the next six weeks is judged low. Of the two places, then, Hackney is the better vaccinated, and Cambridgeshire carries both the greater case load and, for an unvaccinated child, the greater chance of catching Tarnpox.</p>
+    <p>Hackney is in a much stronger position. Ninety-six per cent of its children have completed the second dose, and ninety-eight per cent the first, comfortably above the herd-immunity threshold. The number ill right now, about six, is close to the middle of the range for English areas, and because coverage sits so far above the threshold those cases are not expected to build into anything larger: its community risk over the next six weeks is judged low. Of the two places, then, Hackney is the better vaccinated, and Cambridgeshire carries both the greater number of people ill now and, for an unvaccinated child, the greater chance of catching Tarnpox.</p>
 
     <p>Whether an exposed child actually falls ill turns largely on their own doses. A child with none who meets a case has something like a four in ten chance of catching it. A single dose pulls that down to about two in ten, and both doses bring it to only around eight in a hundred. The first dose does the heaviest lifting, since the fall from four in ten to two in ten outweighs the further drop to eight in a hundred. Even so, no amount of vaccination erases the danger completely, and after two doses a small chance always lingers. In round numbers, of two hundred unvaccinated children all exposed, roughly eighty would be infected, against about eight of every hundred who had had both doses.</p>
 
@@ -196,9 +196,9 @@ html.skin-brutal #case-panel .cp-num{font-weight:900;}
 // so it can't be used as a copy-paste answer key. Refuses survey/meta questions.
 const AREAS = {
   cambridge: { name:"Cambridge / Cambridgeshire", cov2:"72%", cov1:"79%",
-    herd:"well below the ~85% herd-immunity level", cases:"high — just over 700 confirmed cases in the past 6 months, among the higher counts anywhere", risk:"Very high" },
+    herd:"well below the ~85% herd-immunity level", cases:"high — about 28 people ill right now, among the higher numbers anywhere", risk:"Very high" },
   hackney: { name:"Hackney (London)", cov2:"96%", cov1:"98%",
-    herd:"comfortably above the ~85% herd-immunity level", cases:"about 145 confirmed cases in the past 6 months, close to the middle of the range for English areas", risk:"Low" }
+    herd:"comfortably above the ~85% herd-immunity level", cases:"about 6 people ill right now, close to the middle of the range for English areas", risk:"Low" }
 };
 let area = "cambridge";
 const EXPOSED_UNVACC="about 4 in 10 (≈40%)", EXPOSED_1DOSE="about 2 in 10 (≈20%)", EXPOSED_2DOSE="about 8 in 100 (≈8%)";
@@ -272,7 +272,7 @@ function reply(intent){
     case "covval": return "The exact vaccination coverage figure for this area (second dose, and first dose) is stated in the briefing on the left. Read it off from there.";
     case "herd": return "Herd immunity for Tarnpox takes about 85% of children having had both doses. The briefing gives this area’s coverage; compare that figure with 85% to see whether it is above or below.";
     case "risk": return "An area’s community risk level comes from two things: how far its coverage sits below the 85% mark, and how many cases it has. The briefing gives both for this area; put them together to work out the level.";
-    case "cases": return "The briefing gives this area’s recent case count. To judge whether that is high or low, compare it with the other area and with the worst affected places.";
+    case "cases": return "The briefing gives the number of people ill in this area right now. To judge whether that is high or low, compare it with the other area and with the worst affected places.";
 
     // ── doses / exposure (C1–C5, D1–D2) ──
     case "c1": return "The briefing gives the if-exposed chance of catching Tarnpox for an unvaccinated child. See where that figure sits on a scale out of ten.";

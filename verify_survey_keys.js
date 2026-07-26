@@ -1,5 +1,5 @@
 const fs=require('fs'),p=require('path'),cp=require('child_process');
-const ROOT='/sessions/rcw-01pkc2mww83bfqwm5a8gy588/mnt/dissertation/offline_morl-main/frontend';
+const ROOT=process.env.FRONTEND_ROOT || __dirname;
 const ARMS=['tarnpox','verrow','solvik'];
 const MEAS={tarnpox:{R0:3.1,ve2:0.80},verrow:{R0:5.5,ve2:0.88},solvik:{R0:5.0,ve2:0.90}};
 const CUTS={tarnpox:{m:117,h:221,v:367},verrow:{m:1038,h:7332,v:11112},solvik:{m:238,h:1282,v:2772}};
@@ -24,19 +24,20 @@ function nearest(opts,t){let bi=-1,bd=Infinity;
 console.log('=== 1. SURVEY ANSWER KEYS re-derived from the data files ===');
 for(const arm of ARMS){
   const P=loadProj(arm),U=JSON.parse(fs.readFileSync(p.join(ROOT,arm,'utla_data.json'),'utf8'));
-  const C=JSON.parse(fs.readFileSync(p.join(ROOT,arm,'measles_cases.json'),'utf8')).byUTLA;
+  // people ill right now = day 0 of the median curve, which is what the page now shows
+  const C={}; for(const code in U){const q=P[code]; if(q&&q.med&&q.med.length) C[U[code].name]=q.med[0];}
   const s=fs.readFileSync(p.join(ROOT,arm,'survey.html'),'utf8');
   const bc=band(arm,CAM,P,U), bh=band(arm,HAC,P,U);
   const camCov=U[CAM].mmr2*100, hacCov=U[HAC].mmr2*100;
   const camN=C['Cambridgeshire'], hacN=C['Hackney'];
-  console.log(`-- ${arm}: Cambs cov ${camCov}% cases ${camN} band ${bc.k} peak ${bc.pk} | Hackney cov ${hacCov}% cases ${hacN} band ${bh.k} peak ${bh.pk}`);
+  console.log(`-- ${arm}: Cambs cov ${camCov}% ill-now ${camN} band ${bc.k} peak ${bc.pk} | Hackney cov ${hacCov}% ill-now ${hacN} band ${bh.k} peak ${bh.pk}`);
   const chk=(id,want,note)=>{const r=radio(s,id);if(!r)return bad(id+' missing');
     if(r.key!==want) bad(`${arm} ${id}: key=${r.key} but data says ${want} (${note})`);};
   chk('A_cov_val',nearest(radio(s,'A_cov_val').opts,camCov),'Cambs coverage '+camCov+'%');
   chk('A_level',bc.k,'Cambs band');
   chk('A_peakht',nearest(radio(s,'A_peakht').opts,bc.pk),'Cambs peak '+bc.pk);
   chk('B_cov_val',nearest(radio(s,'B_cov_val').opts,hacCov),'Hackney coverage '+hacCov+'%');
-  chk('B_cases',nearest(radio(s,'B_cases').opts,hacN),'Hackney cases '+hacN);
+  chk('B_cases',nearest(radio(s,'B_cases').opts,hacN),'Hackney ill now '+hacN);
   chk('XB',camCov>hacCov?0:1,`${camCov} vs ${hacCov}`);
   chk('XC',camN>hacN?0:1,`${camN} vs ${hacN}`);
   chk('Fpeakht',nearest(radio(s,'Fpeakht').opts,bh.pk),'Hackney peak '+bh.pk);
@@ -76,7 +77,9 @@ for(const arm of ARMS){
 console.log('  all inline <script> blocks parse');
 
 console.log('\n=== 4. NO STALE NUMBERS left in the briefings ===');
-const STALE=[/sixty-seven thousand/,/67,000/,/about 111/,/about 20 confirmed/,/around 28 in the past/,/about 85 in the past/,/n\/130/,/riskFromCov/,/~91%, medium risk/];
+const STALE=[/sixty-seven thousand/,/67,000/,/about 111/,/about 20 confirmed/,/around 28 in the past/,/about 85 in the past/,/n\/130/,/riskFromCov/,/~91%, medium risk/,
+  // the interface is current-illness only now: no cumulative wording may come back
+  /in the past 6 months/,/confirmed cases/i,/measles_cases\.json/];
 for(const arm of ARMS){
   for(const rel of ['index.html','survey.html','infochat/index.html']){
     const s=fs.readFileSync(p.join(ROOT,arm,rel),'utf8');

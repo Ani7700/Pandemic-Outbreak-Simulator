@@ -1,4 +1,4 @@
-// Regenerate {arm}/case_dots.js so that 1 red dot = 1 confirmed case.
+// Regenerate {arm}/case_dots.js so that 1 red dot = 1 person ill right now.
 //
 // The previous case_dots.js was an unvaccinated-children / herd-immunity-shortfall
 // layer (metadata herdPct:85, VE:0.8) that was later relabelled "1 confirmed case"
@@ -18,8 +18,25 @@ if (!arm) { console.error("usage: node gen_case_dots.js <arm>"); process.exit(1)
 const rd = f => JSON.parse(fs.readFileSync(path.join(BASE, arm, f), "utf8"));
 const geo   = rd("utla.geojson");
 const meta  = rd("utla_data.json");
-const cases = rd("measles_cases.json");
-const byUTLA = cases.byUTLA || {};
+
+// ---- how many people are ill right now, by area ----
+// Day 0 of the median projection -- the same array the outbreak chart plots -- so the
+// dots, the number in the map panel and the curve's starting point are one figure.
+function loadProj(){
+  const src = fs.readFileSync(path.join(BASE, arm, "sim_projections.js"), "utf8");
+  const sb = { window: {} };
+  new Function("window", "globalThis", src).call(sb, sb.window, sb);
+  return sb.window.__SIMPROJ__;
+}
+function illNowByName(meta){
+  const proj = loadProj(), out = {};
+  for (const code in meta){
+    const p = proj[code];
+    if (p && p.med && p.med.length) out[meta[code].name] = p.med[0];
+  }
+  return out;
+}
+const byUTLA = illNowByName(meta);
 
 // ---- deterministic PRNG so re-running the script reproduces the same map ----
 function mulberry32(a){
@@ -123,7 +140,7 @@ for (const f of geo.features){
 
 const payload = {
   dotValue: 1,
-  basis: "confirmed cases (measles_cases.json byUTLA)",
+  basis: "people ill right now (sim_projections.js med[0])",
   totNow: totCases,
   totTgt: totCases,
   areas: areas
@@ -134,7 +151,7 @@ const out = "window.__CASEDOTS__=" + JSON.stringify(payload) + ";\n";
 const dest = path.join(BASE, arm, "case_dots.js");
 fs.writeFileSync(dest, out);
 
-console.log(arm + ": " + geo.features.length + " areas, " + totCases + " cases -> " + totDots +
+console.log(arm + ": " + geo.features.length + " areas, " + totCases + " ill now -> " + totDots +
             " dots, " + (out.length/1048576).toFixed(2) + " MB");
 if (missing.length) console.log("  no case count for: " + missing.slice(0,10).join(", ") + (missing.length>10 ? " (+"+(missing.length-10)+")" : ""));
 if (short.length)   console.log("  UNDER-SAMPLED: " + short.join(", "));
