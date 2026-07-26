@@ -59,102 +59,94 @@
 #tour-root .tour-progress{font-size:12px;color:#a1a1a6;margin-top:10px;}
 </style>
 <script>if(new URLSearchParams(location.search).get("skin")==="brutal")document.documentElement.className+=" skin-brutal";</script>
-<style id="brutal-skin-tool">
-/* ===== Neo-Brutalist skin for the risk tool — opt-in via ?skin=brutal =====
-   Re-skins ALL chrome + card/table/badge containers to match the survey.
-   Data-encoding colours (risk tiers, vacc-status dots/bars, coverage fill,
-   projection marks) are deliberately preserved — they carry the risk
-   information itself, not decoration. ===== */
-html.skin-brutal body{background:#ffd84d;font-family:Arial,Helvetica,"Helvetica Neue",sans-serif;}
+<style id="brutal-skin">
+/* ===== Neo-Brutalist skin — active only when the shell adds ?skin=brutal ===== */
+html.skin-brutal, html.skin-brutal body{background:#ffd84d!important;color:#111!important;
+  font-family:Arial,Helvetica,"Helvetica Neue",sans-serif!important;}
+html.skin-brutal .wrap{max-width:880px;}
+html.skin-brutal h1{font-weight:900;letter-spacing:-.02em;}
+html.skin-brutal h2{font-weight:900;letter-spacing:-.01em;}
+html.skin-brutal .muted{color:#4a4f5a;}
+html.skin-brutal a{color:#0b57ff;font-weight:700;}
 
-/* topbar */
-html.skin-brutal .topbar{background:#fff;border-bottom:4px solid #111;}
-html.skin-brutal .brand{color:#111;font-weight:900;letter-spacing:-.01em;}
-html.skin-brutal .brand span{color:#4a4f5a;font-weight:700;}
-html.skin-brutal .topbar-note{color:#4a4f5a;font-weight:700;}
+/* cards / boxes */
+html.skin-brutal .card{background:#fff;border:3px solid #111;border-radius:0;
+  box-shadow:6px 6px 0 #111;}
 
-/* panels */
-html.skin-brutal .panel{background:#fff;border-right:4px solid #111;}
-html.skin-brutal .panel-title{font-weight:900;color:#111;letter-spacing:-.02em;}
-html.skin-brutal .panel-sub{color:#4a4f5a;}
+/* progress label */
+html.skin-brutal .progress{display:inline-block;background:#0b57ff;color:#fff;
+  border:3px solid #111;border-radius:0;padding:6px 12px;font-weight:900;font-size:12px;
+  letter-spacing:.06em;text-transform:uppercase;margin-bottom:12px;box-shadow:4px 4px 0 #111;}
 
-/* stepper */
-html.skin-brutal .stepper{background:#fff;border-bottom:4px solid #111;gap:14px;}
-html.skin-brutal .step-chip{font-weight:800;color:#111;text-transform:uppercase;letter-spacing:.02em;}
-html.skin-brutal .step-chip .num{border-radius:0;border:3px solid #111;background:#fff;color:#111;font-weight:900;box-shadow:3px 3px 0 #111;}
-html.skin-brutal .step-chip.active{color:#0b57ff;}
-html.skin-brutal .step-chip.active .num{background:#0b57ff;color:#fff;}
-html.skin-brutal .step-chip.done .num{background:#12b866;color:#fff;}
+/* instruction banner */
+html.skin-brutal .instr{background:#0b57ff;color:#fff;border:3px solid #111;border-radius:0;
+  box-shadow:6px 6px 0 #111;font-weight:700;font-size:15px;}
+html.skin-brutal .instr b,html.skin-brutal .instr strong{font-weight:900;}
 
-/* generic search / postcode inputs + buttons */
-html.skin-brutal .search-wrap input,
-html.skin-brutal .pc-row input{border:3px solid #111;border-radius:0;background:#f3f6ff;font-weight:700;}
-html.skin-brutal .pc-row input{border-right:none;}
-html.skin-brutal #pc-btn,
-html.skin-brutal .pc-row button,
-html.skin-brutal .wiz-btn.primary{background:#ff5a3c;color:#fff;border:3px solid #111;border-radius:0;
-  font-weight:900;text-transform:uppercase;letter-spacing:.02em;box-shadow:4px 4px 0 #111;}
-html.skin-brutal .wiz-btn.primary:hover,
-html.skin-brutal .pc-row button:hover{background:#ff6f55;}
-html.skin-brutal .wiz-btn{border:3px solid #111;border-radius:0;background:#fff;color:#111;font-weight:800;
-  text-transform:uppercase;letter-spacing:.02em;box-shadow:3px 3px 0 #111;}
-html.skin-brutal .wiz-btn:disabled{opacity:.5;box-shadow:3px 3px 0 #111;}
-html.skin-brutal .disease-tag{border:3px solid #111;border-radius:0;font-weight:800;box-shadow:3px 3px 0 #111;}
-html.skin-brutal .disease-btn{border:3px solid #111 !important;border-radius:0 !important;font-weight:700;}
-html.skin-brutal .ac-drop{border:3px solid #111;}
+/* the risk tool frame (only the frame around it — never its contents) */
+html.skin-brutal #tool iframe,html.skin-brutal iframe{border:3px solid #111;border-radius:0;
+  box-shadow:6px 6px 0 #111;background:#fff;}
 
-/* ── landing (step 1) — beat the .layout[data-step="1"] specific rules ── */
-html.skin-brutal .layout[data-step="1"] .pc-row{border:3px solid #111 !important;border-radius:0 !important;box-shadow:5px 5px 0 #111 !important;background:#fff !important;}
-html.skin-brutal .layout[data-step="1"] #search-btn{background:#ff5a3c !important;border-radius:0 !important;color:#fff !important;font-weight:900 !important;text-transform:uppercase;}
-html.skin-brutal .layout[data-step="1"] #search-btn:hover{background:#ff6f55 !important;}
-html.skin-brutal .layout[data-step="1"] .ac-drop{border-radius:0 !important;box-shadow:6px 6px 0 #111 !important;}
-html.skin-brutal .layout[data-step="1"] .panel-title{font-weight:900 !important;letter-spacing:-.03em !important;}
+/* each question becomes its own hard-edged box */
+html.skin-brutal .q{border:3px solid #111;border-radius:0;box-shadow:4px 4px 0 #111;
+  background:#fff;padding:16px;margin-bottom:14px;}
+html.skin-brutal .q:last-child{border-bottom:3px solid #111;}
+html.skin-brutal .prompt{font-weight:800;font-size:15.5px;}
+html.skin-brutal .qnum{display:inline-block;background:#0b57ff;color:#fff;border:2px solid #111;
+  padding:2px 8px;font-weight:900;margin-right:7px;}
 
-/* area header */
-html.skin-brutal .area-hdr{border-left:6px solid #0b57ff;}
-html.skin-brutal .area-hdr h2{font-weight:900;letter-spacing:-.01em;}
+/* radio option rows */
+html.skin-brutal .opts label{display:block;border:3px solid #111;border-radius:0;
+  box-shadow:4px 4px 0 #111;background:#fff;font-weight:700;font-size:15px;padding:11px 13px;
+  margin-bottom:10px;transition:transform .08s,box-shadow .08s,background .08s;}
+html.skin-brutal .opts label:hover{background:#c8f04d;}
+html.skin-brutal .opts label:active{transform:translate(4px,4px);box-shadow:0 0 0 #111;}
+html.skin-brutal .opts label:has(input:checked){background:#c8f04d;}
+html.skin-brutal .opts input{accent-color:#ff5a3c;width:16px;height:16px;}
 
-/* risk badge — box it; KEEP risk-dot / risk-level semantic colours */
-html.skin-brutal .risk-badge{border:3px solid #111;border-radius:0;background:#fff;box-shadow:4px 4px 0 #111;padding:10px 12px;}
-html.skin-brutal .layout[data-step="3"] .risk-badge{padding:10px 12px !important;}
-html.skin-brutal .risk-level{font-weight:900;}
+/* select dropdown */
+html.skin-brutal select{border:3px solid #111;border-radius:0;font-weight:700;
+  background:#f3f6ff;box-shadow:4px 4px 0 #111;padding:11px 12px;}
 
-/* coverage bar — box the track; KEEP the fill colour */
-html.skin-brutal .cov-track{border:3px solid #111;border-radius:0;background:#fff;height:16px;}
-html.skin-brutal .cov-marker{background:#111;width:3px;}
+/* likert -> row of hard-edged square buttons */
+html.skin-brutal .likert{gap:8px;align-items:center;}
+html.skin-brutal .likert label{position:relative;width:46px;height:46px;border:3px solid #111;
+  border-radius:0;box-shadow:4px 4px 0 #111;background:#fff;font-weight:900;font-size:15px;
+  color:#111;justify-content:center;transition:transform .08s,box-shadow .08s,background .08s;}
+html.skin-brutal .likert label:hover{background:#c8f04d;}
+html.skin-brutal .likert label:has(input:checked){background:#ff5a3c;color:#fff;}
+html.skin-brutal .likert label input{position:absolute;opacity:0;width:1px;height:1px;margin:0;}
+html.skin-brutal .likert .end{font-weight:800;font-size:12px;color:#3a3f48;text-transform:uppercase;}
 
-/* comparison / cases / result cards */
-html.skin-brutal .comp-card{border:3px solid #111;border-radius:0;box-shadow:4px 4px 0 #111;}
-html.skin-brutal .layout[data-step="3"] .comp-card{border-radius:0 !important;border:3px solid #111 !important;box-shadow:4px 4px 0 #111 !important;}
-html.skin-brutal .comp-big{font-weight:900;}
-html.skin-brutal .cases-block{border:3px solid #111;border-radius:0;background:#fff;box-shadow:4px 4px 0 #111;}
-html.skin-brutal .cases-stat b{font-weight:900;}
-html.skin-brutal .comparison-label,html.skin-brutal .cases-title{font-weight:900;text-transform:uppercase;letter-spacing:.03em;}
-html.skin-brutal .layout[data-step="3"] .comparison-label{font-weight:900 !important;text-transform:uppercase;letter-spacing:.02em;}
-html.skin-brutal .unprotected-row{border-radius:0 !important;border:3px solid #111 !important;}
+/* buttons */
+html.skin-brutal button{font-family:"Arial Black",Arial,sans-serif;font-weight:900;
+  text-transform:uppercase;letter-spacing:.02em;border:3px solid #111;border-radius:0;
+  background:#ff5a3c;color:#fff;box-shadow:4px 4px 0 #111;
+  transition:transform .08s,box-shadow .08s,background .08s;}
+html.skin-brutal button:hover{background:#ff6f55;}
+html.skin-brutal button:active{transform:translate(4px,4px);box-shadow:0 0 0 #111;}
+html.skin-brutal button:disabled{opacity:.5;box-shadow:4px 4px 0 #111;}
 
-/* risk-display format containers (tables / bars / toggles) — box + bold, KEEP data hues */
-html.skin-brutal .rd-table,html.skin-brutal .rank-table{border:3px solid #111;}
-html.skin-brutal .rd-table th,html.skin-brutal .rd-table td{border:2px solid #111;}
-html.skin-brutal .rd-table th{background:#ffe89a;color:#111;font-weight:800;}
-html.skin-brutal .rd-bar-track{border:2px solid #111;border-radius:0;background:#fff;}
-html.skin-brutal .rd-bar-fill{border-radius:0;}
-html.skin-brutal .rd-plain-head,html.skin-brutal .an-head{font-weight:900;}
-html.skin-brutal .cr-toggle button{border:3px solid #111;border-radius:0;font-weight:800;}
-html.skin-brutal .cr-toggle button.active{background:#0b57ff;color:#fff;border-color:#111;}
-html.skin-brutal .dc-controls select{border:3px solid #111;border-radius:0;font-weight:700;}
-html.skin-brutal #dice-roll{background:#ff5a3c;color:#fff;border:3px solid #111;border-radius:0;font-weight:900;
-  text-transform:uppercase;box-shadow:4px 4px 0 #111;}
-html.skin-brutal .dc-result{border:3px solid #111;border-radius:0;background:#fff;}
+/* consent checkboxes */
+html.skin-brutal .consent-req{accent-color:#ff5a3c;width:16px;height:16px;}
 
-/* floating case panel on the map */
-html.skin-brutal #case-panel{border:3px solid #111;border-radius:0;box-shadow:4px 4px 0 #111;background:#fff;}
-html.skin-brutal #case-panel .cp-num{font-weight:900;}
+/* completion code */
+html.skin-brutal .code{font-family:"Arial Black",ui-monospace,monospace;border:3px solid #111;
+  border-radius:0;background:#fff;box-shadow:6px 6px 0 #111;letter-spacing:3px;}
 
-/* ALWAYS-ON (not skin-scoped): declutter the coverage bar — hide the herd-immunity
-   threshold marker (no survey question asks about it) and the redundant area-name hint. */
-#cov-marker{display:none !important;}
-#nav2-hint{display:none !important;}
+/* error banners */
+html.skin-brutal .err{background:#ff5a3c;color:#fff;border:3px solid #111;border-radius:0;
+  padding:9px 12px;font-weight:800;}
+
+/* guided tour bubbles */
+html.skin-brutal #tour-root .tour-bubble{border-radius:0;border:3px solid #111;box-shadow:8px 8px 0 #111;}
+html.skin-brutal #tour-root .tour-title{color:#0b57ff;}
+html.skin-brutal #tour-root .tour-hole{border-radius:0;border:3px solid #fff;}
+html.skin-brutal #tour-root .tour-nav button{border-radius:0;border:2px solid #111;font-weight:900;text-transform:uppercase;}
+html.skin-brutal #tour-root .tour-next{background:#ff5a3c;color:#fff;}
+html.skin-brutal #tour-root .tour-back{background:#eaf1fb;color:#0b57ff;}
+/* instruction banner sits above the tool now - room for its drop shadow */
+html.skin-brutal .instr{margin-bottom:20px;}
 </style>
 
 </head>
@@ -186,9 +178,9 @@ html.skin-brutal #case-panel .cp-num{font-weight:900;}
   <!-- Survey (interleaved: tool stays on top, one block at a time below) -->
   <div id="s-survey" style="display:none">
     <div class="progress" id="progress"></div>
+    <div class="instr" id="block-instr"></div>
     <div id="tool"><iframe id="tool-frame" title="vaccination risk tool"></iframe></div>
     <div class="card">
-      <div class="instr" id="block-instr"></div>
       <div id="block-body"></div>
       <div class="err" id="block-err" style="display:none">Please answer everything on this page before continuing.</div>
       <div class="btnrow" style="text-align:right"><button id="block-btn">Next →</button></div>
@@ -254,8 +246,8 @@ const RL = ["Low","Medium","High","Very high","Not sure"];  // risk-level option
 const BLOCKS = [
  // ── PART 1: Cambridge (medium risk) — go through the WHOLE tool, then answer ──
  {tool:true,
-  instr:"<strong>PART 1 of 2 — Cambridge.</strong> In the tool above, search <strong>CB3 9DF</strong>, then go through <strong>both</strong> the <strong>Map</strong> stage and the <strong>Risk &amp; coverage</strong> stage — try any buttons, slider, toggle or dice a few times. Once you've seen both, answer below (you can scroll the tool back up to check at any time):",
-  instrBaseline:"<strong>PART 1 of 2 — Cambridge.</strong> Use the briefing and the assistant above to learn about <strong>Cambridge / Cambridgeshire</strong> — read the text on the left and/or ask the assistant on the right. Once you feel you understand this area, answer below (you can scroll back or keep asking at any time):",
+  instr:"<strong>PART 1 of 2 — Cambridge.</strong> In the tool below, search <strong>CB3 9DF</strong>, then go through <strong>both</strong> the <strong>Map</strong> stage and the <strong>Risk &amp; coverage</strong> stage — try any buttons, slider, toggle or dice a few times. Once you've seen both, answer the questions underneath (you can scroll back up to the tool at any time):",
+  instrBaseline:"<strong>PART 1 of 2 — Cambridge.</strong> Use the briefing and the assistant below to learn about <strong>Cambridge / Cambridgeshire</strong> — read the text on the left and/or ask the assistant on the right. Once you feel you understand this area, answer the questions underneath (you can scroll back up and keep asking at any time):",
   items:[
    RADIO("A_cov_val","In this area, out of every 100 children, roughly how many have completed all of their scheduled vaccine doses?",
      ["About 70%","About 80%","About 90%","About 98%","Not sure"],2),
@@ -273,8 +265,8 @@ const BLOCKS = [
  ]},
  // ── PART 2: a DIFFERENT area, Hackney (high risk) ──
  {tool:true,
-  instr:"<strong>PART 2 of 2 — a different area (Hackney).</strong> In the tool, click the <strong>Location</strong> step, search <strong>Hackney</strong>, and go through the <strong>Map</strong> and <strong>Risk &amp; coverage</strong> stages again. Then answer:",
-  instrBaseline:"<strong>PART 2 of 2 — a different area (Hackney).</strong> Now focus on <strong>Hackney</strong> — read the relevant part of the briefing on the left, and/or switch the assistant's area to Hackney and ask about it. Then answer:",
+  instr:"<strong>PART 2 of 2 — a different area (Hackney).</strong> In the tool below, click the <strong>Location</strong> step, search <strong>Hackney</strong>, and go through the <strong>Map</strong> and <strong>Risk &amp; coverage</strong> stages again. Then answer the questions underneath:",
+  instrBaseline:"<strong>PART 2 of 2 — a different area (Hackney).</strong> Now focus on <strong>Hackney</strong> — read the relevant part of the briefing on the left, and/or switch the assistant's area to Hackney and ask about it. Then answer the questions underneath:",
   items:[
    RADIO("B_cov_val","In Hackney, out of every 100 children, roughly how many have completed all of their scheduled vaccine doses?",
      ["About 55%","About 70%","About 85%","About 95%","Not sure"],1),
@@ -437,7 +429,7 @@ $("block-btn").addEventListener("click",()=>{
     {host:"survey", sel:"#block-instr", title:"Step 1 of 4 · Instructions",
      body:"Start by reading the highlighted box. It tells you what this part of the study is asking you to do."},
     {host:"tool", title:"Step 2 of 4 · Search a location",
-     body:"Use the tool above. Type the location from the instructions (a postcode or a place name) into the search box, then press Enter.",
+     body:"Use the highlighted tool below. Type the location from the instructions (a postcode or a place name) into the search box, then press Enter.",
      before(w){ try{ w.goStep(1); }catch(e){} }},
     {host:"tool", title:"Step 3 of 4 · Explore the map",
      body:"This is the map. Hover over or tap any area to see its vaccination coverage and number of cases — the panel on the top-left shows the details.",
