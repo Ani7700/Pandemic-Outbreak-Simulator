@@ -11,3 +11,4 @@ _skin_backup/
 *.tgz
 deploy.sh
 .DS_Store
+_to_delete/

@@ -1381,7 +1381,7 @@ const APP_VERSION = (function(){
   return (n>=1 && n<=30) ? n : 0;      // 0 = root (baseline)
 })();
 const DATA_BASE = APP_VERSION ? "../" : "";   // data files live at the repo root
-const DATA_V = "?v=6";   // bump this whenever a data file changes, to bust browser caches
+const DATA_V = "?v=7";   // bump this whenever a data file changes, to bust browser caches
 let STATE = { code: null, disease: "mmr2", districtName: null, placeName: null, placeType: null };
 let LMAP = null, GJSON = null, LABEL = null;
 const $ = id => document.getElementById(id);
@@ -1636,6 +1636,24 @@ function sizeCaseCanvas(){
   }
   return true;
 }
+// Absolute pixel coordinates of every case dot at the current zoom, cached.
+// Rebuilt only when the zoom changes, so panning costs one subtraction per dot.
+let CASE_PROJ=null, CASE_PROJ_Z=null;
+function caseProjected(){
+  if(!CASEDOTS||!LMAP) return null;
+  const z=LMAP.getZoom();
+  if(CASE_PROJ && CASE_PROJ_Z===z) return CASE_PROJ;
+  const A=CASEDOTS.areas;
+  let n=0; for(const k in A) n+=A[k].d.length;
+  const xy=new Float64Array(n*2);
+  let i=0;
+  for(const k in A){
+    const d=A[k].d;
+    for(let j=0;j<d.length;j++){ const p=LMAP.project(d[j],z); xy[i++]=p.x; xy[i++]=p.y; }
+  }
+  CASE_PROJ=xy; CASE_PROJ_Z=z;
+  return xy;
+}
 function drawCaseDots(){
   if(!CASEDOTS||!LMAP) return;
   if(!CASE_CANVAS){ CASE_CANVAS=document.getElementById("case-canvas"); if(!CASE_CANVAS) return; CASE_CTX=CASE_CANVAS.getContext("2d"); }
@@ -1643,18 +1661,22 @@ function drawCaseDots(){
   const dpr=Math.max(1,window.devicePixelRatio||1);
   CASE_CTX.setTransform(dpr,0,0,dpr,0,0);
   CASE_CTX.clearRect(0,0,CASE_CANVAS.width,CASE_CANVAS.height);
-  const b=LMAP.getBounds(), sw=b.getSouthWest(), ne=b.getNorthEast();
+  const xy=caseProjected(); if(!xy) return;
+  const o=LMAP.getPixelOrigin(), pane=L.DomUtil.getPosition(LMAP.getPane("mapPane"));
+  const ox=o.x-pane.x, oy=o.y-pane.y;
+  const sz=LMAP.getSize(), W=sz.x, H=sz.y, R=1.7, M=R+1;
   CASE_CTX.fillStyle="#c0271a"; CASE_CTX.globalAlpha=caseReveal;
-  const A=CASEDOTS.areas;
-  for(const name in A){
-    const d=A[name].d;
-    for(let i=0;i<d.length;i++){
-      const ll=d[i];
-      if(ll[0]<sw.lat||ll[0]>ne.lat||ll[1]<sw.lng||ll[1]>ne.lng) continue;
-      const p=LMAP.latLngToContainerPoint(ll);
-      CASE_CTX.beginPath(); CASE_CTX.arc(p.x,p.y,1.7,0,6.2832); CASE_CTX.fill();
-    }
+  // One canvas path for every dot. There are ~55,000 of them now that 1 dot = 1
+  // confirmed case, and this redraws on every "move" frame, so a beginPath/fill
+  // per dot is far too slow; caseProjected() caches the projection per zoom for
+  // the same reason. Culling is done in pixel space against the canvas rect.
+  CASE_CTX.beginPath();
+  for(let i=0;i<xy.length;i+=2){
+    const x=xy[i]-ox, y=xy[i+1]-oy;
+    if(x<-M||x>W+M||y<-M||y>H+M) continue;
+    CASE_CTX.moveTo(x+R,y); CASE_CTX.arc(x,y,R,0,6.2832);
   }
+  CASE_CTX.fill();
   CASE_CTX.globalAlpha=1;
 }
 function initCaseDots(){
