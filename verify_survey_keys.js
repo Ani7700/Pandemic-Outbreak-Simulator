@@ -44,9 +44,23 @@ for(const arm of ARMS){
   const shape = bh.day>=41 ? 0 : (bh.end < bh.pk*0.98 ? 2 : 1);
   chk('Fpeaktime',shape,`peak d${bh.day} end ${bh.end} of ${bh.pk}`);
   chk('XD',bc.Re>bh.Re?0:1,`Re ${bc.Re.toFixed(2)} vs ${bh.Re.toFixed(2)}`);
-  // every numeric distractor must be a number visible on the same screen
-  const screen=[bc.pk,bh.pk,camN,hacN,U[CAM].under5,U[HAC].under5,U[CAM].pop,U[HAC].pop,Math.round(camCov),Math.round(hacCov),
-                Object.values(C).reduce((a,b)=>a+b,0)];
+  // Every numeric distractor must be a number the participant can actually see on the
+  // screen the item is asked on. This list used to be written by hand and included the
+  // under-5 and total populations, which the interface never displays anywhere -- four
+  // distractors (35,000 / 710,000 / 16,000 / 270,000) passed this check by matching
+  // figures that are not on screen at all. It is now derived: the curve's start and
+  // six-week peak, the three y-axis gridline values the chart prints, the two coverage
+  // percentages, the England total in the map panel, and the three dose-card values.
+  const axisTicks = code => {
+    const m=P[code].med.slice(0,43), h=P[code].hi.slice(0,43);
+    const ym=Math.max(1, Math.max(...m)*1.15, Math.max(...h)*1.05);
+    return [ym/3, 2*ym/3, ym];
+  };
+  const DOSE={tarnpox:[40,20,8],verrow:[60,27,7],solvik:[50,20,5]}[arm];
+  const screen=[bc.pk,bh.pk,camN,hacN,P[CAM].med[0],P[HAC].med[0],
+                Math.round(camCov),Math.round(hacCov),
+                Object.values(C).reduce((a,b)=>a+b,0),
+                ...axisTicks(CAM),...axisTicks(HAC),...DOSE];
   for(const id of ['A_peakht','Fpeakht','B_cases']){
     radio(s,id).opts.forEach(o=>{const m=o.replace(/[^0-9]/g,'');if(!m)return;const v=+m;
       if(!screen.some(x=>Math.abs(Math.log10(Math.max(x,1))-Math.log10(Math.max(v,1)))<0.16 && Math.abs(x-v)/Math.max(x,v)<0.35))
