@@ -183,7 +183,7 @@ html.skin-brutal .instr{margin-bottom:20px;}
     <div class="card">
       <div id="block-body"></div>
       <div class="err" id="block-err" style="display:none">Please answer everything on this page before continuing.</div>
-      <div class="btnrow" style="text-align:right"><button id="block-btn">Next →</button></div>
+      <div class="btnrow" style="display:flex;justify-content:space-between;align-items:center;gap:12px"><button id="block-back" type="button" style="display:none">← Back</button><span style="flex:1"></span><button id="block-btn">Next →</button></div>
     </div>
   </div>
 
@@ -323,14 +323,20 @@ let bi = 0;
 
 function itemHTML(q){
   let h=`<div class="q" data-id="${q.id}"><div class="prompt">${q.num?`<span class="qnum">Q${q.num}.</span> `:""}${q.prompt}</div>`;
+  // A page may be rendered a second time, because the participant used Back. Restore what
+  // they chose the first time; a Back button that quietly wiped the page would be worse than
+  // no Back button. ANS holds strings, so compare as strings.
+  const chosen = ANS[q.id];
+  const sel = v => String(chosen)===String(v) ? " selected" : "";
+  const chk = v => String(chosen)===String(v) ? " checked"  : "";
   if(q.type==="select"){
     h+=`<select name="${q.id}"><option value="">— choose —</option>`+
-       q.opts.map((o,i)=>`<option value="${i}">${o}</option>`).join("")+`</select>`;
+       q.opts.map((o,i)=>`<option value="${i}"${sel(i)}>${o}</option>`).join("")+`</select>`;
   } else if(q.type==="radio"){
-    h+=`<div class="opts">`+q.opts.map((o,i)=>`<label><input type="radio" name="${q.id}" value="${i}">${o}</label>`).join("")+`</div>`;
+    h+=`<div class="opts">`+q.opts.map((o,i)=>`<label><input type="radio" name="${q.id}" value="${i}"${chk(i)}>${o}</label>`).join("")+`</div>`;
   } else if(q.type==="likert"){
     h+=`<div class="likert"><span class="end">${q.lo}</span>`;
-    for(let i=1;i<=5;i++) h+=`<label>${i}<input type="radio" name="${q.id}" value="${i}"></label>`;
+    for(let i=1;i<=5;i++) h+=`<label>${i}<input type="radio" name="${q.id}" value="${i}"${chk(i)}></label>`;
     h+=`<span class="end">${q.hi}</span></div>`;
   }
   return h+`</div>`;
@@ -344,6 +350,7 @@ function renderBlock(){
   $("block-body").innerHTML=b.items.map(itemHTML).join("");
   $("block-err").style.display="none";
   $("block-btn").textContent = (bi===BLOCKS.length-1) ? "Submit" : "Next →";
+  $("block-back").style.display = bi>0 ? "inline-block" : "none";
   window.scrollTo(0,0);
 }
 
@@ -363,6 +370,7 @@ function buildRecord(){
   const rec={participantId,code:(new URLSearchParams(location.search).get("code")||""),prolific_id:(new URLSearchParams(location.search).get("PROLIFIC_PID")||""),study:"verrow",condition,version:condition==="visual"?version:"",arm:condition==="visual"?surveyArm:"",assignedUrl:toolURL,timestamp:new Date().toISOString(),
     seconds_total:Math.round((Date.now()-started)/1000),
     seconds_on_tool:toolStart?Math.round((Date.now()-toolStart)/1000):"",
+    nav_back_count:NAV_BACK, nav_path:NAV_PATH.join(">"),
     user_agent:navigator.userAgent};
   let correct=0,graded=0, scoreRisk=0,maxRisk=0, scoreShared=0,maxShared=0;
   // These 8 items are the ONLY ones that differ across prototype arms (they read the step-3
@@ -437,10 +445,24 @@ $("consent-btn").addEventListener("click",()=>{
 // Chained multi-part study: parts 2 & 3 arrive with ?consent=0 — the information sheet was already
 // shown in part 1, so go straight into the survey without repeating it.
 if(new URLSearchParams(location.search).get("consent")==="0") startSurvey();
+// Where the participant has been, in order, and how often they stepped back. seconds_total
+// and seconds_on_tool now include any revisiting, so the analysis needs to be able to see who
+// revisited before treating those as clean time-on-task measures.
+let NAV_PATH=[0], NAV_BACK=0;
 $("block-btn").addEventListener("click",()=>{
   if(!saveBlock()){ $("block-err").style.display="block"; window.scrollTo(0,document.body.scrollHeight); return; }
-  if(bi<BLOCKS.length-1){ bi++; renderBlock(); }
+  if(bi<BLOCKS.length-1){ bi++; NAV_PATH.push(bi); renderBlock(); }
   else { $("block-btn").disabled=true; submit(buildRecord()); }
+});
+$("block-back").addEventListener("click",()=>{
+  if(bi<=0) return;
+  // Save whatever is on the page, but do not require it to be complete: a participant is
+  // allowed to leave a page half-answered, go back, and come forward again. Completeness is
+  // still enforced by the Next button, so nothing can be submitted with gaps.
+  saveBlock();
+  $("block-err").style.display="none";
+  bi--; NAV_BACK++; NAV_PATH.push(bi);
+  renderBlock();
 });
 
 /* ===================== Guided onboarding tour (visual/tool condition) ===================== */
