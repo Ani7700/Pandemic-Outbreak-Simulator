@@ -68,6 +68,58 @@ for(const arm of ARMS){
   }
 }
 
+console.log('\n=== 1b. RISK-DISPLAY ITEMS re-derived from the disease model ===');
+// The eight primary-scale items read the step-3 display. The interface does not store those
+// percentages; it computes them from the disease model as sar*(1-ve). So parse sar/ve1/ve2 out
+// of the deployed interface and recompute, rather than restating the numbers here -- that is how
+// the one-dose collision (50*0.40 and 40*0.50 both give 20) was found in the first place.
+function model(arm){
+  const s=fs.readFileSync(p.join(ROOT,arm,'index.html'),'utf8');
+  const g=re=>{const m=s.match(re); if(!m) throw new Error(arm+' has no '+re); return +m[1];};
+  return {sar:g(/sar:\s*([\d.]+)/), ve1:g(/ve1:\s*([\d.]+)/), ve2:g(/ve2:\s*([\d.]+)/)};
+}
+// first number in an option string: "About 60 in 100" is 60, not 60100
+const numOf=o=>{const m=o.match(/(\d[\d,]*)/); return m?+m[1].replace(/,/g,''):null;};
+const RISK_IDS=['C1','C_dose2','C_ratio','C5','C_half','C_diff','C_scale2','C_step2'];
+const keyIdx={}, keyTxt={};
+for(const arm of ARMS){
+  const m=model(arm), nd=m.sar*100, d1=nd*(1-m.ve1), d2=nd*(1-m.ve2);
+  const want={C1:Math.round(nd), C_dose2:Math.round(d2), C_ratio:Math.round(nd/d2),
+              C5:Math.round(nd*2), C_half:Math.round(nd/2), C_diff:Math.round(nd-d2),
+              C_scale2:Math.round(d2*2), C_step2:Math.round(d1-d2)};
+  const s=fs.readFileSync(p.join(ROOT,arm,'survey.html'),'utf8');
+  keyIdx[arm]={}; keyTxt[arm]={};
+  console.log(`-- ${arm}: display shows ${Math.round(nd)} / ${Math.round(d1)} / ${Math.round(d2)} per 100`);
+  for(const id of RISK_IDS){
+    const r=radio(s,id);
+    if(!r){ bad(`${arm} ${id} missing from the item bank`); continue; }
+    keyIdx[arm][id]=r.key; keyTxt[arm][id]=r.opts[r.key];
+    const got=numOf(r.opts[r.key]);
+    if(got!==want[id]) bad(`${arm} ${id}: keyed option says ${got}, the model gives ${want[id]}`);
+  }
+  const decl=s.match(/const RISK_IDS\s*=\s*\[([^\]]*)\]/);
+  const inPage=decl?JSON.parse('['+decl[1]+']'):[];
+  if(inPage.join()!==RISK_IDS.join())
+    bad(`${arm}: page sums score_risk_display over [${inPage.join()}]`);
+}
+// A key shared by two diseases would let an answer transfer between trials.
+for(const id of RISK_IDS){
+  const ks=ARMS.map(a=>keyTxt[a][id]);
+  if(new Set(ks).size!==ARMS.length) bad(`${id}: key repeats across diseases (${ks.join(' / ')})`);
+}
+// Constraint 1 (protocol v7 section 6.3): no answer POSITION transfers between trials.
+for(const id of RISK_IDS){
+  const ix=ARMS.map(a=>keyIdx[a][id]);
+  if(new Set(ix).size!==ARMS.length) bad(`${id}: correct option at the same index in two diseases (${ix.join(',')})`);
+}
+// Constraint 2: within one trial, no single position may be correct for more than two of the
+// eight, so a participant answering by position alone scores 2/8 rather than 8/8.
+for(const arm of ARMS){
+  const c={}; RISK_IDS.forEach(id=>{c[keyIdx[arm][id]]=(c[keyIdx[arm][id]]||0)+1;});
+  for(const k in c) if(c[k]>2) bad(`${arm}: position ${k} is correct for ${c[k]} of the eight items`);
+}
+console.log('  8 items x 3 diseases: keys match the model, positions rotate, no position sweeps a trial');
+
 console.log('\n=== 2. COPIES byte-identical to their source ===');
 for(const arm of ARMS){
   const idx=fs.readFileSync(p.join(ROOT,arm,'index.html')), sv=fs.readFileSync(p.join(ROOT,arm,'survey.html'));
@@ -106,5 +158,40 @@ console.log('\n=== 5. CACHE BUST consistent ===');
 for(const arm of ARMS){const s=fs.readFileSync(p.join(ROOT,arm,'index.html'),'utf8');
   const m=s.match(/const DATA_V\s*=\s*"(\?v=\d+)"/); console.log(`  ${arm}: DATA_V=${m?m[1]:'MISSING'}`);
   if(!m) bad(arm+' DATA_V missing');}
+
+console.log('\n=== 6. STUDY WRAPPER sequences ===');
+// The wrapper is the only place the design lives in code, so the balance is asserted here
+// rather than trusted. Both wrappers must agree; study_brutalist.html is the live one.
+for(const f of ['study_brutalist.html','study.html']){
+  const s=fs.readFileSync(p.join(ROOT,f),'utf8');
+  const m=s.match(/const SEQUENCES = \{([\s\S]*?)\n\};/);
+  if(!m){ bad(`${f}: no SEQUENCES block`); continue; }
+  const rows=[...m[1].matchAll(/\d+:\[(.*?)\],\s*\/\/\s*skips (\w+)/g)];
+  if(rows.length!==9){ bad(`${f}: ${rows.length} sequences, expected 9`); continue; }
+  const cp={},cd={},dp={},sk={};
+  for(const [,body,skip] of rows){
+    const tr=[...body.matchAll(/\["(\w+)","(D\d)"\]/g)].map(x=>[x[1],x[2]]);
+    if(tr.length!==3) bad(`${f}: a sequence has ${tr.length} trials`);
+    if(new Set(tr.map(x=>x[1])).size!==3) bad(`${f}: a sequence repeats a disease`);
+    if(tr.some(x=>x[0]===skip)) bad(`${f}: sequence marked "skips ${skip}" contains ${skip}`);
+    if(!tr.some(x=>x[0]==='C')) bad(`${f}: a sequence has no control trial`);
+    sk[skip]=(sk[skip]||0)+1;
+    tr.forEach(([c,d],i)=>{cp[c+i]=(cp[c+i]||0)+1; cd[c+d]=(cd[c+d]||0)+1; dp[d+i]=(dp[d+i]||0)+1;});
+  }
+  for(const [c,want] of [['C',3],['F1',2],['F2',2],['F3',2]])
+    for(let i=0;i<3;i++){
+      if((cp[c+i]||0)!==want) bad(`${f}: ${c} appears ${cp[c+i]||0}x in position ${i+1}, want ${want}`);
+      const d='D'+(i+1);
+      if((cd[c+d]||0)!==want) bad(`${f}: ${c} appears ${cd[c+d]||0}x on ${d}, want ${want}`);
+    }
+  for(let i=0;i<3;i++) for(const d of ['D1','D2','D3'])
+    if((dp[d+i]||0)!==3) bad(`${f}: ${d} appears ${dp[d+i]||0}x in position ${i+1}, want 3`);
+  if(Object.values(sk).sort().join()!=='3,3,3') bad(`${f}: skipped-prototype counts ${JSON.stringify(sk)}`);
+  if(!/seq<=9/.test(s)) bad(`${f}: seq range does not reach 9`);
+  if(!/FIRST_PROTO/.test(s)) bad(`${f}: onboarding tour is still tied to the trial index`);
+  if(!/baseline\//.test(s)) bad(`${f}: no route to the baseline path`);
+}
+console.log('  9 sequences, control 3x per position and 3x per disease, each prototype 2x/2x,');
+console.log('  no repeated disease, tour decoupled from consent, baseline route present');
 
 console.log('\n'+(fail?`### ${fail} FAILURE(S)`:'### ALL CHECKS PASSED'));

@@ -3,10 +3,13 @@ const fs=require('fs'),p=require('path');
 const ROOT=process.env.FRONTEND_ROOT || __dirname;
 const OUT=process.env.ANSWER_KEY || p.join(ROOT,'..','..','ANSWER_KEY.md');
 const ARMS=[['verrow','Verrow fever  (measles)'],['solvik','Solvik  (rubella)'],['tarnpox','Tarnpox  (mumps)']];
-const ORDER=['A_cov_val','A_level','C1','C_dose2','C_ratio','C5','A_peakht',
+const ORDER=['A_cov_val','A_level','C1','C_dose2','C_ratio','C5',
+             'C_half','C_diff','C_scale2','C_step2','A_peakht',
              'B_cov_val','B_cases','XB','XC','Fpeakht','Fpeaktime','XD'];
-const STAR=new Set(['C1','C_dose2','C_ratio','C5']);
-const PART=id=>ORDER.indexOf(id)<7?'P1':'P2';
+// The starred set is score_risk_display: the items that read the step-3 display and therefore
+// the only ones the prototype manipulation can move. Protocol v7 doubled it from four to eight.
+const STAR=new Set(['C1','C_dose2','C_ratio','C5','C_half','C_diff','C_scale2','C_step2']);
+const PART=id=>ORDER.indexOf(id)<11?'P1':'P2';
 const RL=["Low","Medium","High","Very high","Not sure"];
 
 function radios(s){
@@ -31,7 +34,8 @@ Q1-Q14 match on-screen numbers and data column prefixes (Q0N_<id>). Score: Q0N_<
 Cross-disease pooling: join on <id> (numbers differ because each arm carries its own coverage and case data).
 
 **Prototype comparison:** arms (survey1/2/3 = versions 1/2/7) differ ONLY in the step-3 risk display; the ★ items
-(C1, C_dose2, C_ratio, C5) are the only prototype-sensitive ones. Use **\`score_risk_display\`** (0-4) as the primary DV.
+(C1, C_dose2, C_ratio, C5, C_half, C_diff, C_scale2, C_step2) are the only prototype-sensitive ones.
+Use **\`score_risk_display\`** (0-8) as the primary DV.
 All 3 arms display the same values (out of 100); answer units are matched so no format gets a free read.
 
 **This file is generated** from \`{arm}/survey.html\` by \`gen_key.js\` — regenerate it after any survey edit rather
@@ -74,8 +78,20 @@ comparative item keeps its answer.
 - **\`A_peakht\` and \`Fpeakht\` keep their answers.** Only distractors moved: the slot holding the area's
   six-month cumulative count held a number that no longer exists anywhere on screen, so it became the England
   current total or the area's own current count.
-- **Nothing else moved** — \`A_level\`, \`A_cov_val\`, \`B_cov_val\`, \`XB\`, \`Fpeaktime\`, \`XD\` and the four
-  scored items C1, C_dose2, C_ratio and C5 are untouched.
+- **Nothing else moved** — \`A_level\`, \`A_cov_val\`, \`B_cov_val\`, \`XB\`, \`Fpeaktime\` and \`XD\` are untouched.
+
+**Primary scale doubled to eight items (protocol v7).** \`C_half\`, \`C_diff\`, \`C_scale2\` and \`C_step2\` join the
+four original scored items, so \`score_risk_display\` now runs 0-8. Item-level noise was a large part of the
+trial-to-trial variance every planned comparison has to see through, and doubling the item count halves it —
+worth about seven participants, for the cost of writing four questions. The new items also read the one-dose
+level, which the original four never did, so the dose gradient the line chart exists to show is now tested.
+
+**Option positions rotate.** Each item places its correct option at a different index in each of the three
+diseases, and within any one disease no position is correct for more than two of the eight items. Before this,
+C_dose2 was always first and C_ratio and C5 always third, so a participant answering by position alone could
+score 4/4 on every trial without reading the display. They never see whether an answer was right, so nothing
+could be learned — but a low-effort participant could still sweep the scale, which pushed it towards its
+ceiling. \`verify_survey_keys.js\` enforces both rules.
 - **Watch Tarnpox Q9 against Q12.** Hackney's Tarnpox curve is flat, so its current count and its six-week peak
   are both 6 — the two questions share a numeric answer, and a participant who reads only the map panel gets
   Q12 right without reading the chart. Consider a different Part 2 area for that arm.

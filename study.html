@@ -63,18 +63,32 @@ let PID = "", CODE = "";   // set once the participant confirms their Prolific I
 // F1/F2/F3 -> the deployed arm files survey1/2/3.html ; D1/D2/D3 -> the three disease sites.
 const FILE = { F1:1, F2:2, F3:3 };
 const SITE = { D1:"verrow/", D2:"solvik/", D3:"tarnpox/" };
-// Graeco-Latin square: each format meets each disease and each trial position twice across the 6 sequences.
+// Protocol v7 section 5. Nine sequences, three participants each, 27 in total.
+// Each participant meets D1, D2 and D3 exactly once, and three of the four conditions: the
+// control, which everyone gets, plus two of the three prototypes. Four conditions will not fit
+// into three trials, and no disease may be seen twice, so one prototype is skipped per
+// participant; which one is counterbalanced. Verified balance: the control sits in each trial
+// position three times and on each disease three times; each prototype appears in six
+// sequences, twice in each position and twice on each disease; each disease appears in each
+// position three times; no sequence repeats a disease.
 const SEQUENCES = {
-  1:[["F1","D1"],["F2","D2"],["F3","D3"]],
-  2:[["F1","D1"],["F2","D3"],["F3","D2"]],
-  3:[["F2","D2"],["F3","D1"],["F1","D3"]],
-  4:[["F2","D3"],["F3","D1"],["F1","D2"]],
-  5:[["F3","D2"],["F1","D3"],["F2","D1"]],
-  6:[["F3","D3"],["F1","D2"],["F2","D1"]],
+  1:[["F1","D2"],["F2","D3"],["C","D1"]],   // skips F3
+  2:[["F2","D2"],["C","D1"],["F1","D3"]],   // skips F3
+  3:[["C","D3"],["F1","D2"],["F2","D1"]],   // skips F3
+  4:[["F1","D3"],["F3","D1"],["C","D2"]],   // skips F2
+  5:[["F3","D2"],["C","D3"],["F1","D1"]],   // skips F2
+  6:[["C","D3"],["F1","D1"],["F3","D2"]],   // skips F2
+  7:[["F2","D1"],["F3","D3"],["C","D2"]],   // skips F1
+  8:[["F3","D1"],["C","D2"],["F2","D3"]],   // skips F1
+  9:[["C","D1"],["F2","D2"],["F3","D3"]],   // skips F1
 };
 let seq = parseInt(P.get("seq")||P.get("s"));
-if(!(seq>=1 && seq<=6)) seq = (Math.floor(Math.random()*6)+1);   // the live study gives each Prolific group a fixed ?seq=1..6
+if(!(seq>=1 && seq<=9)) seq = (Math.floor(Math.random()*9)+1);
 const TRIALS = SEQUENCES[seq];
+// The guided tour belongs to the first trial that actually shows the tool, which is not always
+// trial 1: sequences 3, 6 and 9 open with the control. Consent still belongs to trial 1
+// whatever the condition, so the two can no longer be switched off together.
+const FIRST_PROTO = TRIALS.findIndex(([f]) => f !== "C");
 
 // dots
 $("dots").innerHTML = TRIALS.map(()=>'<span class="dot"></span>').join("");
@@ -84,10 +98,17 @@ let idx = 0, pollTimer = null;
 
 function trialURL(i){
   const [f,d] = TRIALS[i];
-  // Show the information sheet + guide only in the first part; parts 2 & 3 skip straight in.
-  const extra = i>0 ? "&tour=0&consent=0" : "";
-  return SITE[d] + "survey" + FILE[f] + ".html?PROLIFIC_PID=" + encodeURIComponent(PID)
-         + "&code=" + encodeURIComponent(CODE) + extra;
+  // The information sheet appears in part 1 whatever the condition; the guided tour appears in
+  // the first part that shows the tool, which is part 2 when the control comes first.
+  const q = "?PROLIFIC_PID=" + encodeURIComponent(PID)
+          + "&code=" + encodeURIComponent(CODE)
+          + (i === 0 ? "" : "&consent=0")
+          + (i === FIRST_PROTO ? "" : "&tour=0");
+  // The control is served by the same survey shell, which recognises the condition from the
+  // /baseline/ path and loads the prose briefing from ../infochat/ into the frame the
+  // prototypes would occupy. It scores the same items into the same fields.
+  return f === "C" ? SITE[d] + "baseline/" + q
+                   : SITE[d] + "survey" + FILE[f] + ".html" + q;
 }
 
 function loadTrial(i){
