@@ -3,11 +3,11 @@ const fs=require('fs'),p=require('path');
 const ROOT=process.env.FRONTEND_ROOT || __dirname;
 const OUT=process.env.ANSWER_KEY || p.join(ROOT,'..','..','ANSWER_KEY.md');
 const ARMS=[['verrow','Verrow fever  (measles)'],['solvik','Solvik  (rubella)'],['tarnpox','Tarnpox  (mumps)']];
-const ORDER=['C1','C_ratio','C5','C_diff','Q_whichfig','A_peakht','Q_gist','Q_band','B_cases','Fpeaktime','Q_nonlinear'];
+const ORDER=['C1','C_ratio','C5','C_diff','C_comp','C_step2','A_peakht','Q_gist','Q_band','B_cases','Fpeaktime','Q_nonlinear'];
 // The starred set is score_risk_display: the items that read the step-3 display and therefore
 // the only ones the prototype manipulation can move. Protocol v7 doubled it from four to eight.
-const STAR=new Set(['C1','C_ratio','C_diff','C5','Q_whichfig']);
-const PART=id=>ORDER.indexOf(id)<8?'P1':'P2';
+const STAR=new Set(['C1','C_ratio','C_diff','C5','C_comp','C_step2']);
+const PART=id=>ORDER.indexOf(id)<9?'P1':'P2';
 const RL=["Low","Medium","High","Very high","Not sure"];
 
 function radios(s){
@@ -32,8 +32,8 @@ Q1-Q14 match on-screen numbers and data column prefixes (Q0N_<id>). Score: Q0N_<
 Cross-disease pooling: join on <id> (numbers differ because each arm carries its own coverage and case data).
 
 **Prototype comparison:** arms (survey1/2/3 = versions 1/2/7) differ ONLY in the step-3 risk display; the ★ items
-(C1, C_dose2, C_ratio, C5, C_half, C_diff, C_scale2, C_step2) are the only prototype-sensitive ones.
-Use **\`score_risk_display\`** (0-8) as the primary DV.
+(C1, C_ratio, C5, C_diff, C_comp, C_step2) are the only prototype-sensitive ones.
+Use **\`score_risk_display\`** (0-6) as the primary DV.
 All 3 arms display the same values (out of 100); answer units are matched so no format gets a free read.
 
 **This file is generated** from \`{arm}/survey.html\` by \`gen_key.js\` — regenerate it after any survey edit rather
@@ -78,11 +78,15 @@ comparative item keeps its answer.
   current total or the area's own current count.
 - **Nothing else moved** — \`A_level\`, \`A_cov_val\`, \`B_cov_val\`, \`XB\`, \`Fpeaktime\` and \`XD\` are untouched.
 
-**Primary scale doubled to eight items (protocol v7).** \`C_half\`, \`C_diff\`, \`C_scale2\` and \`C_step2\` join the
-four original scored items, so \`score_risk_display\` now runs 0-8. Item-level noise was a large part of the
-trial-to-trial variance every planned comparison has to see through, and doubling the item count halves it —
-worth about seven participants, for the cost of writing four questions. The new items also read the one-dose
-level, which the original four never did, so the dose gradient the line chart exists to show is now tested.
+**Primary scale is six items, one per operation.** \`score_risk_display\` runs 0-6 over \`C1\` (read a stated
+figure), \`C_ratio\` (relative comparison), \`C5\` (rescale the denominator), \`C_diff\` (difference across the
+full range), \`C_comp\` (the complement) and \`C_step2\` (the one-dose to two-dose step). The self-report item
+was dropped: it asked which figure the reader had used, which has no key that is true of the world.
+
+\`C_comp\` and \`C_step2\` exist because the other four are arithmetic on numbers all three prototypes print
+identically, so no graphic could show an advantage on any of them. The complement is the uncoloured dots on
+the icon array; the one-dose to two-dose step is one segment's slope on the line chart. \`C_step2\` had been
+cut as redundant with \`C_diff\` — true of the arithmetic, false of the display — and is reinstated.
 
 **Option positions rotate.** Each item places its correct option at a different index in each of the three
 diseases, and within any one disease no position is correct for more than two of the eight items. Before this,

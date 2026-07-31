@@ -261,8 +261,10 @@ const BLOCKS = [
      ["About 20","About 60","About 100","About 180","Not sure"],2),
    RADIO("C_diff","Out of 100 children who come into contact with Solvik, roughly how many fewer would catch it if they were fully vaccinated rather than unvaccinated?",
      ["About 50","About 5","About 45","About 30","Not sure"],2),
-   RADIO("Q_whichfig","A parent asks: my child has had one dose of the vaccine. If my child is in a class where someone has Solvik, how likely are they to catch it? Which figure on the page answers that?",
-     ["The no-doses figure","The one-dose figure","The both-doses figure","None of them, because the page gives the chance over a whole year rather than for meeting one case","Not sure"],1),
+   RADIO("C_comp","Out of 100 fully vaccinated children who come into contact with Solvik, roughly how many would <strong>not</strong> catch it?",
+     ["About 95","About 5","About 50","About 80","Not sure"],0),
+   RADIO("C_step2","Out of 100 children who come into contact with Solvik, roughly how many fewer would catch it after two doses than after one dose?",
+     ["About 5","About 45","About 30","About 15","Not sure"],3),
    RADIO("A_peakht","In the six-week outbreak projection for Cambridge, at its highest point, about how many confirmed cases are active at the same time on the \"most likely\" line?",
      ["About 16","About 30","About 47","About 90","Not sure"],1),
    RADIO("Q_gist","Which single sentence best sums up what this page says about this area?",
@@ -368,7 +370,7 @@ function buildRecord(){
   // worth about seven participants and costs nothing. The four added items also read the
   // one-dose level, which the original four never did, so the dose gradient the line chart
   // exists to show is now actually tested.
-  const RISK_IDS = ["C1", "C_ratio", "C_diff", "C5", "Q_whichfig"];
+  const RISK_IDS = ["C1", "C_ratio", "C_diff", "C5", "C_comp", "C_step2"];
   BLOCKS.forEach(b=>b.items.forEach(q=>{
     const col = q.num ? ("Q"+String(q.num).padStart(2,"0")+"_"+q.id) : q.id;
     rec[col]=ANS[q.id]!=null?ANS[q.id]:"";
