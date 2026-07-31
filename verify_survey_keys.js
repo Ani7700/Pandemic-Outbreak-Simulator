@@ -113,6 +113,20 @@ for(const arm of ARMS){
     const rg=radio(s,'Q_gist');
     if(rg && rg.key!==wantG)
       bad(`${arm} Q_gist: key ${rg.key}, coverage ${cov.toFixed(0)} vs threshold ${herd.toFixed(0)} gives ${wantG}`);
+    // Q_quantity is semantic, not numeric: the keyed option must name the quantity the stem
+    // points at. This check exists because the keys were once swapped between two arms while
+    // the index was being adjusted for positional balance, and nothing here caught it.
+    const rq=radio(s,'Q_quantity');
+    if(rq){
+      const stem=rq.seg.match(/RADIO\("Q_quantity","((?:[^"\\]|\\.)*)"/)[1];
+      const wants = /in 100 chance/.test(stem) ? 'meet someone who has it'
+                  : /confirmed/.test(stem)     ? 'have it right now'
+                  : /highest point/.test(stem) ? 'largest number ill at the same time'
+                  : null;
+      if(!wants) bad(`${arm} Q_quantity: stem does not match any known target`);
+      else if(!rq.opts[rq.key].includes(wants))
+        bad(`${arm} Q_quantity: stem asks about "${wants}" but the key is "${rq.opts[rq.key]}"`);
+    }
     // Q_nonlinear: which area's six-week peak is bigger, and by a few times or tens of times
     const cp=Math.max(...P[CAM].med.slice(0,43)), hp=Math.max(...P[HAC].med.slice(0,43));
     const ratio = cp>hp ? cp/hp : hp/cp;
