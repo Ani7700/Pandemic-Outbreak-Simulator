@@ -36,11 +36,7 @@ for(const arm of ARMS){
   chk('A_cov_val',nearest(radio(s,'A_cov_val').opts,camCov),'Cambs coverage '+camCov+'%');
   chk('A_level',bc.k,'Cambs band');
   chk('A_peakht',nearest(radio(s,'A_peakht').opts,bc.pk),'Cambs peak '+bc.pk);
-  chk('B_cov_val',nearest(radio(s,'B_cov_val').opts,hacCov),'Hackney coverage '+hacCov+'%');
   chk('B_cases',nearest(radio(s,'B_cases').opts,hacN),'Hackney ill now '+hacN);
-  chk('XB',camCov>hacCov?0:1,`${camCov} vs ${hacCov}`);
-  chk('XC',camN>hacN?0:1,`${camN} vs ${hacN}`);
-  chk('Fpeakht',nearest(radio(s,'Fpeakht').opts,bh.pk),'Hackney peak '+bh.pk);
   const shape = bh.day>=41 ? 0 : (bh.end < bh.pk*0.98 ? 2 : 1);
   chk('Fpeaktime',shape,`peak d${bh.day} end ${bh.end} of ${bh.pk}`);
   chk('XD',bc.Re>bh.Re?0:1,`Re ${bc.Re.toFixed(2)} vs ${bh.Re.toFixed(2)}`);
@@ -61,7 +57,7 @@ for(const arm of ARMS){
                 Math.round(camCov),Math.round(hacCov),
                 Object.values(C).reduce((a,b)=>a+b,0),
                 ...axisTicks(CAM),...axisTicks(HAC),...DOSE];
-  for(const id of ['A_peakht','Fpeakht','B_cases']){
+  for(const id of ['A_peakht','B_cases']){
     radio(s,id).opts.forEach(o=>{const m=o.replace(/[^0-9]/g,'');if(!m)return;const v=+m;
       if(!screen.some(x=>Math.abs(Math.log10(Math.max(x,1))-Math.log10(Math.max(v,1)))<0.16 && Math.abs(x-v)/Math.max(x,v)<0.35))
         bad(`${arm} ${id}: distractor "${o}" is not a number shown on screen`);});
@@ -119,6 +115,19 @@ for(const arm of ARMS){
   for(const k in c) if(c[k]>2) bad(`${arm}: position ${k} is correct for ${c[k]} of the eight items`);
 }
 console.log('  8 items x 3 diseases: keys match the model, positions rotate, no position sweeps a trial');
+
+console.log('\n=== 1c. TRIMMED ITEMS stay out ===');
+// Seven items were cut because they were redundant or descriptive-only (protocol v7 section
+// 6.3). If one is reinstated by hand the answer key and the analysis plan drift apart, so
+// assert their absence rather than trusting it.
+const CUT=['B_cov_val','XB','XC','Fpeakht','TLX_frustration','TLX_pace','TLX_perf'];
+for(const arm of ARMS){
+  const s=fs.readFileSync(p.join(ROOT,arm,'survey.html'),'utf8');
+  for(const id of CUT) if(s.includes('"'+id+'"')) bad(`${arm}: ${id} was cut but is present again`);
+  const n=(s.match(/RADIO\(/g)||[]).length + (s.match(/LIK\(/g)||[]).length;
+  if(n!==20) bad(`${arm}: ${n} items per trial, expected 20`);
+}
+console.log('  20 items per trial: 8 risk-display + 6 shared + 4 subjective + 2 workload');
 
 console.log('\n=== 2. COPIES byte-identical to their source ===');
 for(const arm of ARMS){

@@ -281,16 +281,9 @@ const BLOCKS = [
   instr:"<strong>PART 2 of 2 — a different area (Hackney).</strong> In the tool below, click the <strong>Location</strong> step, search <strong>Hackney</strong>, and go through the <strong>Map</strong> and <strong>Risk &amp; coverage</strong> stages again. Then answer the questions underneath:",
   instrBaseline:"<strong>PART 2 of 2 — a different area (Hackney).</strong> Now focus on <strong>Hackney</strong> — read the relevant part of the briefing on the left, and/or switch the assistant's area to Hackney and ask about it. Then answer the questions underneath:",
   items:[
-   RADIO("B_cov_val","Out of every 100 children in Hackney, roughly how many have had all of their vaccine doses?",
-     ["About 55%","About 70%","About 85%","About 95%","Not sure"],1),
    RADIO("B_cases","About how many confirmed Solvik cases are active in Hackney today?",
      ["About 4","About 32","About 71","About 150","Not sure"],0),
-   RADIO("XB","Which of the two areas has more of its children fully vaccinated?",
-     ["Cambridge / Cambridgeshire","Hackney (London)","About the same","Not sure"],0),
-   RADIO("XC","Which of the two areas has more active Solvik cases today?",["Cambridge / Cambridgeshire","Hackney (London)","About the same","Not sure"],0),
    // ── Reading Hackney's outbreak projection: peak timing, then peak size ──
-   RADIO("Fpeakht","In the six-week outbreak projection for Hackney, at its highest point, about how many confirmed cases are active at the same time on the \"most likely\" line?",
-     ["About 4","About 150","About 304","About 457","Not sure"],1),
    RADIO("Fpeaktime","By the end of the six-week projection for Hackney, which best describes the number of active cases?",
      ["Still rising","Leveling off near a peak","Already past its peak and falling","Not sure"],0),
    // ── Hardest: link coverage to how an outbreak would unfold across the two areas ──
@@ -311,9 +304,6 @@ const BLOCKS = [
   items:[
    LIK("TLX_mental","How mentally demanding was this task?","Very low","Very high"),
    LIK("TLX_effort","How hard did you have to work to understand the information?","Very low","Very high"),
-   LIK("TLX_frustration","How did you feel while doing this task?","Very relaxed","Very stressed"),
-   LIK("TLX_pace","How hurried or rushed did the task feel?","Very low","Very high"),
-   LIK("TLX_perf","How successful were you at understanding the information?","A complete failure","Perfectly"),
  ]},
 ];
 
