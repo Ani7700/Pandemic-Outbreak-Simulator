@@ -3,12 +3,11 @@ const fs=require('fs'),p=require('path');
 const ROOT=process.env.FRONTEND_ROOT || __dirname;
 const OUT=process.env.ANSWER_KEY || p.join(ROOT,'..','..','ANSWER_KEY.md');
 const ARMS=[['verrow','Verrow fever  (measles)'],['solvik','Solvik  (rubella)'],['tarnpox','Tarnpox  (mumps)']];
-const ORDER=['C1','C_ratio','C_diff','C5','Q_whichfig','A_peakht',
-             'B_cases','Fpeaktime','Q_gist','Q_nonlinear','Q_band'];
+const ORDER=['C1','C_ratio','C5','C_diff','Q_whichfig','A_peakht','Q_gist','Q_band','B_cases','Fpeaktime','Q_nonlinear'];
 // The starred set is score_risk_display: the items that read the step-3 display and therefore
 // the only ones the prototype manipulation can move. Protocol v7 doubled it from four to eight.
 const STAR=new Set(['C1','C_ratio','C_diff','C5','Q_whichfig']);
-const PART=id=>ORDER.indexOf(id)<6?'P1':'P2';
+const PART=id=>ORDER.indexOf(id)<8?'P1':'P2';
 const RL=["Low","Medium","High","Very high","Not sure"];
 
 function radios(s){

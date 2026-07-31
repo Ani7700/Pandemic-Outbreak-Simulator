@@ -179,6 +179,49 @@ for(const arm of ARMS){
 }
 console.log('  17 items per trial: 5 risk-display + 6 shared + 4 subjective + 2 workload');
 
+console.log('\n=== 1d. NO ITEM ANSWERS ANOTHER, AND NONE IS ON THE WRONG PAGE ===');
+// Two faults were shipped and caught by eye rather than by a check. Q_band's stem stated the
+// six-week peak, which is A_peakht's answer five questions earlier and revisable with the Back
+// button. Q_gist said "this area" from inside the Hackney block while every key was computed
+// from Cambridgeshire. Both are now asserted rather than trusted.
+for(const arm of ARMS){
+  const s=fs.readFileSync(p.join(ROOT,arm,'survey.html'),'utf8');
+  const RLm=s.match(/RL\s*=\s*(\[[^\]]*\])/);
+  const RL=RLm?JSON.parse(RLm[1]):[];
+  const items={};
+  const re1=/RADIO\("([A-Za-z_0-9]+)"\s*,\s*"((?:[^"\\]|\\.)*)"\s*,\s*(\[[^\]]*\]|RL)\s*,\s*(\d+)\)/gs;
+  let m; while((m=re1.exec(s))){
+    const opts = m[3]==='RL' ? RL : JSON.parse(m[3]);
+    items[m[1]]={stem:m[2], key:opts[+m[4]]};
+  }
+  // (a) no stem may contain another item's numeric answer
+  const generic=new Set(['100','200','50','6']);
+  for(const q in items){
+    const nums=new Set((items[q].stem.match(/\b\d[\d,]*\b/g)||[]).filter(x=>!generic.has(x)));
+    for(const q2 in items){
+      if(q2===q) continue;
+      const kn=(items[q2].key.match(/\b\d[\d,]*\b/g)||[])[0];
+      if(kn && nums.has(kn))
+        bad(`${arm}: ${q}'s stem states ${kn}, which is ${q2}'s answer`);
+    }
+  }
+  // (b) an item naming one area must sit in that area's block
+  const blocks=[...s.matchAll(/\{tool:(?:true|false),([\s\S]*?)\n \]\}/g)].map(x=>x[1]);
+  ['Cambridge','Hackney'].forEach((area,bi)=>{
+    const other=bi===0?'Hackney':'Cambridge';
+    const ids=[...(blocks[bi]||'').matchAll(/RADIO\("([A-Za-z_0-9]+)"/g)].map(x=>x[1]);
+    for(const id of ids){
+      const st=items[id].stem, o=blocks[bi];
+      const seg=o.slice(o.indexOf('RADIO("'+id+'"'));
+      const optBlock=(seg.match(/\[[^\]]*\]/)||[''])[0];
+      const namesBoth=optBlock.includes('Cambridge')&&optBlock.includes('Hackney');
+      if(!namesBoth && st.includes(other))
+        bad(`${arm}: ${id} names ${other} but sits in the ${area} block`);
+    }
+  });
+}
+console.log('  no stem states another answer; no item names the area it is not shown beside');
+
 console.log('\n=== 2. COPIES byte-identical to their source ===');
 for(const arm of ARMS){
   const idx=fs.readFileSync(p.join(ROOT,arm,'index.html')), sv=fs.readFileSync(p.join(ROOT,arm,'survey.html'));
