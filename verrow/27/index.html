@@ -231,7 +231,8 @@ body{
   position:absolute;top:-4px;width:2px;height:18px;background:var(--ink);
   transform:translateX(-50%);
 }
-.cov-marker::after{content:none;}   /* drop the tiny overlapping label; the tick marks 93% */
+.cov-marker::after{content:attr(data-label);position:absolute;top:20px;left:50%;
+    transform:translateX(-50%);white-space:nowrap;font-size:12px;font-weight:700;color:var(--ink);}   /* drop the tiny overlapping label; the tick marks 93% */
 .cov-ticks{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-top:2px;}
 
 /* ── Comparison cards ── */
@@ -630,9 +631,14 @@ html.skin-brutal .dc-result{border:3px solid #111;border-radius:0;background:#ff
 html.skin-brutal #case-panel{border:3px solid #111;border-radius:0;box-shadow:4px 4px 0 #111;background:#fff;}
 html.skin-brutal #case-panel .cp-num{font-weight:900;}
 
-/* ALWAYS-ON (not skin-scoped): declutter the coverage bar — hide the herd-immunity
-   threshold marker (no survey question asks about it) and the redundant area-name hint. */
-#cov-marker{display:none !important;}
+/* ALWAYS-ON (not skin-scoped): hide the redundant area-name hint.
+   The herd-immunity threshold marker used to be hidden here too, on the grounds that no
+   survey question asked about it. Two questions now do (Q_thresh and Q_gist), and the
+   briefing the control condition reads states the threshold in words -- so hiding it in the
+   tool made those items answerable in the control and not in the three prototype conditions,
+   which would have biased the primary measure towards the control. Table 4.1 also makes the
+   threshold a requirement in its own right: R6 demands that the non-linear relationship near
+   the threshold be legible, and R8 asks for it to be shown with an explicit basis. */
 #nav2-hint{display:none !important;}
 </style>
 

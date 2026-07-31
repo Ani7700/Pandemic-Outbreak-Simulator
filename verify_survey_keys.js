@@ -37,7 +37,6 @@ for(const arm of ARMS){
   chk('B_cases',nearest(radio(s,'B_cases').opts,hacN),'Hackney ill now '+hacN);
   const shape = bh.day>=41 ? 0 : (bh.end < bh.pk*0.98 ? 2 : 1);
   chk('Fpeaktime',shape,`peak d${bh.day} end ${bh.end} of ${bh.pk}`);
-  chk('XD',bc.Re>bh.Re?0:1,`Re ${bc.Re.toFixed(2)} vs ${bh.Re.toFixed(2)}`);
   // Every numeric distractor must be a number the participant can actually see on the
   // screen the item is asked on. This list used to be written by hand and included the
   // under-5 and total populations, which the interface never displays anywhere -- four
@@ -74,17 +73,17 @@ function model(arm){
 }
 // first number in an option string: "About 60 in 100" is 60, not 60100
 const numOf=o=>{const m=o.match(/(\d[\d,]*)/); return m?+m[1].replace(/,/g,''):null;};
-const RISK_IDS=['C1','C_dose2','C_ratio','C5','C_diff','Q_quantity','Q_thresh','Q_gist'];
+const RISK_IDS=['C1','C_dose2','C_ratio','C5','C_half','C_diff','Q_whichfig'];
 // Only the first five are arithmetic on the dose figures and can be re-derived from the
 // model. Q_quantity, Q_thresh and Q_gist test which quantity is on screen, where coverage
 // sits relative to the herd-immunity threshold, and the gist; their keys are checked below
 // against the coverage and threshold data instead.
-const ARITH=['C1','C_dose2','C_ratio','C5','C_diff'];
+const ARITH=['C1','C_dose2','C_ratio','C5','C_half','C_diff'];
 const keyIdx={}, keyTxt={};
 for(const arm of ARMS){
   const m=model(arm), nd=m.sar*100, d1=nd*(1-m.ve1), d2=nd*(1-m.ve2);
   const want={C1:Math.round(nd), C_dose2:Math.round(d2), C_ratio:Math.round(nd/d2),
-              C5:Math.round(nd*2), C_diff:Math.round(nd-d2)};
+              C5:Math.round(nd*2), C_half:Math.round(nd/2), C_diff:Math.round(nd-d2)};
   const s=fs.readFileSync(p.join(ROOT,arm,'survey.html'),'utf8');
   keyIdx[arm]={}; keyTxt[arm]={};
   console.log(`-- ${arm}: display shows ${Math.round(nd)} / ${Math.round(d1)} / ${Math.round(d2)} per 100`);
@@ -113,19 +112,15 @@ for(const arm of ARMS){
     const rg=radio(s,'Q_gist');
     if(rg && rg.key!==wantG)
       bad(`${arm} Q_gist: key ${rg.key}, coverage ${cov.toFixed(0)} vs threshold ${herd.toFixed(0)} gives ${wantG}`);
-    // Q_quantity is semantic, not numeric: the keyed option must name the quantity the stem
-    // points at. This check exists because the keys were once swapped between two arms while
-    // the index was being adjusted for positional balance, and nothing here caught it.
-    const rq=radio(s,'Q_quantity');
+    // Q_whichfig is semantic: the keyed option must name the dose row the parent in the stem
+    // is asking about. The keys were once swapped between arms while positions were being
+    // adjusted, and nothing caught it, so it is asserted here.
+    const rq=radio(s,'Q_whichfig');
     if(rq){
-      const stem=rq.seg.match(/RADIO\("Q_quantity","((?:[^"\\]|\\.)*)"/)[1];
-      const wants = /in 100 chance/.test(stem) ? 'meet someone who has it'
-                  : /confirmed/.test(stem)     ? 'have it right now'
-                  : /highest point/.test(stem) ? 'largest number ill at the same time'
-                  : null;
-      if(!wants) bad(`${arm} Q_quantity: stem does not match any known target`);
-      else if(!rq.opts[rq.key].includes(wants))
-        bad(`${arm} Q_quantity: stem asks about "${wants}" but the key is "${rq.opts[rq.key]}"`);
+      const stem=rq.seg.match(/RADIO\("Q_whichfig","((?:[^"\\]|\\.)*)"/)[1];
+      const wants = /no doses/.test(stem) ? 'no-doses' : /one dose/.test(stem) ? 'one-dose' : 'both-doses';
+      if(!rq.opts[rq.key].includes(wants))
+        bad(`${arm} Q_whichfig: stem asks about ${wants} but the key is "${rq.opts[rq.key]}"`);
     }
     // Q_nonlinear: which area's six-week peak is bigger, and by a few times or tens of times
     const cp=Math.max(...P[CAM].med.slice(0,43)), hp=Math.max(...P[HAC].med.slice(0,43));
@@ -178,15 +173,15 @@ console.log('\n=== 1c. TRIMMED ITEMS stay out ===');
 // Seven items were cut because they were redundant or descriptive-only (protocol v7 section
 // 6.3). If one is reinstated by hand the answer key and the analysis plan drift apart, so
 // assert their absence rather than trusting it.
-const CUT=['B_cov_val','XB','XC','Fpeakht','C_half','C_scale2','C_step2','A_cov_val','A_level',
-           'TLX_frustration','TLX_pace','TLX_perf'];
+const CUT=['B_cov_val','XB','XC','Fpeakht','C_scale2','C_step2','A_cov_val','A_level','XD',
+           'Q_quantity','TLX_frustration','TLX_pace','TLX_perf'];
 for(const arm of ARMS){
   const s=fs.readFileSync(p.join(ROOT,arm,'survey.html'),'utf8');
   for(const id of CUT) if(s.includes('"'+id+'"')) bad(`${arm}: ${id} was cut but is present again`);
   const n=(s.match(/RADIO\(/g)||[]).length + (s.match(/LIK\(/g)||[]).length;
   if(n!==20) bad(`${arm}: ${n} items per trial, expected 20`);
 }
-console.log('  20 items per trial: 8 risk-display + 6 shared + 4 subjective + 2 workload');
+console.log('  20 items per trial: 7 risk-display + 7 shared + 4 subjective + 2 workload');
 
 console.log('\n=== 2. COPIES byte-identical to their source ===');
 for(const arm of ARMS){
