@@ -73,17 +73,17 @@ function model(arm){
 }
 // first number in an option string: "About 60 in 100" is 60, not 60100
 const numOf=o=>{const m=o.match(/(\d[\d,]*)/); return m?+m[1].replace(/,/g,''):null;};
-const RISK_IDS=['C1','C_dose2','C_ratio','C5','C_half','C_diff','Q_whichfig'];
+const RISK_IDS=['C1','C_ratio','C_diff','C5','Q_whichfig'];
 // Only the first five are arithmetic on the dose figures and can be re-derived from the
 // model. Q_quantity, Q_thresh and Q_gist test which quantity is on screen, where coverage
 // sits relative to the herd-immunity threshold, and the gist; their keys are checked below
 // against the coverage and threshold data instead.
-const ARITH=['C1','C_dose2','C_ratio','C5','C_half','C_diff'];
+const ARITH=['C1','C_ratio','C_diff','C5'];
 const keyIdx={}, keyTxt={};
 for(const arm of ARMS){
   const m=model(arm), nd=m.sar*100, d1=nd*(1-m.ve1), d2=nd*(1-m.ve2);
-  const want={C1:Math.round(nd), C_dose2:Math.round(d2), C_ratio:Math.round(nd/d2),
-              C5:Math.round(nd*2), C_half:Math.round(nd/2), C_diff:Math.round(nd-d2)};
+  const want={C1:Math.round(nd), C_ratio:Math.round(nd/d2),
+              C5:Math.round(nd*2), C_diff:Math.round(nd-d2)};
   const s=fs.readFileSync(p.join(ROOT,arm,'survey.html'),'utf8');
   keyIdx[arm]={}; keyTxt[arm]={};
   console.log(`-- ${arm}: display shows ${Math.round(nd)} / ${Math.round(d1)} / ${Math.round(d2)} per 100`);
@@ -104,10 +104,6 @@ for(const arm of ARMS){
     const herd=+iface.match(/herd:\s*([\d.]+)/)[1]*100;
     const cov=JSON.parse(fs.readFileSync(p.join(ROOT,arm,'utla_data.json'),'utf8'))[CAM].mmr2*100;
     const gap=cov-herd;
-    const wantT = gap<=-10?0 : gap<0?1 : gap<10?2 : 3;
-    const rt=radio(s,'Q_thresh');
-    if(rt && rt.key!==wantT)
-      bad(`${arm} Q_thresh: key ${rt.key}, coverage ${cov.toFixed(0)} vs threshold ${herd.toFixed(0)} gives ${wantT}`);
     const wantG = gap>=0?0 : gap>-10?1 : 2;
     const rg=radio(s,'Q_gist');
     if(rg && rg.key!==wantG)
@@ -165,7 +161,7 @@ for(const arm of ARMS){
   // balance here, particularly since participants never learn whether an answer was right, so
   // no position can be learned. Section 9 flags participants whose responses sit at a constant
   // position instead.
-  for(const k in c) if(c[k]>4) bad(`${arm}: position ${k} is correct for ${c[k]} of the eight items`);
+  for(const k in c) if(c[k]>3) bad(`${arm}: position ${k} is correct for ${c[k]} of the eight items`);
 }
 console.log('  8 items x 3 diseases: keys match the model, positions rotate, no position sweeps a trial');
 
@@ -174,14 +170,14 @@ console.log('\n=== 1c. TRIMMED ITEMS stay out ===');
 // 6.3). If one is reinstated by hand the answer key and the analysis plan drift apart, so
 // assert their absence rather than trusting it.
 const CUT=['B_cov_val','XB','XC','Fpeakht','C_scale2','C_step2','A_cov_val','A_level','XD',
-           'Q_quantity','TLX_frustration','TLX_pace','TLX_perf'];
+           'Q_quantity','C_dose2','C_half','Q_thresh','TLX_frustration','TLX_pace','TLX_perf'];
 for(const arm of ARMS){
   const s=fs.readFileSync(p.join(ROOT,arm,'survey.html'),'utf8');
   for(const id of CUT) if(s.includes('"'+id+'"')) bad(`${arm}: ${id} was cut but is present again`);
   const n=(s.match(/RADIO\(/g)||[]).length + (s.match(/LIK\(/g)||[]).length;
-  if(n!==20) bad(`${arm}: ${n} items per trial, expected 20`);
+  if(n!==17) bad(`${arm}: ${n} items per trial, expected 17`);
 }
-console.log('  20 items per trial: 7 risk-display + 7 shared + 4 subjective + 2 workload');
+console.log('  17 items per trial: 5 risk-display + 6 shared + 4 subjective + 2 workload');
 
 console.log('\n=== 2. COPIES byte-identical to their source ===');
 for(const arm of ARMS){

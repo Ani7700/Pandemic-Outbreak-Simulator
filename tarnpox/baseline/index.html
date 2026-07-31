@@ -256,15 +256,11 @@ const BLOCKS = [
   items:[
    RADIO("C1","If an unvaccinated child comes into contact with someone who has Tarnpox, how likely are they to catch it?",
      ["About 8 in 100","About 40 in 100","About 55 in 100","About 70 in 100","Not sure"],1),
-   RADIO("C_dose2","Out of 100 fully vaccinated children who come into contact with Tarnpox, roughly how many would still catch it?",
-     ["About 1","About 4","About 8","About 20","Not sure"],2),
    RADIO("C_ratio","If both are exposed to Tarnpox, how many times more likely is an unvaccinated child to catch it than a fully vaccinated child?",["About the same","About 5 times","About 2 times","About 20 times","Not sure"],1),
    RADIO("C5","If 200 unvaccinated children all came into contact with Tarnpox, roughly how many would catch it?",
      ["About 20","About 80","About 50","About 160","Not sure"],1),
    RADIO("C_diff","Out of 100 children who come into contact with Tarnpox, roughly how many fewer would catch it if they were fully vaccinated rather than unvaccinated?",
      ["About 40","About 8","About 20","About 32","Not sure"],3),
-   RADIO("C_half","If 50 unvaccinated children all came into contact with Tarnpox, roughly how many would catch it?",
-     ["About 20","About 40","About 80","About 160","Not sure"],0),
    RADIO("Q_whichfig","A parent asks: my child has had both doses of the vaccine. If my child is in a class where someone has Tarnpox, how likely are they to catch it? Which figure on the page answers that?",
      ["The no-doses figure","The one-dose figure","The both-doses figure","None of them, because the page gives the chance over a whole year rather than for meeting one case","Not sure"],2),
    RADIO("A_peakht","In the six-week outbreak projection for Cambridge, at its highest point, about how many confirmed cases are active at the same time on the \"most likely\" line?",
@@ -280,8 +276,6 @@ const BLOCKS = [
    // ── Hardest: link coverage to how an outbreak would unfold across the two areas ──
    RADIO("Fpeaktime","By the end of the six-week projection for Hackney, which best describes the number of active cases?",
      ["Still rising","Leveling off near a peak","Already past its peak and falling","Not sure"],2),
-   RADIO("Q_thresh","The page shows this area's coverage and the level needed to stop Tarnpox spreading. How does the coverage here compare with that level?",
-     ["More than 10 points below it","A little below it, within about 5 points","A little above it, within about 5 points","More than 10 points above it","Not sure"],0),
    RADIO("Q_gist","Which single sentence best sums up what this page says about this area?",
      ["Coverage here is at or above the level needed, so an outbreak would stay small","Coverage here is just below the level needed, so an outbreak could grow but stay modest","Coverage here is far below the level needed, so an outbreak could become large","The page does not give enough information to say","Not sure"],2),
    RADIO("Q_nonlinear","You have now seen the six-week projection for both areas. Which area's highest point is bigger, and by roughly how much?",
@@ -372,7 +366,7 @@ function buildRecord(){
   // worth about seven participants and costs nothing. The four added items also read the
   // one-dose level, which the original four never did, so the dose gradient the line chart
   // exists to show is now actually tested.
-  const RISK_IDS = ["C1","C_dose2","C_ratio","C5","C_half","C_diff","Q_whichfig"];
+  const RISK_IDS = ["C1", "C_ratio", "C_diff", "C5", "Q_whichfig"];
   BLOCKS.forEach(b=>b.items.forEach(q=>{
     const col = q.num ? ("Q"+String(q.num).padStart(2,"0")+"_"+q.id) : q.id;
     rec[col]=ANS[q.id]!=null?ANS[q.id]:"";
