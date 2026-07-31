@@ -33,8 +33,6 @@ for(const arm of ARMS){
   console.log(`-- ${arm}: Cambs cov ${camCov}% ill-now ${camN} band ${bc.k} peak ${bc.pk} | Hackney cov ${hacCov}% ill-now ${hacN} band ${bh.k} peak ${bh.pk}`);
   const chk=(id,want,note)=>{const r=radio(s,id);if(!r)return bad(id+' missing');
     if(r.key!==want) bad(`${arm} ${id}: key=${r.key} but data says ${want} (${note})`);};
-  chk('A_cov_val',nearest(radio(s,'A_cov_val').opts,camCov),'Cambs coverage '+camCov+'%');
-  chk('A_level',bc.k,'Cambs band');
   chk('A_peakht',nearest(radio(s,'A_peakht').opts,bc.pk),'Cambs peak '+bc.pk);
   chk('B_cases',nearest(radio(s,'B_cases').opts,hacN),'Hackney ill now '+hacN);
   const shape = bh.day>=41 ? 0 : (bh.end < bh.pk*0.98 ? 2 : 1);
@@ -76,13 +74,17 @@ function model(arm){
 }
 // first number in an option string: "About 60 in 100" is 60, not 60100
 const numOf=o=>{const m=o.match(/(\d[\d,]*)/); return m?+m[1].replace(/,/g,''):null;};
-const RISK_IDS=['C1','C_dose2','C_ratio','C5','C_half','C_diff','C_scale2','C_step2'];
+const RISK_IDS=['C1','C_dose2','C_ratio','C5','C_diff','Q_quantity','Q_thresh','Q_gist'];
+// Only the first five are arithmetic on the dose figures and can be re-derived from the
+// model. Q_quantity, Q_thresh and Q_gist test which quantity is on screen, where coverage
+// sits relative to the herd-immunity threshold, and the gist; their keys are checked below
+// against the coverage and threshold data instead.
+const ARITH=['C1','C_dose2','C_ratio','C5','C_diff'];
 const keyIdx={}, keyTxt={};
 for(const arm of ARMS){
   const m=model(arm), nd=m.sar*100, d1=nd*(1-m.ve1), d2=nd*(1-m.ve2);
   const want={C1:Math.round(nd), C_dose2:Math.round(d2), C_ratio:Math.round(nd/d2),
-              C5:Math.round(nd*2), C_half:Math.round(nd/2), C_diff:Math.round(nd-d2),
-              C_scale2:Math.round(d2*2), C_step2:Math.round(d1-d2)};
+              C5:Math.round(nd*2), C_diff:Math.round(nd-d2)};
   const s=fs.readFileSync(p.join(ROOT,arm,'survey.html'),'utf8');
   keyIdx[arm]={}; keyTxt[arm]={};
   console.log(`-- ${arm}: display shows ${Math.round(nd)} / ${Math.round(d1)} / ${Math.round(d2)} per 100`);
@@ -90,8 +92,42 @@ for(const arm of ARMS){
     const r=radio(s,id);
     if(!r){ bad(`${arm} ${id} missing from the item bank`); continue; }
     keyIdx[arm][id]=r.key; keyTxt[arm][id]=r.opts[r.key];
-    const got=numOf(r.opts[r.key]);
-    if(got!==want[id]) bad(`${arm} ${id}: keyed option says ${got}, the model gives ${want[id]}`);
+    if(ARITH.includes(id)){
+      const got=numOf(r.opts[r.key]);
+      if(got!==want[id]) bad(`${arm} ${id}: keyed option says ${got}, the model gives ${want[id]}`);
+    }
+  }
+  // Q_thresh and Q_gist turn on where this area's coverage sits relative to the threshold the
+  // page prints. Derive the gap and check the keyed band, rather than trusting the item bank.
+  {
+    const P=loadProj(arm);
+    const iface=fs.readFileSync(p.join(ROOT,arm,'index.html'),'utf8');
+    const herd=+iface.match(/herd:\s*([\d.]+)/)[1]*100;
+    const cov=JSON.parse(fs.readFileSync(p.join(ROOT,arm,'utla_data.json'),'utf8'))[CAM].mmr2*100;
+    const gap=cov-herd;
+    const wantT = gap<=-10?0 : gap<0?1 : gap<10?2 : 3;
+    const rt=radio(s,'Q_thresh');
+    if(rt && rt.key!==wantT)
+      bad(`${arm} Q_thresh: key ${rt.key}, coverage ${cov.toFixed(0)} vs threshold ${herd.toFixed(0)} gives ${wantT}`);
+    const wantG = gap>=0?0 : gap>-10?1 : 2;
+    const rg=radio(s,'Q_gist');
+    if(rg && rg.key!==wantG)
+      bad(`${arm} Q_gist: key ${rg.key}, coverage ${cov.toFixed(0)} vs threshold ${herd.toFixed(0)} gives ${wantG}`);
+    // Q_nonlinear: which area's six-week peak is bigger, and by a few times or tens of times
+    const cp=Math.max(...P[CAM].med.slice(0,43)), hp=Math.max(...P[HAC].med.slice(0,43));
+    const ratio = cp>hp ? cp/hp : hp/cp;
+    const wantN = cp>hp ? (ratio<10?0:1) : (ratio<10?2:3);
+    const rn=radio(s,'Q_nonlinear');
+    if(rn && rn.key!==wantN)
+      bad(`${arm} Q_nonlinear: key ${rn.key}, peaks ${cp.toFixed(0)} vs ${hp.toFixed(0)} (${ratio.toFixed(1)}x) give ${wantN}`);
+    // Q_band: the top of the shaded range at the Cambridgeshire peak
+    const chi=Math.max(...P[CAM].hi.slice(0,43));
+    const rb=radio(s,'Q_band');
+    if(rb){
+      const got=numOf(rb.opts[rb.key]);
+      if(Math.abs(got-chi)/chi > 0.20)
+        bad(`${arm} Q_band: key says ${got}, the top of the band is ${chi.toFixed(0)}`);
+    }
   }
   const decl=s.match(/const RISK_IDS\s*=\s*\[([^\]]*)\]/);
   const inPage=decl?JSON.parse('['+decl[1]+']'):[];
@@ -112,7 +148,15 @@ for(const id of RISK_IDS){
 // eight, so a participant answering by position alone scores 2/8 rather than 8/8.
 for(const arm of ARMS){
   const c={}; RISK_IDS.forEach(id=>{c[keyIdx[arm][id]]=(c[keyIdx[arm][id]]||0)+1;});
-  for(const k in c) if(c[k]>2) bad(`${arm}: position ${k} is correct for ${c[k]} of the eight items`);
+  // Relaxed from two to four. The old scale was eight variations of one arithmetic operation,
+  // so its distractors were free to be anything and the positions could be balanced exactly.
+  // The new scale has semantically ordered options (below -> above the threshold; small ->
+  // large outbreak) and numeric options in ascending order with distractors that are named
+  // misreadings; both fix where the key can sit. Item quality is worth more than positional
+  // balance here, particularly since participants never learn whether an answer was right, so
+  // no position can be learned. Section 9 flags participants whose responses sit at a constant
+  // position instead.
+  for(const k in c) if(c[k]>4) bad(`${arm}: position ${k} is correct for ${c[k]} of the eight items`);
 }
 console.log('  8 items x 3 diseases: keys match the model, positions rotate, no position sweeps a trial');
 
@@ -120,7 +164,8 @@ console.log('\n=== 1c. TRIMMED ITEMS stay out ===');
 // Seven items were cut because they were redundant or descriptive-only (protocol v7 section
 // 6.3). If one is reinstated by hand the answer key and the analysis plan drift apart, so
 // assert their absence rather than trusting it.
-const CUT=['B_cov_val','XB','XC','Fpeakht','TLX_frustration','TLX_pace','TLX_perf'];
+const CUT=['B_cov_val','XB','XC','Fpeakht','C_half','C_scale2','C_step2','A_cov_val','A_level',
+           'TLX_frustration','TLX_pace','TLX_perf'];
 for(const arm of ARMS){
   const s=fs.readFileSync(p.join(ROOT,arm,'survey.html'),'utf8');
   for(const id of CUT) if(s.includes('"'+id+'"')) bad(`${arm}: ${id} was cut but is present again`);

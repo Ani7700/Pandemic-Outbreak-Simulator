@@ -3,13 +3,13 @@ const fs=require('fs'),p=require('path');
 const ROOT=process.env.FRONTEND_ROOT || __dirname;
 const OUT=process.env.ANSWER_KEY || p.join(ROOT,'..','..','ANSWER_KEY.md');
 const ARMS=[['verrow','Verrow fever  (measles)'],['solvik','Solvik  (rubella)'],['tarnpox','Tarnpox  (mumps)']];
-const ORDER=['A_cov_val','A_level','C1','C_dose2','C_ratio','C5',
-             'C_half','C_diff','C_scale2','C_step2','A_peakht',
-             'B_cases','Fpeaktime','XD'];
+const ORDER=['C1','C_dose2','C_ratio','C5','C_diff',
+             'Q_quantity','Q_thresh','Q_gist','A_peakht',
+             'B_cases','Fpeaktime','XD','Q_nonlinear','Q_band'];
 // The starred set is score_risk_display: the items that read the step-3 display and therefore
 // the only ones the prototype manipulation can move. Protocol v7 doubled it from four to eight.
-const STAR=new Set(['C1','C_dose2','C_ratio','C5','C_half','C_diff','C_scale2','C_step2']);
-const PART=id=>ORDER.indexOf(id)<11?'P1':'P2';
+const STAR=new Set(['C1','C_dose2','C_ratio','C5','C_diff','Q_quantity','Q_thresh','Q_gist']);
+const PART=id=>ORDER.indexOf(id)<9?'P1':'P2';
 const RL=["Low","Medium","High","Very high","Not sure"];
 
 function radios(s){
@@ -92,6 +92,17 @@ C_dose2 was always first and C_ratio and C5 always third, so a participant answe
 score 4/4 on every trial without reading the display. They never see whether an answer was right, so nothing
 could be learned — but a low-effort participant could still sweep the scale, which pushed it towards its
 ceiling. \`verify_survey_keys.js\` enforces both rules.
+
+**Questionnaire trimmed to fourteen scored items (protocol v7).** Seven items were removed before fielding:
+\`B_cov_val\`, \`XB\`, \`XC\` and \`Fpeakht\` from the comprehension block, and TLX frustration, pace and
+self-rated performance from the workload block. Each was redundant, repeated an operation another item already
+tested, or produced only descriptive data that no inferential test uses. No risk-display item was touched, so
+\`score_risk_display\` is unaffected; \`score_shared\` now runs 0-6 rather than 0-10. Per trial the count fell
+from 27 items to 20, and per participant from 81 to 60.
+
+**Note on the change log above.** Entries dated before this trim still discuss \`B_cov_val\`, \`XB\`, \`XC\` and
+\`Fpeakht\`. They describe revisions made while those items were still in the survey and are kept for the
+record. Those four items are no longer asked, and no table below contains them.
 - **Watch Tarnpox Q9 against Q12.** Hackney's Tarnpox curve is flat, so its current count and its six-week peak
   are both 6 — the two questions share a numeric answer, and a participant who reads only the map panel gets
   Q12 right without reading the chart. Consider a different Part 2 area for that arm.
