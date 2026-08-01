@@ -5,8 +5,15 @@ const OUT=process.env.ANSWER_KEY || p.join(ROOT,'..','..','ANSWER_KEY.md');
 const ARMS=[['verrow','Verrow fever  (measles)'],['solvik','Solvik  (rubella)'],['tarnpox','Tarnpox  (mumps)']];
 const ORDER=['Q_dgist','C_comp','C_step2','Q_dapply','A_peakht','Q_gist','Q_band','B_cases','Fpeaktime','Q_nonlinear'];
 // The starred set is score_risk_display: the items that read the step-3 display and therefore
-// the only ones the prototype manipulation can move. Protocol v7 doubled it from four to eight.
-const STAR=new Set(['C1','C_ratio','C_diff','C5','C_comp','C_step2']);
+// the only ones the prototype manipulation can move. Read it out of the deployed survey rather
+// than restating it here -- it was hard-coded to a stale six-item list and silently starred the
+// wrong items after the scale was rebuilt.
+const STAR=(()=>{
+  const s=fs.readFileSync(p.join(ROOT,'solvik','survey.html'),'utf8');
+  const m=s.match(/const RISK_IDS\s*=\s*\[([^\]]*)\]/);
+  if(!m) throw new Error('gen_key: no RISK_IDS in solvik/survey.html');
+  return new Set(JSON.parse('['+m[1]+']'));
+})();
 const PART=id=>ORDER.indexOf(id)<7?'P1':'P2';   // block 1 now holds 7 graded items, block 2 holds 3
 const RL=["Low","Medium","High","Very high","Not sure"];
 
@@ -28,13 +35,20 @@ function radios(s){
 
 const HEAD=`# Comprehension answer key (all 3 diseases)
 
-Q1-Q14 match on-screen numbers and data column prefixes (Q0N_<id>). Score: Q0N_<id>_correct (1=correct).
+Q1-Q10 match on-screen numbers and data column prefixes (Q0N_<id>). Score: Q0N_<id>_correct (1=correct).
 Cross-disease pooling: join on <id> (numbers differ because each arm carries its own coverage and case data).
 
-**Prototype comparison:** arms (survey1/2/3 = versions 1/2/7) differ ONLY in the step-3 risk display; the ★ items
-(C1, C_ratio, C5, C_diff, C_comp, C_step2) are the only prototype-sensitive ones.
-Use **\`score_risk_display\`** (0-6) as the primary DV.
-All 3 arms display the same values (out of 100); answer units are matched so no format gets a free read.
+**Prototype comparison (current as of 2026-08-01).** The three arms are survey1/2/3 = interface versions
+**1 / 2 / 7**: a plain frequency card (\`50 in 100\`), a 100-dot icon array with **no numeral**, and a line
+chart with **no point labels**. They differ ONLY in the step-3 risk display, so the ★ items — read out of
+\`RISK_IDS\` in the deployed survey, currently **Q_dgist, C_comp, C_step2, Q_dapply** — are the only
+prototype-sensitive ones. Use **\`score_risk_display\`** (0-4) as the primary DV; \`score_shared\` (0-6)
+covers the map/coverage/projection, which all three arms render identically, and is therefore only
+informative for the tool-vs-baseline contrast.
+
+Two of the three arms no longer print the value, so the encoding is load-bearing: v2's dots must be counted
+(they sit in four 5x5 blocks so a partial row reads as \"five and three\"), and v7's points must be
+interpolated against gridlines every 10. v1 still prints the number.
 
 **This file is generated** from \`{arm}/survey.html\` by \`gen_key.js\` — regenerate it after any survey edit rather
 than hand-editing, so the key cannot drift from what participants actually see.
@@ -78,24 +92,31 @@ comparative item keeps its answer.
   current total or the area's own current count.
 - **Nothing else moved** — \`A_level\`, \`A_cov_val\`, \`B_cov_val\`, \`XB\`, \`Fpeaktime\` and \`XD\` are untouched.
 
-**Primary scale is six items, one per operation.** \`score_risk_display\` runs 0-6 over \`C1\` (read a stated
-figure), \`C_ratio\` (relative comparison), \`C5\` (rescale the denominator), \`C_diff\` (difference across the
-full range), \`C_comp\` (the complement) and \`C_step2\` (the one-dose to two-dose step). The self-report item
-was dropped: it asked which figure the reader had used, which has no key that is true of the world.
+**Primary scale is four items (2026-08-01), one distinct display affordance each.**
+\`score_risk_display\` runs 0-4 over \`Q_dgist\` (the top row as a coarse fraction — the part-whole judgement
+the icon array is built for, and the one item with a directional prediction), \`C_comp\` (the complement,
+which on the icon array is the uncoloured dots), \`C_step2\` (the one-dose to two-dose step, which on the
+line chart is one segment's slope) and \`Q_dapply\` (100 unvaccinated plus 100 fully vaccinated, the only
+item that cannot be answered from a single row).
 
-\`C_comp\` and \`C_step2\` exist because the other four are arithmetic on numbers all three prototypes print
-identically, so no graphic could show an advantage on any of them. The complement is the uncoloured dots on
-the icon array; the one-dose to two-dose step is one segment's slope on the line chart. \`C_step2\` had been
-cut as redundant with \`C_diff\` — true of the arithmetic, false of the display — and is reinstated.
+Removed along the way, and asserted absent by \`verify_survey_keys.js\`: the self-report item (no key that is
+true of the world); \`C1\` and \`C5\` (a read-off and a x2 rescale of the same row, which no graphic could
+move); and \`C_ratio\` and \`C_diff\` (cut to bring the graded bank to ten items — \`C_diff\` spans the two
+end rows, which every prototype renders the same way).
 
 **Option positions rotate.** Each item places its correct option at a different index in each of the three
-diseases, and within any one disease no position is correct for more than two of the eight items. Before this,
+diseases, and within any one disease no position is correct for more than two of the four primary items. Before this,
 C_dose2 was always first and C_ratio and C5 always third, so a participant answering by position alone could
 score 4/4 on every trial without reading the display. They never see whether an answer was right, so nothing
 could be learned — but a low-effort participant could still sweep the scale, which pushed it towards its
 ceiling. \`verify_survey_keys.js\` enforces both rules.
 
-**Questionnaire trimmed to fourteen scored items (protocol v7).** Seven items were removed before fielding:
+**Questionnaire trimmed to ten scored items.** Fourteen after the protocol v7 trim below, then twelve when
+\`C1\` and \`C5\` were replaced by \`Q_dgist\` and \`Q_dapply\`, then ten when \`C_ratio\` and \`C_diff\` came
+out for participant burden (all 2026-08-01). Sixteen items per trial in total: 4 risk-display + 6 shared +
+4 subjective + 2 workload.
+
+**Protocol v7 trim (earlier).** Seven items were removed before fielding:
 \`B_cov_val\`, \`XB\`, \`XC\` and \`Fpeakht\` from the comprehension block, and TLX frustration, pace and
 self-rated performance from the workload block. Each was redundant, repeated an operation another item already
 tested, or produced only descriptive data that no inferential test uses. No risk-display item was touched, so

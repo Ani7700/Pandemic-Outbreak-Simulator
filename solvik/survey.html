@@ -368,16 +368,17 @@ function buildRecord(){
     nav_back_count:NAV_BACK, nav_path:NAV_PATH.join(">"),
     user_agent:navigator.userAgent};
   let correct=0,graded=0, scoreRisk=0,maxRisk=0, scoreShared=0,maxShared=0;
-  // These 8 items are the ONLY ones that differ across prototype arms (they read the step-3
-  // risk display, which is what versions 1/2/7 change). The other 10 are about the shared
-  // map/coverage/projection, so use score_risk_display as the primary DV for the arm comparison.
+  // These 4 items are the ONLY ones that differ across prototype arms (they read the step-3
+  // risk display, which is what versions 1/2/7 change). The other 6 graded items are about the
+  // shared map/coverage/projection, so use score_risk_display as the primary DV for the arm
+  // comparison and score_shared only for tool-vs-baseline.
   //
-  // Protocol v7 doubled this set from four items to eight. A four-item score is a coarse
-  // measurement and item-level noise was a large part of the trial-to-trial variance every
-  // planned comparison has to see through; doubling the count halves that component, which is
-  // worth about seven participants and costs nothing. The four added items also read the
-  // one-dose level, which the original four never did, so the dose gradient the line chart
-  // exists to show is now actually tested.
+  // The set was eight under protocol v7, on the argument that a longer scale carries less
+  // item-level noise. That argument still holds and the scale was shortened anyway (2026-08-01),
+  // first because half of those items were one-step arithmetic on numbers every prototype
+  // printed identically, and then for participant burden. What is left covers one distinct
+  // display affordance each: Q_dgist the part-whole gist, C_comp the complement, C_step2 the
+  // adjacent-row step, Q_dapply two rows combined. The cost in power is real and known.
   const RISK_IDS = ["Q_dgist", "C_comp", "C_step2", "Q_dapply"];
   BLOCKS.forEach(b=>b.items.forEach(q=>{
     const col = q.num ? ("Q"+String(q.num).padStart(2,"0")+"_"+q.id) : q.id;
