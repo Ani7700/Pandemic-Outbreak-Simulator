@@ -168,7 +168,7 @@ html.skin-brutal #case-panel .cp-num{font-weight:900;}
 
     <p>Whether an exposed child actually falls ill turns largely on their own doses. A child with none who meets a case has something like a four in ten chance of catching it. A single dose pulls that down to about two in ten, and both doses bring it to only around eight in a hundred. The first dose does the heaviest lifting, since the fall from four in ten to two in ten outweighs the further drop to eight in a hundred. Even so, no amount of vaccination erases the danger completely, and after two doses a small chance always lingers. In round numbers, of two hundred unvaccinated children all exposed, roughly eighty would be infected, against about eight of every hundred who had had both doses.</p>
 
-    <p>Were an outbreak to take hold, it would not hold steady. Over the six weeks the modelling suggests the number ill would climb where vaccine coverage is thin and fade away where it is high. Any such projection carries a spread of possibilities around its most likely path, which is a measure of how uncertain it is rather than a single promised figure, and it describes what could happen rather than what is bound to. In Cambridgeshire, where coverage is well under the threshold, the most likely path starts at roughly thirty children ill at once and climbs steadily to about a hundred and sixty by the end of the six weeks, still rising when the window closes. In Hackney the picture is the opposite: it starts at no more than half a dozen and falls away within the first week or so to about one, because at ninety-six per cent coverage each case passes the disease on to fewer than one other child and the chain cannot sustain itself.</p>
+    <p>Were an outbreak to take hold, it would not hold steady. Over the six weeks the modelling suggests the number ill would climb where vaccine coverage is thin and fade away where it is high. Any such projection carries a spread of possibilities around its most likely path, which is a measure of how uncertain it is rather than a single promised figure, and it describes what could happen rather than what is bound to. In Cambridgeshire, where coverage is well under the threshold, the most likely path starts at roughly thirty children ill at once and climbs steadily to about a hundred and sixty by the end of the six weeks, still rising when the window closes; at the top of its range of possibilities it could plausibly reach about four hundred and sixty. In Hackney the picture is the opposite: it starts at no more than half a dozen and falls away within the first week or so to about one, because at ninety-six per cent coverage each case passes the disease on to fewer than one other child and the chain cannot sustain itself — even at the top of its range of possibilities it stays at no more than about half a dozen.</p>
   </div>
 
   <!-- ══ RIGHT: chatbot ══ -->
@@ -214,7 +214,7 @@ function classify(t){
   t=t.toLowerCase(); const tt=t.trim(); const has=(...w)=>w.some(x=>t.includes(x));
   if(has("what should i","which option","is it correct","is that right","the answer","help me answer","survey","quiz","what do i pick")) return "meta";
   if((tt.length<16 && /^(hi|hey|hello|help|start)\b/.test(tt)) || has("what can you","how does this work")) return "greeting";
-  if(has("what is verrow","what's verrow","about verrow","this disease","measles")) return "what";
+  if(has("what is tarnpox","what's tarnpox","about tarnpox","this disease","measles")) return "what";
 
   // Single-area "high or low cases" (A_cases/B_cases), before area comparison,
   // since it is phrased "compared with other areas".
@@ -224,7 +224,7 @@ function classify(t){
   if(has("which area","in which area","which of the two","cambridge or hackney","hackney or cambridge","the two areas","both areas","other area","compare the two")){
     if(has("outbreak","spread","faster","wider","reach more","larger share","grow more")) return "xd";
     if(has("case","cases")) return "xc";
-    if(has("over a year","more likely to catch","catch it","catch verrow","unvaccinated")) return "xa";
+    if(has("over a year","more likely to catch","catch it","catch tarnpox","unvaccinated")) return "xa";
     if(has("coverage","better vaccinated","higher vaccination")) return "xb";
     return "compare";
   }
@@ -295,7 +295,7 @@ function reply(intent){
 
     // ── trend / projection (F1–F3) ──
     case "f1": return "The briefing describes how the number infected would change over the six weeks — how fast it climbs, and whether it reaches a high point within that time or is still rising at the end. For each area it gives the rough figures: the high point and roughly when it is reached if the outbreak peaks within the six weeks, or the level it has climbed to by the end if it is still rising. Read those figures off the briefing.";
-    case "f2": return "The briefing explains the range shown around a projection. It reflects how uncertain the projection is, not deaths and not past cases.";
+    case "f2": return "For each area the briefing gives both the most likely path over the six weeks and how high the figure could plausibly go at the top of its range. That range reflects how uncertain the projection is — it is not deaths and not past cases.";
     case "f3": return "The briefing says whether an outbreak projection is a guaranteed prediction or a model of what could happen if an outbreak started. Check how it describes it.";
 
     default: return "I can help with any of these: an area’s coverage, whether it is above or below herd immunity, its risk level, its cases, how the vaccine doses protect a child, how the two areas compare, and how an outbreak might unfold. The figures are in the briefing on the left. Which would you like?";

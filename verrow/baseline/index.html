@@ -247,12 +247,16 @@ const SEL  =(id,prompt,opts)=>({id,type:"select",prompt,opts});
 
 // One block per stage — questions sit right beside the thing they are about.
 // Two areas are looked up. In THIS arm (verrow):
-//   AREA A = Cambridgeshire — 91% 2nd-dose coverage, 539 cases, band LOW,
-//           six-week peak ~36 ill at once (creeps up slowly).
-//   AREA B = Hackney        — 56% 2nd-dose coverage, 289 cases, band VERY HIGH,
-//           six-week peak ~2,267 ill at once (peaked in week 5 and is falling).
+//   AREA A = Cambridgeshire — 91% 2nd-dose coverage, 24 active today, band LOW,
+//           six-week peak ~36 ill at once (creeps up slowly), top of range ~82.
+//   AREA B = Hackney        — 56% 2nd-dose coverage, 13 active today, band VERY HIGH,
+//           six-week peak ~2,267 ill at once (peaked in week 5 and is falling), top of range ~2,687.
 // Coverage and case counts differ BETWEEN arms, so every answer key below is
 // arm-specific. Bands are read off the six-week projection by riskFromCurve().
+// "active today" = med[0] of that projection; "top of range" = max of the hi band
+// over the same 43-day window, which is Q_band's key. Both figures must also appear
+// in the arm's infochat briefing, or the baseline condition cannot answer the item —
+// verify_baseline_parity.js asserts that.
 const RL = ["Low","Medium","High","Very high","Not sure"];  // risk-level options
 const BLOCKS = [
  // ── PART 1: Cambridge (low risk in this arm) — go through the WHOLE tool, then answer ──
@@ -275,7 +279,7 @@ const BLOCKS = [
      ["About 24","About 35","About 57","About 86","Not sure"],1),
    RADIO("Q_gist","Which single sentence best sums up what this page says about this area?",
      ["Coverage here is at or above the level needed, so an outbreak would stay small","Coverage here is just below the level needed, so an outbreak could grow but stay modest","Coverage here is far below the level needed, so an outbreak could become large","The page does not give enough information to say","Not sure"],1),
-   RADIO("Q_band","The chart draws a lighter range around the most likely line. Over the six weeks, how high could the number of active cases plausibly go?",
+   RADIO("Q_band","The six-week projection carries a range of possibilities around its most likely path. At the top of that range, how high could the number of active cases plausibly go over the six weeks?",
      ["About 36","About 50","About 80","About 130","Not sure"],2),
    // ── Outbreak projection: what kind of thing it is (conceptual) ──
  ]},
