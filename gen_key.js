@@ -3,7 +3,7 @@ const fs=require('fs'),p=require('path');
 const ROOT=process.env.FRONTEND_ROOT || __dirname;
 const OUT=process.env.ANSWER_KEY || p.join(ROOT,'..','..','ANSWER_KEY.md');
 const ARMS=[['verrow','Verrow fever  (measles)'],['solvik','Solvik  (rubella)'],['tarnpox','Tarnpox  (mumps)']];
-const ORDER=['C1','C_ratio','C5','C_diff','C_comp','C_step2','A_peakht','Q_gist','Q_band','B_cases','Fpeaktime','Q_nonlinear'];
+const ORDER=['Q_dgist','C_ratio','C_diff','C_comp','C_step2','Q_dapply','A_peakht','Q_gist','Q_band','B_cases','Fpeaktime','Q_nonlinear'];
 // The starred set is score_risk_display: the items that read the step-3 display and therefore
 // the only ones the prototype manipulation can move. Protocol v7 doubled it from four to eight.
 const STAR=new Set(['C1','C_ratio','C_diff','C5','C_comp','C_step2']);

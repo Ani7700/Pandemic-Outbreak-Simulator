@@ -264,17 +264,17 @@ const BLOCKS = [
   instr:"<strong>Area 1 of 2 — Cambridge.</strong> In the tool below, search <strong>CB3 9DF</strong>, then go through <strong>both</strong> the <strong>Map</strong> stage and the <strong>Risk &amp; coverage</strong> stage — try any of the controls a few times. Once you've seen both, answer the questions underneath (you can scroll back up to the tool at any time):",
   instrBaseline:"<strong>Area 1 of 2 — Cambridge.</strong> Use the briefing and the assistant below to learn about <strong>Cambridge / Cambridgeshire</strong> — read the text on the left and/or ask the assistant on the right. Once you feel you understand this area, answer the questions underneath (you can scroll back up and keep asking at any time):",
   items:[
-   RADIO("C1","If an unvaccinated child comes into contact with someone who has Solvik, how likely are they to catch it?",
-     ["About 5 in 100","About 20 in 100","About 35 in 100","About 50 in 100","Not sure"],3),
+   RADIO("Q_dgist","Of the children who have had no doses at all and come into contact with someone who has Solvik, roughly what fraction would catch it?",
+     ["About 1 in 20","About 1 in 5","About 1 in 2","About 4 in 5","Not sure"],2),
    RADIO("C_ratio","If both are exposed to Solvik, how many times more likely is an unvaccinated child to catch it than a fully vaccinated child?",["About the same","About 3 times","About 30 times","About 10 times","Not sure"],3),
-   RADIO("C5","If 200 unvaccinated children all came into contact with Solvik, roughly how many would catch it?",
-     ["About 20","About 60","About 100","About 180","Not sure"],2),
    RADIO("C_diff","Out of 100 children who come into contact with Solvik, roughly how many fewer would catch it if they were fully vaccinated rather than unvaccinated?",
      ["About 50","About 5","About 45","About 30","Not sure"],2),
    RADIO("C_comp","Out of 100 fully vaccinated children who come into contact with Solvik, roughly how many would <strong>not</strong> catch it?",
      ["About 95","About 5","About 50","About 80","Not sure"],0),
    RADIO("C_step2","Out of 100 children who come into contact with Solvik, roughly how many fewer would catch it after two doses than after one dose?",
      ["About 5","About 45","About 30","About 15","Not sure"],3),
+   RADIO("Q_dapply","Imagine 200 children who all come into contact with someone who has Solvik: 100 of them have had no doses, and the other 100 have had both doses. Altogether, roughly how many of the 200 would catch it?",
+     ["About 50","About 55","About 100","About 110","Not sure"],1),
    RADIO("A_peakht","In the six-week outbreak projection for Cambridge, at its highest point, about how many confirmed cases are active at the same time on the \"most likely\" path?",
      ["About 16","About 30","About 47","About 90","Not sure"],1),
    RADIO("Q_gist","Which single sentence best sums up what this page says about this area?",
@@ -381,7 +381,7 @@ function buildRecord(){
   // worth about seven participants and costs nothing. The four added items also read the
   // one-dose level, which the original four never did, so the dose gradient the line chart
   // exists to show is now actually tested.
-  const RISK_IDS = ["C1", "C_ratio", "C_diff", "C5", "C_comp", "C_step2"];
+  const RISK_IDS = ["Q_dgist", "C_ratio", "C_diff", "C_comp", "C_step2", "Q_dapply"];
   BLOCKS.forEach(b=>b.items.forEach(q=>{
     const col = q.num ? ("Q"+String(q.num).padStart(2,"0")+"_"+q.id) : q.id;
     rec[col]=ANS[q.id]!=null?ANS[q.id]:"";

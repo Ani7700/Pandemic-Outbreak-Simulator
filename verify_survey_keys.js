@@ -73,9 +73,8 @@ function model(arm){
 }
 // first number in an option string: "About 60 in 100" is 60, not 60100
 const numOf=o=>{const m=o.match(/(\d[\d,]*)/); return m?+m[1].replace(/,/g,''):null;};
-const RISK_IDS=['C1','C_ratio','C_diff','C5','C_comp','C_step2'];
-// Every scored risk-display item is now arithmetic on the three dose figures, so every one
-// of them is re-derived from the model rather than trusted.
+const RISK_IDS=['Q_dgist','C_ratio','C_diff','C_comp','C_step2','Q_dapply'];
+// Every scored risk-display item is re-derived from the model rather than trusted.
 //
 // Two changes from the five-item set. The self-report item was dropped: it asked which figure
 // the reader used, which has no key that is true of the world, and it was being summed into
@@ -88,13 +87,32 @@ const RISK_IDS=['C1','C_ratio','C_diff','C5','C_comp','C_step2'];
 // one segment's slope. The complement is likewise a subtraction, and on the icon array it is
 // the uncoloured dots. Without these two, every scored item was arithmetic on numbers printed
 // identically by all three prototypes, so no graphic could show an advantage on any of them.
-const ARITH=['C1','C_ratio','C_diff','C5','C_comp','C_step2'];
+//
+// 2026-08-01. That argument justified C_comp and C_step2; it never justified C1 and C5, and
+// with those two in, the whole scale was one read-off plus five one-step operations on the
+// same three numbers — the same skill measured six times, all of it near the floor of what
+// the manipulation can distinguish. C1 (read the top row) and C5 (multiply the top row by
+// two) are out. In their place:
+//
+//   Q_dgist   the top row as a coarse fraction. No arithmetic. This is the part-whole
+//             judgement the icon array is supposed to be good at and the percentage display
+//             is supposed to be bad at, so it is the one item whose format effect is
+//             predicted by direction and not just by size.
+//   Q_dapply  two rows used together: 100 unvaccinated and 100 fully vaccinated, all exposed.
+//             Two look-ups, two scalings and a sum, and the only item in the scale that
+//             cannot be answered from a single row.
+//
+// The scale is still six items, so the primary DV keeps its length and its power.
+const ARITH=['C_ratio','C_diff','C_comp','C_step2','Q_dapply'];
+// Q_dgist's options are fractions, not counts, so it is checked separately: read each option
+// as a fraction and the key must be the one nearest the model's attack rate.
+const fracOf=o=>{const m=o.match(/(\d+)\s*in\s*(\d+)/); return m?+m[1]/+m[2]:null;};
 const keyIdx={}, keyTxt={};
 for(const arm of ARMS){
   const m=model(arm), nd=m.sar*100, d1=nd*(1-m.ve1), d2=nd*(1-m.ve2);
-  const want={C1:Math.round(nd), C_ratio:Math.round(nd/d2),
-              C5:Math.round(nd*2), C_diff:Math.round(nd-d2),
-              C_comp:Math.round(100-d2), C_step2:Math.round(d1-d2)};
+  const want={C_ratio:Math.round(nd/d2), C_diff:Math.round(nd-d2),
+              C_comp:Math.round(100-d2), C_step2:Math.round(d1-d2),
+              Q_dapply:Math.round(nd+d2)};
   const s=fs.readFileSync(p.join(ROOT,arm,'survey.html'),'utf8');
   keyIdx[arm]={}; keyTxt[arm]={};
   console.log(`-- ${arm}: display shows ${Math.round(nd)} / ${Math.round(d1)} / ${Math.round(d2)} per 100`);
@@ -105,6 +123,13 @@ for(const arm of ARMS){
     if(ARITH.includes(id)){
       const got=numOf(r.opts[r.key]);
       if(got!==want[id]) bad(`${arm} ${id}: keyed option says ${got}, the model gives ${want[id]}`);
+    }
+    if(id==='Q_dgist'){
+      let bi=-1,bd=Infinity;
+      r.opts.forEach((o,i)=>{const f=fracOf(o); if(f==null)return;
+        const d=Math.abs(f-m.sar); if(d<bd){bd=d;bi=i;}});
+      if(r.key!==bi)
+        bad(`${arm} Q_dgist: key is "${r.opts[r.key]}", but ${Math.round(nd)} in 100 is nearest "${r.opts[bi]}"`);
     }
   }
   // Q_thresh and Q_gist turn on where this area's coverage sits relative to the threshold the
@@ -172,14 +197,16 @@ console.log('\n=== 1c. TRIMMED ITEMS stay out ===');
 // assert their absence rather than trusting it.
 // C_step2 is deliberately absent from this list: it was cut, then reinstated (see 1b).
 const CUT=['B_cov_val','XB','XC','Fpeakht','C_scale2','A_cov_val','A_level','XD','Q_whichfig',
-           'Q_quantity','C_dose2','C_half','Q_thresh','TLX_frustration','TLX_pace','TLX_perf'];
+           'Q_quantity','C_dose2','C_half','Q_thresh','TLX_frustration','TLX_pace','TLX_perf',
+           // 2026-08-01: the read-off and the x2 rescale, replaced by Q_dgist and Q_dapply
+           'C1','C5'];
 for(const arm of ARMS){
   const s=fs.readFileSync(p.join(ROOT,arm,'survey.html'),'utf8');
   for(const id of CUT) if(s.includes('"'+id+'"')) bad(`${arm}: ${id} was cut but is present again`);
   const n=(s.match(/RADIO\(/g)||[]).length + (s.match(/LIK\(/g)||[]).length;
   if(n!==18) bad(`${arm}: ${n} items per trial, expected 18`);
 }
-console.log('  18 items per trial: 6 risk-display + 6 shared + 4 subjective + 2 workload');
+console.log('  18 items per trial: 6 risk-display (1 gist + 4 arithmetic + 1 applied) + 6 shared + 4 subjective + 2 workload');
 
 console.log('\n=== 1d. NO ITEM ANSWERS ANOTHER, AND NONE IS ON THE WRONG PAGE ===');
 // Two faults were shipped and caught by eye rather than by a check. Q_band's stem stated the
