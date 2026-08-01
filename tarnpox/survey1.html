@@ -41,8 +41,14 @@
 #tour-root{position:fixed;inset:0;z-index:100000;font-family:-apple-system,"Helvetica Neue",Arial,sans-serif;}
 #tour-root .tour-backdrop{position:fixed;inset:0;background:transparent;}
 #tour-root .tour-hole{position:fixed;border-radius:12px;box-shadow:0 0 0 9999px rgba(15,18,25,.55);
-  pointer-events:none;transition:left .25s ease,top .25s ease,width .25s ease,height .25s ease;
-  border:2px solid rgba(255,255,255,.92);}
+  pointer-events:none;border:2px solid rgba(255,255,255,.92);}
+/* The hole and the bubble are position:fixed and are placed only by position(). Until that has run
+   once they would paint in the viewport's top-left corner, so keep them out of sight until then --
+   visibility, not display, so the bubble can still be measured. The hole's slide transition is held
+   back the same way, otherwise on the first step it animates in from that corner. */
+#tour-root:not(.tour-ready) .tour-hole,
+#tour-root:not(.tour-ready) .tour-bubble{visibility:hidden;}
+#tour-root.tour-ready .tour-hole{transition:left .25s ease,top .25s ease,width .25s ease,height .25s ease;}
 #tour-root .tour-bubble{position:fixed;max-width:360px;background:#fff;border-radius:14px;
   padding:16px 18px;box-shadow:0 12px 44px rgba(0,0,0,.32);z-index:100002;}
 #tour-root .tour-title{font-size:12.5px;font-weight:700;color:#0071e3;letter-spacing:.03em;
@@ -499,8 +505,9 @@ $("block-back").addEventListener("click",()=>{
       hole.style.left=Math.max(-pad,r.left-pad)+"px"; hole.style.top=Math.max(-pad,r.top-pad)+"px";
       hole.style.width=(r.width+pad*2)+"px"; hole.style.height=(r.height+pad*2)+"px";
     } else { hole.style.display="none"; }
-    const bw=Math.min(360, window.innerWidth-24), bh=bub.offsetHeight||170;
-    bub.style.width=bw+"px";
+    const bw=Math.min(360, window.innerWidth-24);
+    bub.style.width=bw+"px";                    // width first, so the height read below is the final one
+    const bh=bub.offsetHeight||170;
     let bx,by;
     if(r){
       bx=Math.min(Math.max(12,r.left), window.innerWidth-bw-12);
@@ -509,6 +516,7 @@ $("block-back").addEventListener("click",()=>{
       else by=Math.max(12, window.innerHeight-bh-12);
     } else { bx=(window.innerWidth-bw)/2; by=(window.innerHeight-bh)/2; }
     bub.style.left=bx+"px"; bub.style.top=by+"px";
+    root.classList.add("tour-ready");           // first placement done - now it may be painted
   }
   function show(){
     const step=STEPS[idx];
@@ -518,6 +526,7 @@ $("block-back").addEventListener("click",()=>{
     root.querySelector(".tour-next").textContent = idx===STEPS.length-1?"Got it":"Next";
     if(step.before) step.before(toolWin());
     gateNext();
+    position();                                 // place it in this same task, before the first paint
     setTimeout(()=>{
       const el = step.host==="survey" ? document.querySelector(step.sel) : document.getElementById("tool-frame");
       if(el && el.scrollIntoView) el.scrollIntoView({block:"center",behavior:"smooth"});
