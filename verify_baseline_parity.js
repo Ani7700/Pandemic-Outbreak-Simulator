@@ -133,19 +133,53 @@ for (const arm of ARMS) {
   console.log('');
 }
 
-// ── the item that started this: Q_band's key must be the band top, and be stated ──
-console.log('=== Q_band: key == top of the Cambridgeshire band, and the briefing says it ===');
+// ── no graded item may be phrased in one condition's medium ──────────────────
+// The items are shared, so a stem or option that names something only one condition has
+// (a chart, a line, shading, an axis, a hover) is answerable in that condition and not the
+// other. This is the wording half of the same bug: Q_band used to open "The chart draws a
+// lighter range around the most likely line". "page" is allowed — both conditions are pages.
+const MEDIUM = /\b(chart|graph|graphic|line|lighter|shaded|shading|axis|axes|badge|slider|hover|click|tap|colour|color|map|dot|dots|briefing|assistant)\b/i;
+console.log('=== NO GRADED ITEM IS PHRASED IN ONE CONDITION\'S MEDIUM ===');
+for (const arm of ARMS) {
+  const s = fs.readFileSync(p.join(ROOT, arm, 'survey.html'), 'utf8');
+  let n = 0, flagged = 0;
+  for (const m of s.matchAll(/RADIO\("([A-Za-z_0-9]+)","((?:[^"\\]|\\.)*)",\s*(\[[^\]]*\]|RL)\s*,/gs)) {
+    n++;
+    const text = (m[2] + ' || ' + m[3]).replace(/<[^>]+>/g, ' ');
+    const hit = text.match(MEDIUM);
+    if (hit) { flagged++; bad(`${arm} ${m[1]}: stem/options say "${hit[0]}" — only one condition has that`); }
+  }
+  console.log(`  ${flagged ? '✗' : '✓'} ${arm.padEnd(8)} ${n} graded items scanned`);
+}
+
+// ── the item that started this: Q_band's key must be the band top ────────────
+console.log('\n=== Q_band: key == top of the Cambridgeshire band ===');
 for (const arm of ARMS) {
   const s = fs.readFileSync(p.join(ROOT, arm, 'survey.html'), 'utf8');
   const m = s.match(/RADIO\("Q_band","((?:[^"\\]|\\.)*)",\s*\[([^\]]*)\],\s*(\d+)\)/s);
   if (!m) { bad(`${arm}: no Q_band item`); continue; }
-  const stem = m[1], opts = JSON.parse('[' + m[2] + ']'), key = opts[+m[3]];
+  const opts = JSON.parse('[' + m[2] + ']'), key = opts[+m[3]];
   const keyN = +String(key).replace(/[^0-9]/g, '');
   const sandbox = {}; new Function('window', fs.readFileSync(p.join(ROOT, arm, 'sim_projections.js'), 'utf8'))(sandbox);
   const top = Math.max(...sandbox.__SIMPROJ__[CAM].hi.slice(0, WINDOW));
   if (Math.abs(keyN - top) / top > 0.06) bad(`${arm} Q_band: key ${keyN}, band top ${top}`);
-  if (/\bchart\b|\bline\b|\bgraph\b/i.test(stem)) bad(`${arm} Q_band: stem still names a chart, which the baseline condition does not have — "${stem.slice(0, 70)}…"`);
-  console.log(`  ✓ ${arm.padEnd(8)} key ${String(keyN).padStart(5)}  band top ${String(top).padStart(5)}  stem is medium-neutral`);
+  console.log(`  ✓ ${arm.padEnd(8)} key ${String(keyN).padStart(5)}  band top ${String(top).padStart(5)}`);
+}
+
+// ── A_peakht and Q_band must not be confusable: both figures stated, and distinct ──
+console.log('\n=== A_peakht (most likely peak) and Q_band (top of range) stay distinguishable ===');
+for (const arm of ARMS) {
+  const sandbox = {}; new Function('window', fs.readFileSync(p.join(ROOT, arm, 'sim_projections.js'), 'utf8'))(sandbox);
+  const w = sandbox.__SIMPROJ__[CAM];
+  const peak = Math.max(...w.med.slice(0, WINDOW)), top = Math.max(...w.hi.slice(0, WINDOW));
+  const brief = fs.readFileSync(p.join(ROOT, arm, 'infochat', 'index.html'), 'utf8')
+    .replace(/<(script|style)\b[\s\S]*?<\/\1>/gi, '').replace(/<[^>]+>/g, ' ');
+  const said = numbersIn(brief);
+  const near = v => said.some(n => Math.abs(n - v) / v <= 0.06);
+  if (!near(peak)) bad(`${arm}: briefing never states the most-likely peak (${peak}), so A_peakht is unanswerable`);
+  if (!near(top))  bad(`${arm}: briefing never states the top of the range (${top}), so Q_band is unanswerable`);
+  if (top / peak < 1.2) bad(`${arm}: peak ${peak} and range top ${top} are too close to tell apart`);
+  console.log(`  ✓ ${arm.padEnd(8)} peak ${String(peak).padStart(5)}  vs top of range ${String(top).padStart(5)}  — both in the briefing, ${(top / peak).toFixed(1)}x apart`);
 }
 
 console.log(failures ? `\n### ${failures} PROBLEM(S)` : '\n### ALL CHECKS PASSED');
