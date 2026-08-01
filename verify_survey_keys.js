@@ -73,7 +73,7 @@ function model(arm){
 }
 // first number in an option string: "About 60 in 100" is 60, not 60100
 const numOf=o=>{const m=o.match(/(\d[\d,]*)/); return m?+m[1].replace(/,/g,''):null;};
-const RISK_IDS=['Q_dgist','C_ratio','C_diff','C_comp','C_step2','Q_dapply'];
+const RISK_IDS=['Q_dgist','C_comp','C_step2','Q_dapply'];
 // Every scored risk-display item is re-derived from the model rather than trusted.
 //
 // Two changes from the five-item set. The self-report item was dropped: it asked which figure
@@ -103,15 +103,23 @@ const RISK_IDS=['Q_dgist','C_ratio','C_diff','C_comp','C_step2','Q_dapply'];
 //             cannot be answered from a single row.
 //
 // The scale is still six items, so the primary DV keeps its length and its power.
-const ARITH=['C_ratio','C_diff','C_comp','C_step2','Q_dapply'];
+//
+// 2026-08-01, later the same day. Trimmed again for participant burden: the graded bank is
+// now ten items, down from twelve. C_ratio and C_diff came out of the primary scale, which
+// is therefore four items rather than six -- a real cost to the F1/F2/F3 comparison, taken
+// knowingly. What is left covers one distinct affordance each: Q_dgist the part-whole gist
+// (the icon array's), C_comp the complement (its uncoloured dots), C_step2 the adjacent-row
+// step (one segment's slope on the line chart), Q_dapply two rows combined. C_diff was the
+// obvious first cut -- the note above already identifies it as the one every prototype
+// renders the same way -- and C_ratio was the second arithmetic item on the same two rows.
+const ARITH=['C_comp','C_step2','Q_dapply'];
 // Q_dgist's options are fractions, not counts, so it is checked separately: read each option
 // as a fraction and the key must be the one nearest the model's attack rate.
 const fracOf=o=>{const m=o.match(/(\d+)\s*in\s*(\d+)/); return m?+m[1]/+m[2]:null;};
 const keyIdx={}, keyTxt={};
 for(const arm of ARMS){
   const m=model(arm), nd=m.sar*100, d1=nd*(1-m.ve1), d2=nd*(1-m.ve2);
-  const want={C_ratio:Math.round(nd/d2), C_diff:Math.round(nd-d2),
-              C_comp:Math.round(100-d2), C_step2:Math.round(d1-d2),
+  const want={C_comp:Math.round(100-d2), C_step2:Math.round(d1-d2),
               Q_dapply:Math.round(nd+d2)};
   const s=fs.readFileSync(p.join(ROOT,arm,'survey.html'),'utf8');
   keyIdx[arm]={}; keyTxt[arm]={};
@@ -189,7 +197,7 @@ for(const arm of ARMS){
   // position instead.
   for(const k in c) if(c[k]>3) bad(`${arm}: position ${k} is correct for ${c[k]} of the eight items`);
 }
-console.log('  6 items x 3 diseases: keys match the model, positions rotate, no position sweeps a trial');
+console.log('  4 items x 3 diseases: keys match the model, positions rotate, no position sweeps a trial');
 
 console.log('\n=== 1c. TRIMMED ITEMS stay out ===');
 // Seven items were cut because they were redundant or descriptive-only (protocol v7 section
@@ -199,14 +207,16 @@ console.log('\n=== 1c. TRIMMED ITEMS stay out ===');
 const CUT=['B_cov_val','XB','XC','Fpeakht','C_scale2','A_cov_val','A_level','XD','Q_whichfig',
            'Q_quantity','C_dose2','C_half','Q_thresh','TLX_frustration','TLX_pace','TLX_perf',
            // 2026-08-01: the read-off and the x2 rescale, replaced by Q_dgist and Q_dapply
-           'C1','C5'];
+           'C1','C5',
+           // 2026-08-01: cut to bring the graded bank to ten items
+           'C_ratio','C_diff'];
 for(const arm of ARMS){
   const s=fs.readFileSync(p.join(ROOT,arm,'survey.html'),'utf8');
   for(const id of CUT) if(s.includes('"'+id+'"')) bad(`${arm}: ${id} was cut but is present again`);
   const n=(s.match(/RADIO\(/g)||[]).length + (s.match(/LIK\(/g)||[]).length;
-  if(n!==18) bad(`${arm}: ${n} items per trial, expected 18`);
+  if(n!==16) bad(`${arm}: ${n} items per trial, expected 16`);
 }
-console.log('  18 items per trial: 6 risk-display (1 gist + 4 arithmetic + 1 applied) + 6 shared + 4 subjective + 2 workload');
+console.log('  16 items per trial: 4 risk-display (1 gist + 2 arithmetic + 1 applied) + 6 shared + 4 subjective + 2 workload');
 
 console.log('\n=== 1d. NO ITEM ANSWERS ANOTHER, AND NONE IS ON THE WRONG PAGE ===');
 // Two faults were shipped and caught by eye rather than by a check. Q_band's stem stated the

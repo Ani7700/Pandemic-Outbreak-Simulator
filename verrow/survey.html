@@ -266,9 +266,6 @@ const BLOCKS = [
   items:[
    RADIO("Q_dgist","Of the children who have had no doses at all and come into contact with someone who has Verrow fever, roughly what fraction would catch it?",
      ["About 1 in 14","About 1 in 4","About 2 in 5","About 3 in 5","Not sure"],3),
-   RADIO("C_ratio","If both are exposed to Verrow fever, how many times more likely is an unvaccinated child to catch it than a fully vaccinated child?",["About 8 times","About the same","About 3 times","About 30 times","Not sure"],0),
-   RADIO("C_diff","Out of 100 children who come into contact with Verrow fever, roughly how many fewer would catch it if they were fully vaccinated rather than unvaccinated?",
-     ["About 60","About 53","About 7","About 33","Not sure"],1),
    RADIO("C_comp","Out of 100 fully vaccinated children who come into contact with Verrow fever, roughly how many would <strong>not</strong> catch it?",
      ["About 7","About 40","About 93","About 73","Not sure"],2),
    RADIO("C_step2","Out of 100 children who come into contact with Verrow fever, roughly how many fewer would catch it after two doses than after one dose?",
@@ -381,7 +378,7 @@ function buildRecord(){
   // worth about seven participants and costs nothing. The four added items also read the
   // one-dose level, which the original four never did, so the dose gradient the line chart
   // exists to show is now actually tested.
-  const RISK_IDS = ["Q_dgist", "C_ratio", "C_diff", "C_comp", "C_step2", "Q_dapply"];
+  const RISK_IDS = ["Q_dgist", "C_comp", "C_step2", "Q_dapply"];
   BLOCKS.forEach(b=>b.items.forEach(q=>{
     const col = q.num ? ("Q"+String(q.num).padStart(2,"0")+"_"+q.id) : q.id;
     rec[col]=ANS[q.id]!=null?ANS[q.id]:"";
