@@ -243,7 +243,12 @@ body{
 .comp-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:6px;}
 .comp-grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:6px;}
 /* icon-array version */
-.ia-grid{display:grid;grid-template-columns:repeat(10,10px);gap:3px;margin:8px 0;justify-content:center;}
+.ia-grid{display:grid;grid-template-columns:repeat(5,10px) 17px repeat(4,10px);gap:3px;margin:8px 0;justify-content:center;}
+/* 2026-08-01: v2 no longer prints the value, so the array has to be countable at a glance.
+   Split into four 5x5 blocks: a partial row reads as "five and two" instead of needing a
+   dot-by-dot count, which is where the low two-dose values (5 / 7 / 8) were fragile. */
+.ia-grid .ia-dot:nth-child(10n+6){margin-left:7px;}
+.ia-grid .ia-dot:nth-child(n+51):nth-child(-n+60){margin-top:7px;}
 .ia-dot{width:10px;height:10px;border-radius:50%;background:#e3e0d7;}
 .ia-dot.on{background:#8C3A2B;}
 .ia-dot.on.partial{background:#c8923a;}
@@ -898,6 +903,17 @@ function pctText(p){
 
 // ════════════════════════════════════════════════
 // RISK DISPLAY — the ONLY part that differs between interface versions.
+//
+// 2026-08-01. Versions 2 and 7 no longer print the value. Every display in this library used
+// to show the same "N in 100" numeral (see v10 and the v23-30 header), which meant the plain
+// numeral of v1 was contained in all of them and every comprehension item could be answered
+// by reading that numeral and ignoring the graphic entirely. The graphic was decorative with
+// respect to the measure, so no accuracy difference between arms was possible. The three study
+// arms are v1 (numeral only), v2 (icon array, no numeral) and v7 (line chart, no point labels);
+// with the numeral gone from two of them the encoding is load-bearing and the arms are no
+// longer nested. Values stay recoverable: v2's 100 dots can be counted exactly, and v7's
+// gridlines were densified to every 10 so its points can be interpolated to about +/-3.
+// The other 27 versions are unused by the study and keep their numerals.
 // Add versions 4–10 here later; each is a function (dyn) => HTML string.
 // dyn = { unvacc:{gp,exp}, dose1:{gp,exp}, dose2:{gp,exp} } with RAW probabilities.
 // ════════════════════════════════════════════════
@@ -929,8 +945,7 @@ function iconArrayHTML(dyn){
     return `<div class="comp-card ${t.cls}">
       <div class="comp-head ${t.cls}">${t.head}</div>
       <div class="ia-grid">${dots}</div>
-      <div class="comp-big ${t.cls}" style="font-size:22px">${n} in 100</div>
-      <div class="comp-desc">infected if exposed to a case</div>
+      <div class="comp-desc">100 exposed; coloured = infected</div>
     </div>`;
   }).join('') + '</div>';
 }
@@ -986,15 +1001,18 @@ function lineHTML(dyn){
   const Y=v=>H-padB-(H-padT-padB)*(v/100);
   const midY=(padT+(H-padB))/2;
   let s=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:480px">`;
-  [0,25,50,75,100].forEach(g=>{const y=Y(g).toFixed(1);
-    s+=`<line x1="${padL}" y1="${y}" x2="${W-padR}" y2="${y}" stroke="#eee"/>`;
-    s+=`<text x="${padL-8}" y="${(Y(g)+4).toFixed(1)}" text-anchor="end" font-size="11" fill="#9a9a9a">${g}</text>`;});
+  // Gridlines every 10, labelled every 20. The point values are no longer printed, so the
+  // reader has to interpolate against these; at 25-unit spacing that was only good to about
+  // +/-5, and five of the keys sit within 3-7 of a distractor.
+  for(let g=0; g<=100; g+=10){ const y=Y(g).toFixed(1);
+    s+=`<line x1="${padL}" y1="${y}" x2="${W-padR}" y2="${y}" stroke="${g%20?'#f5f5f5':'#e6e6e6'}"/>`;
+    if(g%20===0) s+=`<text x="${padL-8}" y="${(Y(g)+4).toFixed(1)}" text-anchor="end" font-size="11" fill="#9a9a9a">${g}</text>`;
+  }
   s+=`<text x="14" y="${midY.toFixed(1)}" transform="rotate(-90 14 ${midY.toFixed(1)})" text-anchor="middle" font-size="11" fill="#9a9a9a">infected out of 100</text>`;
   const path=xs.map((x,i)=>(i?'L':'M')+x.toFixed(1)+' '+Y(pts[i]).toFixed(1)).join(' ');
   s+=`<path d="${path}" fill="none" stroke="#8C3A2B" stroke-width="2.5"/>`;
   xs.forEach((x,i)=>{const col=tierColor(TIERS[i].cls);
     s+=`<circle cx="${x.toFixed(1)}" cy="${Y(pts[i]).toFixed(1)}" r="6" fill="${col}"/>`;
-    s+=`<text x="${x.toFixed(1)}" y="${(Y(pts[i])-12).toFixed(1)}" text-anchor="middle" font-size="15" font-weight="800" fill="${col}">${pts[i]}</text>`;
     s+=`<text x="${x.toFixed(1)}" y="${H-18}" text-anchor="middle" font-size="12.5" font-weight="600" fill="#333">${labels[i]}</text>`;});
   s+='</svg>';
   return `<div class="rd-tree">${s}</div>`;
