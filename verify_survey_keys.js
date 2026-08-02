@@ -152,13 +152,24 @@ for(const arm of ARMS){
     const rg=radio(s,'Q_gist');
     if(rg && rg.key!==wantG)
       bad(`${arm} Q_gist: key ${rg.key}, coverage ${cov.toFixed(0)} vs threshold ${herd.toFixed(0)} gives ${wantG}`);
-    // Q_nonlinear: which area's six-week peak is bigger, and by a few times or tens of times
+    // Q_nonlinear: which area's six-week peak is bigger, and by how many times.
+    // It used to offer only "by a few times" vs "by tens of times". Solvik's true ratio is
+    // 4.7x, which sits on that boundary: in the pilot five of seven participants called it
+    // "tens of times" and the item scored 1/7 in solvik against 75% and 67% in the other two
+    // arms. The options now carry explicit multipliers, so the key is the option that names
+    // the larger area and whose multiplier is nearest the true ratio.
     const cp=Math.max(...P[CAM].med.slice(0,43)), hp=Math.max(...P[HAC].med.slice(0,43));
+    const bigger = cp>hp ? 'Cambridge' : 'Hackney';
     const ratio = cp>hp ? cp/hp : hp/cp;
-    const wantN = cp>hp ? (ratio<10?0:1) : (ratio<10?2:3);
     const rn=radio(s,'Q_nonlinear');
-    if(rn && rn.key!==wantN)
-      bad(`${arm} Q_nonlinear: key ${rn.key}, peaks ${cp.toFixed(0)} vs ${hp.toFixed(0)} (${ratio.toFixed(1)}x) give ${wantN}`);
+    if(rn){
+      let bi=-1,bd=Infinity;
+      rn.opts.forEach((o,i)=>{ if(!o.startsWith(bigger)) return;
+        const m=o.match(/(\d[\d,]*)\s*times/); if(!m) return;
+        const d=Math.abs(+m[1].replace(/,/g,'')-ratio); if(d<bd){bd=d;bi=i;} });
+      if(rn.key!==bi)
+        bad(`${arm} Q_nonlinear: key is "${rn.opts[rn.key]}", but ${bigger} is bigger by ${ratio.toFixed(1)}x -> "${rn.opts[bi]}"`);
+    }
     // Q_band: the top of the shaded range at the Cambridgeshire peak
     const chi=Math.max(...P[CAM].hi.slice(0,43));
     const rb=radio(s,'Q_band');
